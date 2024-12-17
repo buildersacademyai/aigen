@@ -1,6 +1,6 @@
 import { SocialShare } from "@/components/SocialShare";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type { SelectArticle } from "@db/schema";
 
