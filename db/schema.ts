@@ -7,7 +7,7 @@ export const articles = pgTable("articles", {
   content: text("content").notNull(),
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
-  videoUrl: text("video_url"),
+  videoUrl: text("video_url").notNull().default(''),
   authorAddress: varchar("author_address", { length: 42 }).notNull(),
   signature: text("signature").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

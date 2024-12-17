@@ -43,7 +43,8 @@ export function registerRoutes(app: Express): Server {
         description: req.body.description,
         imageUrl: req.body.imageUrl,
         authorAddress: req.body.authorAddress,
-        signature: req.body.signature
+        signature: req.body.signature,
+        videoUrl: req.body.videoUrl || ''
       }).returning();
       res.status(201).json(result[0]);
     } catch (error) {
