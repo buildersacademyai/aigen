@@ -64,25 +64,17 @@ export function ArticleDetails({ params }: ArticleProps) {
               >
                 <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
                 <div className="relative group">
-                  <img
+                  <video
                     src={article.videoUrl}
-                    alt="Article video thumbnail"
+                    poster={article.videoUrl}
+                    controls
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                  />
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors duration-300 rounded-lg flex items-center justify-center">
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="bg-white/90 p-4 rounded-full shadow-xl"
-                    >
-                      <svg
-                        className="w-8 h-8 text-primary"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </motion.div>
+                  >
+                    <source src={article.videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-2 py-1 bg-black/50 rounded text-sm">
+                    BuildersAcademy
                   </div>
                 </div>
               </motion.div>

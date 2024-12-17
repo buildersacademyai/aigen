@@ -38,7 +38,13 @@ export async function generateArticle(topic: string) {
     // Generate video with watermark
     const videoResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `Create a cinematic and dynamic 16:9 video thumbnail for "${topic}". The scene should be visually striking and suggest motion. Add a professional semi-transparent "BuildersAcademy" watermark in the bottom right corner using an elegant font. The watermark should be noticeable but not distracting. The overall style should be modern and professional, suitable for a high-end tech platform.`,
+      prompt: `Create a cinematic and dynamic 16:9 video thumbnail for "${topic}". Follow these requirements:
+1. The scene should be visually striking and suggest motion
+2. Add a large, prominent "BuildersAcademy" watermark in a professional sans-serif font
+3. Position the watermark in the bottom right corner with 80% opacity
+4. Use a subtle drop shadow on the watermark to ensure readability
+5. The overall style should be modern and high-end, suitable for a tech platform
+6. Include visual elements that reinforce the topic's theme`,
       n: 1,
       size: "1792x1024",
       quality: "hd",
