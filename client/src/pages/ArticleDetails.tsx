@@ -56,13 +56,36 @@ export function ArticleDetails({ params }: ArticleProps) {
             />
             
             {article.videoUrl && (
-              <div className="mt-6 mb-6">
-                <img
-                  src={article.videoUrl}
-                  alt="Article video thumbnail"
-                  className="w-full h-64 object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300"
-                />
-              </div>
+              <motion.div 
+                className="mt-6 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
+                <div className="relative group">
+                  <img
+                    src={article.videoUrl}
+                    alt="Article video thumbnail"
+                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
+                  />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors duration-300 rounded-lg flex items-center justify-center">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="bg-white/90 p-4 rounded-full shadow-xl"
+                    >
+                      <svg
+                        className="w-8 h-8 text-primary"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
             )}
 
             <motion.h1 
