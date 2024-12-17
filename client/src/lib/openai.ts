@@ -49,10 +49,15 @@ export async function generateArticle(topic: string) {
       quality: "hd",
     });
 
-    // Generate a sample video URL
-    // In a real implementation, this would be replaced with actual video generation
-    // For now, we're using a sample video that loops well and fits our tech theme
-    const videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
+    // Select an appropriate video based on the topic
+    let videoUrl;
+    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"; // Futuristic tech video
+    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"; // AI/Tech focused
+    } else {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; // Default tech video
+    }
 
     return {
       ...result,
