@@ -49,8 +49,10 @@ export async function generateArticle(topic: string) {
       quality: "hd",
     });
 
-    // For video URL, we'll use a placeholder until proper video generation is implemented
-    const videoUrl = "https://example.com/placeholder-video.mp4";
+    // Generate a sample video URL
+    // In a real implementation, this would be replaced with actual video generation
+    // For now, we're using a sample video that loops well and fits our tech theme
+    const videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
     return {
       ...result,

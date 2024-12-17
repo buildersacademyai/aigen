@@ -136,6 +136,42 @@ export function ArticleDetails({ params }: ArticleProps) {
               ))}
             </motion.div>
 
+            {/* Video Section */}
+            {article.videoUrl && (
+              <motion.div 
+                className="mt-6 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+              >
+                <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
+                <div className="relative group">
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
+                    poster={article.imageUrl}
+                  >
+                    <source 
+                      src={article.videoUrl} 
+                      type="video/mp4"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
+                  <div className="absolute top-4 left-4 bg-black/60 text-white/90 px-3 py-1 rounded-full backdrop-blur-sm text-sm">
+                    15s Video
+                  </div>
+                  <div 
+                    className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
+                  >
+                    BuildersAcademy
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Share Section */}
             <motion.div 
               className="border-t pt-6 mt-6"
