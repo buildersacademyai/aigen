@@ -49,37 +49,7 @@ export function ArticleDetails({ params }: ArticleProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <img
-              src={article.imageUrl}
-              alt={article.title}
-              className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
-            />
-            
-            {article.videoUrl && (
-              <motion.div 
-                className="mt-6 mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-              >
-                <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
-                <div className="relative group">
-                  <video
-                    src={article.videoUrl}
-                    poster={article.videoUrl}
-                    controls
-                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                  >
-                    <source src={article.videoUrl} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                  <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-2 py-1 bg-black/50 rounded text-sm">
-                    BuildersAcademy
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
+            {/* Title Section */}
             <motion.h1 
               className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300"
               initial={{ opacity: 0 }}
@@ -98,11 +68,50 @@ export function ArticleDetails({ params }: ArticleProps) {
               By {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}
             </motion.div>
 
-            <motion.div 
-              className="prose prose-invert max-w-none mb-8"
+            {/* Main Image */}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
+            >
+              <img
+                src={article.imageUrl}
+                alt={article.title}
+                className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
+              />
+            </motion.div>
+
+            {/* Video Section */}
+            {article.videoUrl && (
+              <motion.div 
+                className="mt-6 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
+                <div className="relative group">
+                  <video
+                    controls
+                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
+                    poster={article.imageUrl}
+                  >
+                    <source src={article.videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-2 py-1 bg-black/50 rounded text-sm">
+                    BuildersAcademy
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Article Content */}
+            <motion.div 
+              className="prose prose-invert max-w-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
             >
               {article.content.split('\n\n').map((paragraph, index) => (
                 <motion.p 
@@ -110,18 +119,19 @@ export function ArticleDetails({ params }: ArticleProps) {
                   className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + index * 0.1 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
                 >
                   {paragraph.trim()}
                 </motion.p>
               ))}
             </motion.div>
 
+            {/* Share Section */}
             <motion.div 
-              className="border-t pt-6"
+              className="border-t pt-6 mt-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.8 }}
             >
               <h3 className="text-lg font-semibold mb-4">Share this article</h3>
               <SocialShare
