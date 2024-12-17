@@ -33,14 +33,8 @@ export function Home() {
   const isLoggedIn = Boolean(window.ethereum?.selectedAddress);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="text-right mb-8">
-        {isLoggedIn && (
-          <Button onClick={() => setIsOpen(true)}>Create Article</Button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
         {dummyArticles.map((article) => (
           <ArticleCard key={article.id} article={article} />
         ))}

@@ -15,7 +15,7 @@ interface CreateArticleFormProps {
 }
 
 export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps) {
-  const form = useForm();
+  const form = useForm<{ topic: string }>();
   const { toast } = useToast();
 
   const createArticle = useMutation({

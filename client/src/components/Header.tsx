@@ -20,9 +20,10 @@ export function Header() {
         description: "Wallet connected successfully",
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to connect wallet";
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     }

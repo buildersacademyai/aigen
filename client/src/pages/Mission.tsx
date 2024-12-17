@@ -1,9 +1,9 @@
 export function Mission() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Our Mission & Vision</h1>
+    <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <h1 className="text-3xl font-bold mb-8 text-center">Our Mission & Vision</h1>
       
-      <div className="prose prose-invert max-w-none">
+      <div className="prose prose-invert max-w-none mx-auto">
         <h2>Mission</h2>
         <p>
           To democratize content creation through the power of Web3 and AI,

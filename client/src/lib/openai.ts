@@ -23,7 +23,9 @@ export async function generateArticle(topic: string) {
       response_format: { type: "json_object" }
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    const content = response.choices[0].message.content;
+    if (!content) throw new Error("No content received from OpenAI");
+    const result = JSON.parse(content);
     
     // Generate image for the article
     const imageResponse = await openai.images.generate({
