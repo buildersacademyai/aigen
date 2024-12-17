@@ -11,9 +11,10 @@ import { Loader2 } from "lucide-react";
 
 interface CreateArticleFormProps {
   address: string;
+  onSuccess?: () => void;
 }
 
-export function CreateArticleForm({ address }: CreateArticleFormProps) {
+export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps) {
   const form = useForm();
   const { toast } = useToast();
 
@@ -48,6 +49,8 @@ export function CreateArticleForm({ address }: CreateArticleFormProps) {
           description: "Article created successfully"
         });
         form.reset();
+        onSuccess?.();
+        window.location.href = '/';
       },
       onError: (error) => {
         toast({

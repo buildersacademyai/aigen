@@ -33,9 +33,18 @@ export async function generateArticle(topic: string) {
       size: "1024x1024"
     });
 
+    // Generate video with watermark
+    const videoResponse = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: `Create a video thumbnail for ${topic} with text overlay "BuildersAcademy"`,
+      n: 1,
+      size: "1024x1024"
+    });
+
     return {
       ...result,
-      imageUrl: imageResponse.data[0].url
+      imageUrl: imageResponse.data[0].url,
+      videoUrl: videoResponse.data[0].url
     };
   } catch (error) {
     throw new Error("Failed to generate article: " + error.message);
