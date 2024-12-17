@@ -114,15 +114,18 @@ export function ArticleDetails({ params }: ArticleProps) {
                     playsInline
                     controlsList="nodownload"
                     poster={article.imageUrl}
-                    preload="metadata"
+                    preload="auto"
                     src={article.videoUrl}
                     onError={(e) => {
                       console.error("Video loading error:", e);
-                      e.currentTarget.style.display = 'none';
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const errorDiv = document.createElement('div');
+                      errorDiv.className = 'absolute inset-0 flex items-center justify-center bg-black/10 text-sm text-muted-foreground';
+                      errorDiv.textContent = 'Video content unavailable';
+                      target.parentElement?.appendChild(errorDiv);
                     }}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
+                  />
                   <div className="absolute bottom-4 right-4 text-white/90 font-bold px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-md text-sm">
                     BuildersAcademy
                   </div>

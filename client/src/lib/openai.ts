@@ -60,11 +60,17 @@ export async function generateArticle(topic: string) {
       default: "https://cdn.videvo.net/videvo_files/video/premium/video0036/small_watermarked/computer_code00_preview.mp4"
     };
 
-    const lowerTitle = result.title.toLowerCase();
-    const videoUrl = lowerTitle.includes('blockchain') ? demoVideoUrls.blockchain :
-                    lowerTitle.includes('ai') ? demoVideoUrls.ai :
-                    lowerTitle.includes('web3') ? demoVideoUrls.web3 :
-                    demoVideoUrls.default;
+    // Demo video selection based on content
+    const lowerContent = (result.title + ' ' + result.content).toLowerCase();
+    let videoUrl = demoVideoUrls.default;
+    
+    if (lowerContent.includes('blockchain') || lowerContent.includes('crypto')) {
+      videoUrl = demoVideoUrls.blockchain;
+    } else if (lowerContent.includes('ai') || lowerContent.includes('artificial intelligence')) {
+      videoUrl = demoVideoUrls.ai;
+    } else if (lowerContent.includes('web3') || lowerContent.includes('decentralized')) {
+      videoUrl = demoVideoUrls.web3;
+    }
 
     return {
       ...result,
