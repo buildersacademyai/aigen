@@ -35,27 +35,27 @@ export async function generateArticle(topic: string) {
       size: "1024x1024"
     });
 
-    // Generate video with watermark
-    const videoResponse = await openai.videos.generate({
-      model: "deepmotion-1",
-      prompt: `Create a cinematic and visually striking 15-second video for "${topic}". Requirements:
-1. Make it dynamic and engaging with smooth transitions
-2. Add a professional background music track that fits the tech/educational theme
-3. Include "BuildersAcademy" watermark in bottom right (80% opacity)
-4. Use modern, high-end visuals suitable for a tech platform
-5. Incorporate visual elements that represent ${topic}
-6. Add subtle motion graphics and text overlays to highlight key points`,
-      duration: 15,
-      quality: "premium",
-      format: "mp4",
-      output_audio: true,
-      style: "cinematic"
+    // Generate video thumbnail image with watermark
+    const thumbnailResponse = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: `Create a cinematic thumbnail for "${topic}". Requirements:
+1. Professional tech-focused composition
+2. Include "BuildersAcademy" watermark in bottom right (80% opacity)
+3. High contrast and modern design style
+4. Visual elements representing ${topic}
+5. Suitable for a video cover image`,
+      n: 1,
+      size: "1024x1024",
+      quality: "hd",
     });
+
+    // For video URL, we'll use a placeholder until proper video generation is implemented
+    const videoUrl = "https://example.com/placeholder-video.mp4";
 
     return {
       ...result,
       imageUrl: imageResponse.data[0].url,
-      videoUrl: videoResponse.data[0].url
+      videoUrl: videoUrl
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
