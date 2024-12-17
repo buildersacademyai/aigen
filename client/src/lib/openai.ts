@@ -69,7 +69,7 @@ export async function generateArticle(topic: string) {
     return {
       ...result,
       imageUrl: imageResponse.data[0].url,
-      videoUrl: demoVideoUrl // Using demo video URL for testing
+      videoUrl: videoUrl // Using themed video based on article content
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";

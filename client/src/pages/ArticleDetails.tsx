@@ -116,6 +116,10 @@ export function ArticleDetails({ params }: ArticleProps) {
                     poster={article.imageUrl}
                     preload="metadata"
                     src={article.videoUrl}
+                    onError={(e) => {
+                      console.error("Video loading error:", e);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   >
                     Your browser does not support the video tag.
                   </video>
