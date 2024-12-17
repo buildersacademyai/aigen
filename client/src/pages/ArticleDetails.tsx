@@ -51,10 +51,17 @@ export function ArticleDetails({ params }: ArticleProps) {
           >
             {/* Title Section */}
             <motion.h1 
-              className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ 
+                delay: 0.2,
+                type: "spring",
+                stiffness: 200,
+                damping: 10
+              }}
             >
               {article.title}
             </motion.h1>
@@ -116,10 +123,16 @@ export function ArticleDetails({ params }: ArticleProps) {
               {article.content.split('\n\n').map((paragraph, index) => (
                 <motion.p 
                   key={index} 
-                  className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200"
+                  className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
+                  whileHover={{ scale: 1.01, x: 4 }}
+                  transition={{ 
+                    delay: 0.7 + index * 0.1,
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 30
+                  }}
                 >
                   {paragraph.trim()}
                 </motion.p>
