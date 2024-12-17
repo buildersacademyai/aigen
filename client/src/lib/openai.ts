@@ -36,19 +36,20 @@ export async function generateArticle(topic: string) {
     });
 
     // Generate video with watermark
-    const videoResponse = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Create a cinematic and dynamic 16:9 video thumbnail for "${topic}". Follow these requirements:
-1. The scene should be visually striking and suggest motion
-2. Add a large, prominent "BuildersAcademy" watermark in a professional sans-serif font
-3. Position the watermark in the bottom right corner with 80% opacity
-4. Use a subtle drop shadow on the watermark to ensure readability
-5. The overall style should be modern and high-end, suitable for a tech platform
-6. Include visual elements that reinforce the topic's theme`,
-      n: 1,
-      size: "1792x1024",
-      quality: "hd",
-      style: "vivid"
+    const videoResponse = await openai.videos.generate({
+      model: "deepmotion-1",
+      prompt: `Create a cinematic and visually striking 15-second video for "${topic}". Requirements:
+1. Make it dynamic and engaging with smooth transitions
+2. Add a professional background music track that fits the tech/educational theme
+3. Include "BuildersAcademy" watermark in bottom right (80% opacity)
+4. Use modern, high-end visuals suitable for a tech platform
+5. Incorporate visual elements that represent ${topic}
+6. Add subtle motion graphics and text overlays to highlight key points`,
+      duration: 15,
+      quality: "premium",
+      format: "mp4",
+      output_audio: true,
+      style: "cinematic"
     });
 
     return {

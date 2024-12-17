@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, varchar, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const articles = pgTable("articles", {
@@ -8,6 +8,8 @@ export const articles = pgTable("articles", {
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
   videoUrl: text("video_url").notNull().default(''),
+  videoDuration: integer("video_duration").notNull().default(15),
+  hasBackgroundMusic: boolean("has_background_music").notNull().default(true),
   authorAddress: varchar("author_address", { length: 42 }).notNull(),
   signature: text("signature").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
