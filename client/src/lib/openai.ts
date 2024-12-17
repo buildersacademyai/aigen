@@ -38,9 +38,10 @@ export async function generateArticle(topic: string) {
     // Generate video with watermark
     const videoResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `Create a video thumbnail for ${topic} with text overlay "BuildersAcademy"`,
+      prompt: `Create a cinematic video thumbnail for "${topic}" with a professional watermark overlay saying "BuildersAcademy" in the bottom right corner. The watermark should be elegant and semi-transparent.`,
       n: 1,
-      size: "1024x1024"
+      size: "1024x1024",
+      quality: "hd"
     });
 
     return {
