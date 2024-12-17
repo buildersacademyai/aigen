@@ -1,8 +1,9 @@
 import { ArticleCard } from "@/components/ArticleCard";
 import { useQuery } from "@tanstack/react-query";
+import type { SelectArticle } from "@db/schema";
 
 export function Articles() {
-  const { data: articles } = useQuery({ queryKey: ["/api/articles"] });
+  const { data: articles } = useQuery<SelectArticle[]>({ queryKey: ["/api/articles"] });
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">

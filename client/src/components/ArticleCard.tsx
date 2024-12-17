@@ -2,14 +2,10 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useLocation } from "wouter";
 
+import type { SelectArticle } from "@db/schema";
+
 interface ArticleCardProps {
-  article: {
-    id: number;
-    title: string;
-    description: string;
-    imageUrl: string;
-    authorAddress: string;
-  };
+  article: SelectArticle;
 }
 
 export function ArticleCard({ article }: ArticleCardProps) {

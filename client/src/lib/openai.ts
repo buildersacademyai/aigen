@@ -49,6 +49,7 @@ export async function generateArticle(topic: string) {
       videoUrl: videoResponse.data[0].url
     };
   } catch (error) {
-    throw new Error("Failed to generate article: " + error.message);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    throw new Error("Failed to generate article: " + errorMessage);
   }
 }
