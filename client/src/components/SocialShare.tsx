@@ -40,7 +40,7 @@ export function SocialShare({ url, title }: SocialShareProps) {
           key={share.name}
           variant="outline"
           size="icon"
-          className="transition-all duration-200 hover:scale-110 hover:bg-primary hover:text-primary-foreground"
+          className="transition-all duration-300 hover:scale-110 hover:bg-primary hover:text-primary-foreground hover:shadow-lg active:scale-95 focus:ring-2 focus:ring-primary focus:ring-offset-2"
           onClick={() => window.open(share.url, "_blank")}
         >
           <share.icon className="h-4 w-4" />
