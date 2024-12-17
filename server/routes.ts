@@ -37,9 +37,17 @@ export function registerRoutes(app: Express): Server {
   // Create article
   app.post("/api/articles", async (req, res) => {
     try {
-      const result = await db.insert(articles).values(req.body);
-      res.status(201).json(result);
+      const result = await db.insert(articles).values({
+        title: req.body.title,
+        content: req.body.content,
+        description: req.body.description,
+        imageUrl: req.body.imageUrl,
+        authorAddress: req.body.authorAddress,
+        signature: req.body.signature
+      }).returning();
+      res.status(201).json(result[0]);
     } catch (error) {
+      console.error('Article creation error:', error);
       res.status(500).json({ message: "Failed to create article" });
     }
   });
