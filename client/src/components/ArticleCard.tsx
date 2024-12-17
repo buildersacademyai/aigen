@@ -1,14 +1,25 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { SelectArticle } from "@db/schema";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useLocation } from "wouter";
 
 interface ArticleCardProps {
-  article: SelectArticle;
+  article: {
+    id: number;
+    title: string;
+    description: string;
+    imageUrl: string;
+    authorAddress: string;
+  };
 }
 
 export function ArticleCard({ article }: ArticleCardProps) {
+  const [, setLocation] = useLocation();
+
   return (
-    <Card className="overflow-hidden">
+    <Card 
+      className="overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
+      onClick={() => setLocation(`/article/${article.id}`)}
+    >
       <CardHeader className="p-0">
         <AspectRatio ratio={16 / 9}>
           <img

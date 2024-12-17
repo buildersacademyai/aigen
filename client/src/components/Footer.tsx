@@ -7,17 +7,17 @@ export function Footer() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <Link href="/">
-              <a className="text-2xl font-bold">BuildersAcademy</a>
-            </Link>
+            <div className="text-2xl font-bold">
+              <Link href="/">BuildersAcademy</Link>
+            </div>
           </div>
 
           <div>
             <h3 className="font-semibold mb-4">Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/mission">
-                  <a className="text-foreground hover:text-primary">Mission/Vision</a>
+                <Link href="/mission" className="text-foreground hover:text-primary">
+                  Mission/Vision
                 </Link>
               </li>
             </ul>

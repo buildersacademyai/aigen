@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { SiFacebook, SiTwitter, SiLinkedin, SiTiktok } from "react-icons/si";
+import { SiFacebook, SiXing as SiTwitter, SiLinkedin, SiTiktok } from "react-icons/si";
 
 interface SocialShareProps {
   url: string;

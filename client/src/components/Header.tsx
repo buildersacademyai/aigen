@@ -28,16 +28,16 @@ export function Header() {
   return (
     <header className="border-b border-border bg-background">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/">
-          <a className="text-2xl font-bold">BuildersAcademy</a>
-        </Link>
+        <div className="text-2xl font-bold">
+          <Link href="/">BuildersAcademy</Link>
+        </div>
 
         <nav className="flex items-center gap-6">
-          <Link href="/articles">
-            <a className="text-foreground hover:text-primary">Articles</a>
+          <Link href="/articles" className="text-foreground hover:text-primary">
+            Articles
           </Link>
-          <Link href="/mission">
-            <a className="text-foreground hover:text-primary">Mission/Vision</a>
+          <Link href="/mission" className="text-foreground hover:text-primary">
+            Mission/Vision
           </Link>
           
           {address ? (
