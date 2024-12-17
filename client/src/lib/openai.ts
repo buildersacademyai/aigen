@@ -51,9 +51,20 @@ export async function generateArticle(topic: string) {
       style: "vivid"
     });
 
-    // For demo purposes, we'll use a sample video URL since OpenAI doesn't have video generation
+    // For demo purposes, we'll use a themed video URL based on the article title
     // In a production environment, you would integrate with a video generation service
-    const demoVideoUrl = "https://storage.googleapis.com/webfundamentals-assets/videos/chrome.mp4";
+    const demoVideoUrls = {
+      blockchain: "https://cdn.videvo.net/videvo_files/video/premium/video0036/small_watermarked/computer_code00_preview.mp4",
+      ai: "https://cdn.videvo.net/videvo_files/video/premium/video0042/small_watermarked/artificial_intelligence00_preview.mp4",
+      web3: "https://cdn.videvo.net/videvo_files/video/premium/video0290/small_watermarked/cryptofuturistic00_preview.mp4",
+      default: "https://cdn.videvo.net/videvo_files/video/premium/video0036/small_watermarked/computer_code00_preview.mp4"
+    };
+
+    const lowerTitle = result.title.toLowerCase();
+    const videoUrl = lowerTitle.includes('blockchain') ? demoVideoUrls.blockchain :
+                    lowerTitle.includes('ai') ? demoVideoUrls.ai :
+                    lowerTitle.includes('web3') ? demoVideoUrls.web3 :
+                    demoVideoUrls.default;
 
     return {
       ...result,

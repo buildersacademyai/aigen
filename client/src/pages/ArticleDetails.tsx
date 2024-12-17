@@ -81,23 +81,40 @@ export function ArticleDetails({ params }: ArticleProps) {
               />
             </motion.div>
 
-            {/* Video Section */}
+            {/* Share Section */}
+            <motion.div 
+              className="border-t pt-6 mt-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <h3 className="text-lg font-semibold mb-4">Share this article</h3>
+              <SocialShare
+                url={window.location.href}
+                title={article.title}
+              />
+            </motion.div>
+
+            {/* Video Section - Now at the end */}
             {article.videoUrl && (
               <motion.div 
-                className="my-8"
+                className="mt-12 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.9 }}
               >
-                <h2 className="text-xl font-semibold mb-4">Featured Video</h2>
-                <div className="relative group rounded-lg overflow-hidden shadow-xl">
+                <h2 className="text-xl font-semibold mb-4">Related Video Content</h2>
+                <div className="relative group rounded-lg overflow-hidden shadow-xl bg-black/5">
                   <video
                     className="w-full h-[400px] object-cover"
                     controls
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
                     controlsList="nodownload"
                     poster={article.imageUrl}
                     preload="metadata"
-                    playsInline
                     src={article.videoUrl}
                   >
                     Your browser does not support the video tag.
