@@ -8,6 +8,22 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-background text-white;
+  }
+
+  h1, h2, h3, h4, h5, h6, p, span, a {
+    @apply text-white;
+  }
+
+  .text-muted-foreground {
+    @apply text-white/70;
+  }
+
+  .prose {
+    @apply text-white;
+  }
+
+  .prose p {
+    @apply text-white/90;
   }
 }
