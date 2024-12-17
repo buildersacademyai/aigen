@@ -84,22 +84,24 @@ export function ArticleDetails({ params }: ArticleProps) {
             {/* Video Section */}
             {article.videoUrl && (
               <motion.div 
-                className="mt-6 mb-6"
+                className="my-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
-                <div className="relative group">
+                <h2 className="text-xl font-semibold mb-4">Featured Video</h2>
+                <div className="relative group rounded-lg overflow-hidden shadow-xl">
                   <video
+                    className="w-full h-[400px] object-cover"
                     controls
-                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
+                    controlsList="nodownload"
                     poster={article.imageUrl}
+                    preload="metadata"
                   >
                     <source src={article.videoUrl} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
-                  <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-2 py-1 bg-black/50 rounded text-sm">
+                  <div className="absolute bottom-4 right-4 text-white/90 font-bold px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-md text-sm">
                     BuildersAcademy
                   </div>
                 </div>
