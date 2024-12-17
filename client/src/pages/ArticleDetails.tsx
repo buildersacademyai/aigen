@@ -97,8 +97,9 @@ export function ArticleDetails({ params }: ArticleProps) {
                     controlsList="nodownload"
                     poster={article.imageUrl}
                     preload="metadata"
+                    playsInline
+                    src={article.videoUrl}
                   >
-                    <source src={article.videoUrl} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                   <div className="absolute bottom-4 right-4 text-white/90 font-bold px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-md text-sm">

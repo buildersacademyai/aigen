@@ -35,8 +35,8 @@ export async function generateArticle(topic: string) {
       size: "1024x1024"
     });
 
-    // Generate video with watermark
-    const videoResponse = await openai.images.generate({
+    // Generate video thumbnail with watermark
+    const videoThumbnail = await openai.images.generate({
       model: "dall-e-3",
       prompt: `Create a cinematic and dynamic 16:9 video thumbnail for "${topic}". Follow these requirements:
 1. The scene should be visually striking and suggest motion
@@ -51,10 +51,14 @@ export async function generateArticle(topic: string) {
       style: "vivid"
     });
 
+    // For demo purposes, we'll use a sample video URL since OpenAI doesn't have video generation
+    // In a production environment, you would integrate with a video generation service
+    const demoVideoUrl = "https://storage.googleapis.com/webfundamentals-assets/videos/chrome.mp4";
+
     return {
       ...result,
       imageUrl: imageResponse.data[0].url,
-      videoUrl: videoResponse.data[0].url
+      videoUrl: demoVideoUrl // Using demo video URL for testing
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
