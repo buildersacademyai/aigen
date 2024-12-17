@@ -1,66 +1,39 @@
 import { SocialShare } from "@/components/SocialShare";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useQuery } from "@tanstack/react-query";
+import type { SelectArticle } from "@db/schema";
+
 interface ArticleProps {
   params: { id: string };
 }
 
 export function ArticleDetails({ params }: ArticleProps) {
-  const dummyArticles = [
-    {
-      id: 1,
-      title: "The Future of Web3 Development",
-      content: `Web3 technologies are reshaping the development landscape and creating new opportunities for builders. This comprehensive exploration delves into the latest trends, tools, and methodologies that are defining the future of decentralized applications.
+  const { data: article, isLoading } = useQuery<SelectArticle>({ 
+    queryKey: [`/api/articles/${params.id}`],
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-      Key aspects covered:
-      - Blockchain integration
-      - Smart contract development
-      - Decentralized storage solutions
-      - Web3 authentication methods
-      
-      As we move forward, the integration of these technologies continues to evolve, offering more robust and secure solutions for the next generation of web applications.`,
-      description: "Exploring how Web3 technologies are reshaping the development landscape and creating new opportunities for builders.",
-      imageUrl: "https://picsum.photos/seed/web3/800/600",
-      authorAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-    },
-    {
-      id: 2,
-      title: "Understanding Blockchain Technology",
-      content: `A comprehensive guide to blockchain technology and its potential applications in various industries. Discover how distributed ledger technology is transforming business processes and creating new opportunities for innovation.
-
-      Topics covered:
-      - Blockchain fundamentals
-      - Consensus mechanisms
-      - Smart contracts
-      - Industry applications`,
-      description: "A comprehensive guide to blockchain technology and its potential applications in various industries.",
-      imageUrl: "https://picsum.photos/seed/blockchain/800/600",
-      authorAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-    },
-    {
-      id: 3,
-      title: "AI Integration in Web3 Projects",
-      content: `How artificial intelligence is being integrated into Web3 projects to create more powerful and intelligent applications. Learn about the synergies between AI and blockchain technology.
-
-      Key topics:
-      - AI in smart contracts
-      - Machine learning on blockchain
-      - Decentralized AI
-      - Future possibilities`,
-      description: "How artificial intelligence is being integrated into Web3 projects to create more powerful and intelligent applications.",
-      imageUrl: "https://picsum.photos/seed/ai/800/600",
-      authorAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-    }
-  ];
-
-  const article = dummyArticles.find(a => a.id === parseInt(params.id));
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <Card className="mx-auto">
+          <CardContent className="p-6">
+            <div className="flex justify-center items-center min-h-[200px]">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!article) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <Card className="mx-auto">
           <CardContent className="p-6">
-            <div className="text-center">Article not found</div>
+            <div className="text-center text-lg">Article not found</div>
           </CardContent>
         </Card>
       </div>
