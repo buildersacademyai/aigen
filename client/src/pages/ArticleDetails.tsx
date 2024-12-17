@@ -100,13 +100,24 @@ export function ArticleDetails({ params }: ArticleProps) {
                 <div className="relative group">
                   <video
                     controls
+                    preload="metadata"
+                    playsInline
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
                     poster={article.imageUrl}
                   >
-                    <source src={article.videoUrl} type="video/mp4" />
+                    <source 
+                      src={article.videoUrl} 
+                      type="video/mp4" 
+                    />
+                    <source 
+                      src={article.videoUrl} 
+                      type="video/webm" 
+                    />
                     Your browser does not support the video tag.
                   </video>
-                  <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-2 py-1 bg-black/50 rounded text-sm">
+                  <div 
+                    className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
+                  >
                     BuildersAcademy
                   </div>
                 </div>
