@@ -1,6 +1,6 @@
 import { SocialShare } from "@/components/SocialShare";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type { SelectArticle } from "@db/schema";
 
@@ -81,52 +81,25 @@ export function ArticleDetails({ params }: ArticleProps) {
               />
             </motion.div>
 
-            {/* Share Section */}
-            <motion.div 
-              className="border-t pt-6 mt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-            >
-              <h3 className="text-lg font-semibold mb-4">Share this article</h3>
-              <SocialShare
-                url={window.location.href}
-                title={article.title}
-              />
-            </motion.div>
-
-            {/* Video Section - Now at the end */}
+            {/* Video Section */}
             {article.videoUrl && (
               <motion.div 
-                className="mt-12 mb-6"
+                className="mt-6 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
+                transition={{ delay: 0.5 }}
               >
-                <h2 className="text-xl font-semibold mb-4">Related Video Content</h2>
-                <div className="relative group rounded-lg overflow-hidden shadow-xl bg-black/5">
+                <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
+                <div className="relative group">
                   <video
-                    className="w-full h-[400px] object-cover"
                     controls
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    controlsList="nodownload"
+                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
                     poster={article.imageUrl}
-                    preload="auto"
-                    src={article.videoUrl}
-                    onError={(e) => {
-                      console.error("Video loading error:", e);
-                      const target = e.currentTarget;
-                      target.style.display = 'none';
-                      const errorDiv = document.createElement('div');
-                      errorDiv.className = 'absolute inset-0 flex items-center justify-center bg-black/10 text-sm text-muted-foreground';
-                      errorDiv.textContent = 'Video content unavailable';
-                      target.parentElement?.appendChild(errorDiv);
-                    }}
-                  />
-                  <div className="absolute bottom-4 right-4 text-white/90 font-bold px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-md text-sm">
+                  >
+                    <source src={article.videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-2 py-1 bg-black/50 rounded text-sm">
                     BuildersAcademy
                   </div>
                 </div>

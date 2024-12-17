@@ -35,8 +35,8 @@ export async function generateArticle(topic: string) {
       size: "1024x1024"
     });
 
-    // Generate video thumbnail with watermark
-    const videoThumbnail = await openai.images.generate({
+    // Generate video with watermark
+    const videoResponse = await openai.images.generate({
       model: "dall-e-3",
       prompt: `Create a cinematic and dynamic 16:9 video thumbnail for "${topic}". Follow these requirements:
 1. The scene should be visually striking and suggest motion
@@ -51,31 +51,10 @@ export async function generateArticle(topic: string) {
       style: "vivid"
     });
 
-    // For demo purposes, we'll use a themed video URL based on the article title
-    // In a production environment, you would integrate with a video generation service
-    const demoVideoUrls = {
-      blockchain: "https://cdn.videvo.net/videvo_files/video/premium/video0036/small_watermarked/computer_code00_preview.mp4",
-      ai: "https://cdn.videvo.net/videvo_files/video/premium/video0042/small_watermarked/artificial_intelligence00_preview.mp4",
-      web3: "https://cdn.videvo.net/videvo_files/video/premium/video0290/small_watermarked/cryptofuturistic00_preview.mp4",
-      default: "https://cdn.videvo.net/videvo_files/video/premium/video0036/small_watermarked/computer_code00_preview.mp4"
-    };
-
-    // Demo video selection based on content
-    const lowerContent = (result.title + ' ' + result.content).toLowerCase();
-    let videoUrl = demoVideoUrls.default;
-    
-    if (lowerContent.includes('blockchain') || lowerContent.includes('crypto')) {
-      videoUrl = demoVideoUrls.blockchain;
-    } else if (lowerContent.includes('ai') || lowerContent.includes('artificial intelligence')) {
-      videoUrl = demoVideoUrls.ai;
-    } else if (lowerContent.includes('web3') || lowerContent.includes('decentralized')) {
-      videoUrl = demoVideoUrls.web3;
-    }
-
     return {
       ...result,
       imageUrl: imageResponse.data[0].url,
-      videoUrl: videoUrl // Using themed video based on article content
+      videoUrl: videoResponse.data[0].url
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
