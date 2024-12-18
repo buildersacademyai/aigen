@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -120,7 +121,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           )}
         />
 
-        {createArticle.isPending && (
+        {generateDraft.isPending && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
