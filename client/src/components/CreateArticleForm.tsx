@@ -34,9 +34,9 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
     }
   });
 
-  const publishArticle = useMutation({
+  const saveAsDraft = useMutation({
     mutationFn: async (article: any) => {
-      const signature = await signMessage(address, "This content is verified");
+      const signature = await signMessage(address, "Draft content");
       const response = await fetch("/api/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,12 +44,12 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           ...article,
           authorAddress: address,
           signature,
-          isDraft: false
+          isDraft: true
         })
       });
 
       if (!response.ok) {
-        throw new Error("Failed to publish article");
+        throw new Error("Failed to save draft");
       }
 
       return response.json();
@@ -75,19 +75,19 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
     });
   });
 
-  const onPublish = async () => {
+  const onSaveAsDraft = async () => {
     if (!draftArticle) return;
     
-    publishArticle.mutate(draftArticle, {
+    saveAsDraft.mutate(draftArticle, {
       onSuccess: () => {
         toast({
           title: "Success",
-          description: "Article published successfully"
+          description: "Article saved as draft"
         });
         form.reset();
         setDraftArticle(null);
         onSuccess?.();
-        window.location.href = '/';
+        window.location.href = '/profile';
       },
       onError: (error) => {
         toast({
@@ -175,17 +175,17 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
                 Discard
               </Button>
               <Button
-                onClick={onPublish}
-                disabled={publishArticle.isPending}
+                onClick={onSaveAsDraft}
+                disabled={saveAsDraft.isPending}
                 className="flex-1"
               >
-                {publishArticle.isPending ? (
+                {saveAsDraft.isPending ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Publishing...
+                    Saving Draft...
                   </span>
                 ) : (
-                  "Publish Article"
+                  "Save as Draft"
                 )}
               </Button>
             </div>

@@ -5,6 +5,7 @@ import { Home } from "@/pages/Home";
 import { Articles } from "@/pages/Articles";
 import { Mission } from "@/pages/Mission";
 import { ArticleDetails } from "@/pages/ArticleDetails";
+import { Profile } from "@/pages/Profile";
 
 function App() {
   return (
