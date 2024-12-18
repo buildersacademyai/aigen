@@ -12,6 +12,7 @@ export const articles = pgTable("articles", {
   hasBackgroundMusic: boolean("has_background_music").notNull().default(true),
   authorAddress: varchar("author_address", { length: 42 }).notNull(),
   signature: text("signature").notNull(),
+  isDraft: boolean("is_draft").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

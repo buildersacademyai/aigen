@@ -14,27 +14,41 @@ interface CreateArticleFormProps {
   onSuccess?: () => void;
 }
 
+interface FormData {
+  topic: string;
+  title?: string;
+  content?: string;
+  description?: string;
+}
+
 export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps) {
-  const form = useForm<{ topic: string }>();
+  const [draftArticle, setDraftArticle] = useState<any>(null);
+  const form = useForm<FormData>();
   const { toast } = useToast();
 
-  const createArticle = useMutation({
-    mutationFn: async (data: { topic: string }) => {
+  const generateDraft = useMutation({
+    mutationFn: async (data: FormData) => {
       const article = await generateArticle(data.topic);
+      return article;
+    }
+  });
+
+  const publishArticle = useMutation({
+    mutationFn: async (article: any) => {
       const signature = await signMessage(address, "This content is verified");
-      
       const response = await fetch("/api/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...article,
           authorAddress: address,
-          signature
+          signature,
+          isDraft: false
         })
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create article");
+        throw new Error("Failed to publish article");
       }
 
       return response.json();
@@ -42,13 +56,35 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
   });
 
   const onSubmit = form.handleSubmit((data) => {
-    createArticle.mutate(data, {
+    generateDraft.mutate(data, {
+      onSuccess: (article) => {
+        setDraftArticle(article);
+        toast({
+          title: "Draft Created",
+          description: "Review and edit your article before publishing"
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    });
+  });
+
+  const onPublish = async () => {
+    if (!draftArticle) return;
+    
+    publishArticle.mutate(draftArticle, {
       onSuccess: () => {
         toast({
           title: "Success",
-          description: "Article created successfully"
+          description: "Article published successfully"
         });
         form.reset();
+        setDraftArticle(null);
         onSuccess?.();
         window.location.href = '/';
       },
@@ -60,7 +96,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
         });
       }
     });
-  });
+  };
 
   const steps = [
     { id: 1, title: "Generating article content" },
@@ -105,20 +141,55 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           </motion.div>
         )}
 
-        <Button 
-          type="submit" 
-          disabled={createArticle.isPending}
-          className="w-full"
-        >
-          {createArticle.isPending ? (
-            <span className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Generating...
-            </span>
-          ) : (
-            "Generate Article"
-          )}
-        </Button>
+        {!draftArticle ? (
+          <Button 
+            type="submit" 
+            disabled={generateDraft.isPending}
+            className="w-full"
+          >
+            {generateDraft.isPending ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating Draft...
+              </span>
+            ) : (
+              "Generate Draft"
+            )}
+          </Button>
+        ) : (
+          <div className="space-y-4">
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-semibold mb-2">{draftArticle.title}</h3>
+              <p className="text-sm text-muted-foreground mb-2">{draftArticle.description}</p>
+              <div className="text-sm text-muted-foreground">
+                Content preview: {draftArticle.content.slice(0, 200)}...
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setDraftArticle(null)}
+                variant="outline"
+                className="flex-1"
+              >
+                Discard
+              </Button>
+              <Button
+                onClick={onPublish}
+                disabled={publishArticle.isPending}
+                className="flex-1"
+              >
+                {publishArticle.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Publishing...
+                  </span>
+                ) : (
+                  "Publish Article"
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </form>
     </Form>
   );

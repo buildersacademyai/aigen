@@ -140,9 +140,6 @@ export function ArticleDetails({ params }: ArticleProps) {
                     />
                     Your browser does not support the video tag.
                   </video>
-                  <div className="absolute top-4 left-4 bg-black/60 text-white/90 px-3 py-1 rounded-full backdrop-blur-sm text-sm">
-                    15s Video
-                  </div>
                   <div 
                     className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
                   >

@@ -5,13 +5,34 @@ import { articles } from "@db/schema";
 import { eq } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
-  // Get all articles
+  // Get all published articles
   app.get("/api/articles", async (req, res) => {
     try {
-      const results = await db.select().from(articles).orderBy(articles.createdAt);
+      const results = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.isDraft, false))
+        .orderBy(articles.createdAt);
       res.json(results);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch articles" });
+    }
+  });
+
+  // Get user's draft articles
+  app.get("/api/articles/drafts/:address", async (req, res) => {
+    try {
+      const results = await db
+        .select()
+        .from(articles)
+        .where(and(
+          eq(articles.isDraft, true),
+          eq(articles.authorAddress, req.params.address)
+        ))
+        .orderBy(articles.createdAt);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch draft articles" });
     }
   });
 

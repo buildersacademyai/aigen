@@ -33,7 +33,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="text-2xl font-bold">
-          <Link href="/">BuildersAcademy</Link>
+          <Link href="/">AIGen</Link>
         </div>
 
         <nav className="flex items-center gap-6">
