@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArticleCard } from "@/components/ArticleCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EditArticleForm } from "@/components/EditArticleForm";
@@ -16,6 +16,7 @@ interface ProfileProps {
 export function Profile({ address }: ProfileProps) {
   const [editingArticle, setEditingArticle] = useState<SelectArticle | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: drafts, isLoading: draftsLoading } = useQuery<SelectArticle[]>({
     queryKey: [`/api/articles/drafts/${address}`],
@@ -30,13 +31,20 @@ export function Profile({ address }: ProfileProps) {
       const response = await fetch(`/api/articles/${articleId}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed to delete article");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete article");
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Article deleted successfully",
       });
+      // Invalidate both drafts and published queries to refresh the lists
+      queryClient.invalidateQueries([`/api/articles/drafts/${address}`]);
+      queryClient.invalidateQueries([`/api/articles/published/${address}`]);
     },
     onError: (error) => {
       toast({
