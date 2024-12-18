@@ -11,6 +11,44 @@ export function Header() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const { toast } = useToast();
 
+  // Track wallet connection and changes
+  useEffect(() => {
+    // Initial connection check
+    if (window.ethereum?.selectedAddress) {
+      setAddress(window.ethereum.selectedAddress);
+    }
+
+    // Listen for account changes
+    const handleAccountsChanged = (accounts: string[]) => {
+      setAddress(accounts[0] || null);
+      if (!accounts[0]) {
+        toast({
+          title: "Disconnected",
+          description: "Wallet disconnected",
+          variant: "destructive",
+        });
+      }
+    };
+
+    // Listen for network changes
+    const handleNetworkChanged = () => {
+      // Re-check connection on network change
+      if (window.ethereum?.selectedAddress) {
+        setAddress(window.ethereum.selectedAddress);
+      } else {
+        setAddress(null);
+      }
+    };
+
+    window.ethereum?.on('accountsChanged', handleAccountsChanged);
+    window.ethereum?.on('chainChanged', handleNetworkChanged);
+
+    return () => {
+      window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
+      window.ethereum?.removeListener('chainChanged', handleNetworkChanged);
+    };
+  }, [toast]);
+
   const handleConnect = async () => {
     try {
       const addr = await connectWallet();

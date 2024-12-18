@@ -78,7 +78,7 @@ export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
         description: "Article published successfully",
       });
       onSuccess?.();
-      window.location.href = `/article/${article.id}`;
+      window.location.href = '/';
     },
     onError: (error) => {
       toast({
