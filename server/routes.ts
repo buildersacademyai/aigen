@@ -136,9 +136,17 @@ export function registerRoutes(app: Express): Server {
   // Publish article
   app.post("/api/articles/:id/publish", async (req, res) => {
     try {
+      // Require signature for publishing
+      if (!req.body.signature) {
+        return res.status(400).json({ message: "Signature is required for publishing" });
+      }
+
       const result = await db
         .update(articles)
-        .set({ isDraft: false })
+        .set({ 
+          isDraft: false,
+          signature: req.body.signature 
+        })
         .where(eq(articles.id, parseInt(req.params.id)))
         .returning();
 

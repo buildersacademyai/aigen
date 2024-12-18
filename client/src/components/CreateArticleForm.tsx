@@ -36,14 +36,13 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
   const saveAsDraft = useMutation({
     mutationFn: async (article: any) => {
-      const signature = await signMessage(address, "Draft content");
       const response = await fetch("/api/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...article,
           authorAddress: address,
-          signature,
+          signature: "", // Empty signature for drafts
           isDraft: true
         })
       });

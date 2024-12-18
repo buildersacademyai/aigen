@@ -56,8 +56,13 @@ export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
 
   const publishArticle = useMutation({
     mutationFn: async () => {
+      // Sign the message before publishing
+      const signature = await signMessage(article.authorAddress, "Verified content");
+      
       const response = await fetch(`/api/articles/${article.id}/publish`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signature })
       });
 
       if (!response.ok) {
