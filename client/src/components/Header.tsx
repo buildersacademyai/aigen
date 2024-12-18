@@ -49,6 +49,9 @@ export function Header() {
               <Button onClick={() => setIsCreateOpen(true)} variant="outline">
                 Create Article
               </Button>
+              <Link href="/profile" className="text-foreground hover:text-primary">
+                My Content
+              </Link>
               <div className="text-sm text-muted-foreground">
                 {`${address.slice(0, 6)}...${address.slice(-4)}`}
               </div>
