@@ -21,27 +21,26 @@ export function Header() {
     // Listen for account changes
     const handleAccountsChanged = (accounts: string[]) => {
       const newAddress = accounts[0] || null;
-      if (address && newAddress !== address) {
-        // Address changed, log out user
+      if (address !== newAddress) {
+        // Address changed or disconnected, log out user
         setAddress(null);
         toast({
-          title: "Account Changed",
+          title: "Wallet Changed",
           description: "Please reconnect your wallet",
           variant: "destructive",
         });
-      } else {
-        setAddress(newAddress);
       }
     };
 
     // Listen for network changes
     const handleNetworkChanged = () => {
-      // Re-check connection on network change
-      if (window.ethereum?.selectedAddress) {
-        setAddress(window.ethereum.selectedAddress);
-      } else {
-        setAddress(null);
-      }
+      // Always log out user on network change
+      setAddress(null);
+      toast({
+        title: "Network Changed",
+        description: "Please reconnect your wallet",
+        variant: "destructive",
+      });
     };
 
     window.ethereum?.on('accountsChanged', handleAccountsChanged);
@@ -51,7 +50,7 @@ export function Header() {
       window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
       window.ethereum?.removeListener('chainChanged', handleNetworkChanged);
     };
-  }, [toast]);
+  }, [toast, address]);
 
   const handleConnect = async () => {
     try {
