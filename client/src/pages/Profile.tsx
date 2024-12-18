@@ -66,6 +66,7 @@ export function Profile({ address }: ProfileProps) {
         title: "Success",
         description: "Article published successfully",
       });
+      window.location.href = '/';
     },
     onError: (error) => {
       toast({

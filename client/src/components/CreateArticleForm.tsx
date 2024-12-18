@@ -64,6 +64,10 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
   });
 
   const onSubmit = form.handleSubmit((data) => {
+    toast({
+      title: "Starting Generation",
+      description: "Please wait while we generate your article...",
+    });
     createArticle.mutate(data);
   });
 

@@ -20,13 +20,17 @@ export function Header() {
 
     // Listen for account changes
     const handleAccountsChanged = (accounts: string[]) => {
-      setAddress(accounts[0] || null);
-      if (!accounts[0]) {
+      const newAddress = accounts[0] || null;
+      if (address && newAddress !== address) {
+        // Address changed, log out user
+        setAddress(null);
         toast({
-          title: "Disconnected",
-          description: "Wallet disconnected",
+          title: "Account Changed",
+          description: "Please reconnect your wallet",
           variant: "destructive",
         });
+      } else {
+        setAddress(newAddress);
       }
     };
 
