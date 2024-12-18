@@ -101,7 +101,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
   const steps = [
     { id: 1, title: "Generating article content" },
     { id: 2, title: "Creating article image" },
-    { id: 3, title: "Publishing to blockchain" }
+    { id: 3, title: "Saving as draft" }
   ];
 
   return (

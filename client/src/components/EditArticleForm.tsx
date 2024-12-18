@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
+import { signMessage } from "@/lib/web3";
 import type { SelectArticle } from "@db/schema";
 import { Loader2 } from "lucide-react";
 

@@ -1,13 +1,13 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { ArticleCard } from "@/components/ArticleCard";
-import type { SelectArticle } from "@db/schema";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Pencil, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ArticleCard } from "@/components/ArticleCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EditArticleForm } from "@/components/EditArticleForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
+import type { SelectArticle } from "@db/schema";
+import { signMessage } from "@/lib/web3";
 
 interface ProfileProps {
   address: string;
@@ -19,12 +19,10 @@ export function Profile({ address }: ProfileProps) {
 
   const { data: drafts, isLoading: draftsLoading } = useQuery<SelectArticle[]>({
     queryKey: [`/api/articles/drafts/${address}`],
-    enabled: !!address,
   });
 
   const { data: published, isLoading: publishedLoading } = useQuery<SelectArticle[]>({
     queryKey: [`/api/articles/published/${address}`],
-    enabled: !!address,
   });
 
   const deleteDraft = useMutation({
@@ -43,7 +41,36 @@ export function Profile({ address }: ProfileProps) {
     onError: (error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Failed to delete article",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const publishArticle = useMutation({
+    mutationFn: async (article: SelectArticle) => {
+      // Sign the message before publishing
+      const signature = await signMessage(address, "Verified content");
+      
+      const response = await fetch(`/api/articles/${article.id}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signature })
+      });
+
+      if (!response.ok) throw new Error("Failed to publish article");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Article published successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to publish article",
         variant: "destructive",
       });
     },
@@ -69,25 +96,14 @@ export function Profile({ address }: ProfileProps) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {drafts?.map((article) => (
-                <div key={article.id} className="relative group">
-                  <ArticleCard article={article} />
-                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      onClick={() => setEditingArticle(article)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      onClick={() => deleteDraft.mutate(article.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                <ArticleCard 
+                  key={article.id}
+                  article={article}
+                  showActions
+                  onEdit={setEditingArticle}
+                  onDelete={(id) => deleteDraft.mutate(id)}
+                  onPublish={(article) => publishArticle.mutate(article)}
+                />
               ))}
             </div>
           )}
