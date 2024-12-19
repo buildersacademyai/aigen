@@ -51,7 +51,6 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
         description: "Article created and saved as draft"
       });
       form.reset();
-      onSuccess?.();
       window.location.href = '/profile';
     },
     onError: (error) => {

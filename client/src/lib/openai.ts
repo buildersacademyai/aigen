@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { gatherRelatedContent } from './scraper';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -8,16 +9,28 @@ const openai = new OpenAI({
 
 export async function generateArticle(topic: string) {
   try {
+    // First, gather related content
+    const relatedContent = await gatherRelatedContent(topic);
+    
+    // Prepare context from search results
+    const context = relatedContent
+      .map(result => `
+Source: ${result.link}
+Title: ${result.title}
+Summary: ${result.snippet}
+      `)
+      .join('\n\n');
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "Generate an informative article with a title and content. Respond with JSON in this format: { title: string, content: string, description: string }"
+          content: "You are an expert content writer. Using the provided research context, generate a comprehensive article. The article should be original, engaging, and well-structured. Respond with JSON in this format: { title: string, content: string, description: string }"
         },
         {
           role: "user",
-          content: `Write an article about ${topic}`
+          content: `Write an article about ${topic}. Use this research context to inform your writing:\n\n${context}`
         }
       ],
       response_format: { type: "json_object" }
