@@ -14,16 +14,29 @@ export function Header() {
   // Track wallet connection and changes
   useEffect(() => {
     // Initial connection check
-    if (window.ethereum?.selectedAddress) {
-      setAddress(window.ethereum.selectedAddress);
-    }
+    const checkInitialConnection = async () => {
+      if (window.ethereum?.selectedAddress) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts[0]) {
+            setAddress(accounts[0]);
+          }
+        } catch (error) {
+          console.error('Failed to get initial account:', error);
+        }
+      }
+    };
+    
+    checkInitialConnection();
 
     // Listen for account changes
-    const handleAccountsChanged = (accounts: string[]) => {
+    const handleAccountsChanged = async (accounts: string[]) => {
       const newAddress = accounts[0] || null;
       if (address !== newAddress) {
-        // Address changed or disconnected, log out user
         setAddress(null);
+        // Clear any stored data
+        localStorage.removeItem('lastAddress');
+        window.location.href = '/';
         toast({
           title: "Wallet Changed",
           description: "Please reconnect your wallet",
@@ -34,8 +47,10 @@ export function Header() {
 
     // Listen for network changes
     const handleNetworkChanged = () => {
-      // Always log out user on network change
       setAddress(null);
+      // Clear any stored data
+      localStorage.removeItem('lastAddress');
+      window.location.href = '/';
       toast({
         title: "Network Changed",
         description: "Please reconnect your wallet",
@@ -43,12 +58,34 @@ export function Header() {
       });
     };
 
+    // Store last known address
+    if (address) {
+      localStorage.setItem('lastAddress', address);
+    }
+
     window.ethereum?.on('accountsChanged', handleAccountsChanged);
     window.ethereum?.on('chainChanged', handleNetworkChanged);
+
+    // Check for disconnection
+    const interval = setInterval(async () => {
+      if (address) {
+        try {
+          const accounts = await window.ethereum?.request({ method: 'eth_accounts' });
+          if (!accounts?.[0]) {
+            setAddress(null);
+            localStorage.removeItem('lastAddress');
+            window.location.href = '/';
+          }
+        } catch (error) {
+          console.error('Failed to check connection:', error);
+        }
+      }
+    }, 5000);
 
     return () => {
       window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
       window.ethereum?.removeListener('chainChanged', handleNetworkChanged);
+      clearInterval(interval);
     };
   }, [toast, address]);
 

@@ -40,12 +40,13 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
     
-    // Generate image for the article
+    // Generate image for the article with more specific prompt
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `Create an image for an article about ${topic}`,
+      prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
       n: 1,
-      size: "1024x1024"
+      size: "1024x1024",
+      quality: "hd",
     });
 
     // Generate video thumbnail image with watermark
