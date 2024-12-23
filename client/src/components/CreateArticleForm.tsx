@@ -19,7 +19,11 @@ interface FormData {
 }
 
 export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps) {
-  const form = useForm<FormData>();
+  const form = useForm<FormData>({
+    defaultValues: {
+      topic: ''
+    }
+  });
   const { toast } = useToast();
 
   const createArticle = useMutation({
@@ -78,19 +82,20 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-6" aria-describedby="create-article-description"> {/* Added aria-describedby */}
         <FormField
           control={form.control}
           name="topic"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Topic</FormLabel>
+              <FormLabel htmlFor="topic-input">Topic</FormLabel> {/* Added htmlFor */}
               <FormControl>
-                <Input placeholder="Enter article topic" {...field} />
+                <Input id="topic-input" placeholder="Enter article topic" {...field} aria-label="Article Topic" /> {/* Added aria-label */}
               </FormControl>
             </FormItem>
           )}
         />
+        <p id="create-article-description">Enter a topic to generate an AI-powered article</p> {/* Added description */}
 
         {createArticle.isPending && (
           <motion.div
