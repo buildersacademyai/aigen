@@ -163,18 +163,11 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/articles/analytics", async (_req, res) => {
     try {
-      console.log('Starting analytics query...');
-      console.log('Database connection status:', !!db);
-
-      // First check if the table exists and has data
-      const tableCheck = await db
-        .select({ count: articles.id })
-        .from(articles)
-        .limit(1);
+      // Simple query to validate db connection
+      console.log('Validating database connection...');
+      await db.select().from(articles).limit(1);
       
-      console.log('Table check result:', tableCheck);
-
-      // Perform the actual query with explicit type casting
+      console.log('Fetching published articles...');
       const results = await db
         .select({
           id: articles.id,
@@ -186,37 +179,33 @@ export function registerRoutes(app: Express): Server {
           isDraft: articles.isDraft,
         })
         .from(articles)
-        .where(eq(articles.isDraft, false))  // Only get published content
+        .where(eq(articles.isDraft, false))
         .orderBy(articles.createdAt);
 
-      console.log('Query results structure:', {
-        resultType: typeof results,
-        isArray: Array.isArray(results),
-        length: results?.length,
-        sample: results?.[0] ? { ...results[0], content: '[truncated]' } : null
-      });
+      if (!Array.isArray(results)) {
+        throw new Error('Query did not return an array');
+      }
 
-      // Ensure the results are properly formatted
-      const processedResults = Array.isArray(results) ? results.map(article => ({
+      console.log(`Successfully fetched ${results.length} articles`);
+      
+      const processedResults = results.map(article => ({
         ...article,
-        createdAt: article.createdAt instanceof Date 
-          ? article.createdAt.toISOString() 
-          : new Date(article.createdAt).toISOString()
-      })) : [];
+        content: article.content || '',  // Ensure content is never undefined
+        createdAt: new Date(article.createdAt).toISOString()
+      }));
 
-      console.log('Processed results count:', processedResults.length);
       res.json(processedResults);
     } catch (error) {
-      console.error('Analytics query error details:', {
-        name: error?.name,
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        type: typeof error
-      });
-
+      console.error('Analytics query failed:', error);
+      
+      // Send a more specific error message
+      const errorMessage = error instanceof Error 
+        ? `Database error: ${error.message}`
+        : 'Unknown database error occurred';
+        
       res.status(500).json({
         message: "Failed to fetch analytics data",
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error: errorMessage,
         timestamp: new Date().toISOString()
       });
     }

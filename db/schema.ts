@@ -25,6 +25,7 @@ export type SelectArticle = typeof articles.$inferSelect;
 export type ArticleAnalytics = {
   id: number;
   title: string;
+  content: string;
   description: string;
   authorAddress: string;
   createdAt: Date;
