@@ -27,7 +27,11 @@ function formatMonthData(articles: SelectArticle[]): MonthlyStats[] {
 export function Analytics() {
   const { data: articles, isLoading, isError, error } = useQuery<SelectArticle[]>({
     queryKey: ["/api/articles/analytics"],
-    retry: 2,
+    retry: 3,
+    retryDelay: 1000,
+    onError: (error) => {
+      console.error('Analytics fetch error:', error);
+    }
   });
 
   if (isLoading) {
