@@ -35,7 +35,7 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <div className="text-sm text-muted-foreground flex items-center justify-between w-full">
-          <span>By {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}</span>
+          <span>By {article.authoraddress ? `${article.authoraddress.slice(0, 6)}...${article.authoraddress.slice(-4)}` : 'Unknown'}</span>
           {showActions && (
             <div className="flex gap-2">
               <Button
