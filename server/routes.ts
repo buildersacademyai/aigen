@@ -165,19 +165,35 @@ export function registerRoutes(app: Express): Server {
     try {
       // Get all articles ordered by creation date
       const results = await db
-        .select()
+        .select({
+          id: articles.id,
+          title: articles.title,
+          description: articles.description,
+          authorAddress: articles.authorAddress,
+          createdAt: articles.createdAt,
+          isDraft: articles.isDraft,
+        })
         .from(articles)
         .orderBy(articles.createdAt);
       
-      // Even if there are no articles, return an empty array instead of 404
-      console.log('Analytics data fetched:', results?.length || 0, 'articles');
-      return res.json(results || []);
+      if (!Array.isArray(results)) {
+        throw new Error("Invalid response from database");
+      }
+
+      // Log success
+      console.log(`Analytics data fetched successfully: ${results.length} articles`);
+      
+      // Return the results, empty array if no articles found
+      return res.json(results);
       
     } catch (error) {
+      // Log the full error for debugging
       console.error('Analytics query error:', error);
+      
+      // Send a clean error response
       return res.status(500).json({ 
         message: "Failed to fetch analytics data",
-        details: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }
   });
