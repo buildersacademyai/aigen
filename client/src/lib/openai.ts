@@ -73,9 +73,15 @@ Summary: ${result.snippet}
       videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; // Default tech video
     }
 
+    // Fetch and convert the image to base64
+    const imageUrl = imageResponse.data[0].url;
+    const imageResponse2 = await fetch(imageUrl);
+    const imageBuffer = await imageResponse2.arrayBuffer();
+    const base64Image = `data:image/png;base64,${Buffer.from(imageBuffer).toString('base64')}`;
+
     return {
       ...result,
-      imageUrl: imageResponse.data[0].url,
+      imageUrl: base64Image,
       videoUrl: videoUrl
     };
   } catch (error) {
