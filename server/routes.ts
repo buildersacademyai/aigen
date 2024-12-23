@@ -160,6 +160,19 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get analytics data
+  app.get("/api/articles/analytics", async (req, res) => {
+    try {
+      const results = await db
+        .select()
+        .from(articles)
+        .orderBy(articles.createdAt);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch analytics data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
