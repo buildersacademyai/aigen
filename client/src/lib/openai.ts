@@ -78,14 +78,31 @@ Summary: ${result.snippet}
     if (!imageUrl) throw new Error("Failed to generate image");
     
     try {
-      const imageResponse2 = await fetch(imageUrl);
-      if (!imageResponse2.ok) throw new Error("Failed to fetch generated image");
+      const imageResponse2 = await fetch(imageUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'image/jpeg, image/png, image/*'
+        }
+      });
       
-      const imageBuffer = await imageResponse2.arrayBuffer();
-      const base64Image = `data:image/jpeg;base64,${Buffer.from(imageBuffer).toString('base64')}`;
+      if (!imageResponse2.ok) {
+        throw new Error(`Failed to fetch image: ${imageResponse2.status} ${imageResponse2.statusText}`);
+      }
+      
+      const contentType = imageResponse2.headers.get('content-type');
+      if (!contentType || !contentType.startsWith('image/')) {
+        throw new Error(`Invalid content type: ${contentType}`);
+      }
 
-      // Verify the base64 string is valid
-      if (!base64Image.startsWith('data:image')) {
+      const imageBuffer = await imageResponse2.arrayBuffer();
+      if (!imageBuffer || imageBuffer.byteLength === 0) {
+        throw new Error('Empty image buffer received');
+      }
+
+      const base64Image = `data:${contentType};base64,${Buffer.from(imageBuffer).toString('base64')}`;
+
+      // Verify the base64 string is valid and has content
+      if (!base64Image.startsWith('data:image/') || base64Image.length < 100) {
         throw new Error("Invalid base64 image data");
       }
 
@@ -96,7 +113,12 @@ Summary: ${result.snippet}
       };
     } catch (error) {
       console.error('Image processing error:', error);
-      throw new Error("Failed to process generated image");
+      // Provide a fallback image URL when the main image fails
+      return {
+        ...result,
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyMjIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5OTkiPkltYWdlIGdlbmVyYXRpb24gZmFpbGVkPC90ZXh0Pjwvc3ZnPg==',
+        videoUrl: videoUrl
+      };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
