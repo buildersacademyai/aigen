@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
 import { articles } from "@db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
   // Get all published articles
@@ -157,6 +157,75 @@ export function registerRoutes(app: Express): Server {
       res.json(result[0]);
     } catch (error) {
       res.status(500).json({ message: "Failed to publish article" });
+    }
+  });
+  // Get analytics data
+  app.get("/api/analytics", async (req, res) => {
+    try {
+      // Get published articles
+      const publishedArticles = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.isDraft, false))
+        .orderBy(desc(articles.createdAt))
+        .limit(6);
+
+      // Get total articles count
+      const [{ count: totalArticles }] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(articles)
+        .where(eq(articles.isDraft, false));
+
+      // Get author statistics
+      const authorStats = await db
+        .select({
+          address: articles.authorAddress,
+          count: sql<number>`count(*)`
+        })
+        .from(articles)
+        .where(eq(articles.isDraft, false))
+        .groupBy(articles.authorAddress)
+        .orderBy(desc(sql<number>`count(*)`))
+        .limit(5);
+
+      // Extract and count keywords from titles and descriptions
+      const allArticles = await db
+        .select({
+          title: articles.title,
+          description: articles.description
+        })
+        .from(articles)
+        .where(eq(articles.isDraft, false));
+
+      const keywordMap = new Map<string, number>();
+      
+      allArticles.forEach(article => {
+        const words = `${article.title} ${article.description}`
+          .toLowerCase()
+          .split(/\W+/)
+          .filter(word => 
+            word.length > 3 && 
+            !['the', 'and', 'for', 'that', 'with'].includes(word)
+          );
+
+        words.forEach(word => {
+          keywordMap.set(word, (keywordMap.get(word) || 0) + 1);
+        });
+      });
+
+      const topKeywords = Array.from(keywordMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([keyword, count]) => ({ keyword, count }));
+
+      res.json({
+        articles: publishedArticles,
+        totalArticles,
+        authorStats,
+        topKeywords,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch analytics data" });
     }
   });
 
