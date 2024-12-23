@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
 import { articles } from "@db/schema";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
   // Get all published articles
