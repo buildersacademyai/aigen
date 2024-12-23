@@ -176,17 +176,17 @@ export function registerRoutes(app: Express): Server {
       const [{ count: totalArticles }] = await db
         .select({ count: sql<number>`count(*)` })
         .from(articles)
-        .where(eq(articles.isDraft, false));
+        .where(eq(articles.isdraft, false));
 
       // Get author statistics
       const authorStats = await db
         .select({
-          address: articles.authorAddress,
+          address: articles.authoraddress,
           count: sql<number>`count(*)`
         })
         .from(articles)
-        .where(eq(articles.isDraft, false))
-        .groupBy(articles.authorAddress)
+        .where(eq(articles.isdraft, false))
+        .groupBy(articles.authoraddress)
         .orderBy(desc(sql<number>`count(*)`))
         .limit(5);
 
@@ -197,7 +197,7 @@ export function registerRoutes(app: Express): Server {
           description: articles.description
         })
         .from(articles)
-        .where(eq(articles.isDraft, false));
+        .where(eq(articles.isdraft, false));
 
       const keywordMap = new Map<string, number>();
       
