@@ -6,6 +6,7 @@ import { Articles } from "@/pages/Articles";
 import { Mission } from "@/pages/Mission";
 import { ArticleDetails } from "@/pages/ArticleDetails";
 import { Profile } from "@/pages/Profile";
+import { Analytics } from "@/pages/Analytics";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/profile">
             {(params) => <Profile address={window.ethereum?.selectedAddress || ''} />}
           </Route>
+          <Route path="/analytics" component={Analytics} />
         </Switch>
       </main>
       <Footer />
