@@ -6,14 +6,14 @@ export const articles = pgTable("articles", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   description: text("description").notNull(),
-  imageUrl: text("image_url").notNull(),
-  videoUrl: text("video_url").notNull().default(''),
-  videoDuration: integer("video_duration").notNull().default(15),
-  hasBackgroundMusic: boolean("has_background_music").notNull().default(true),
-  authorAddress: varchar("author_address", { length: 42 }).notNull(),
+  imageurl: text("imageurl").notNull(),
+  videourl: text("videourl").notNull().default(''),
+  videoduration: integer("videoduration").notNull().default(15),
+  hasbackgroundmusic: boolean("hasbackgroundmusic").notNull().default(true),
+  authoraddress: varchar("authoraddress", { length: 42 }).notNull(),
   signature: text("signature").notNull(),
-  isDraft: boolean("is_draft").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isdraft: boolean("isdraft").notNull().default(true),
+  createdat: timestamp("createdat").defaultNow().notNull(),
 });
 
 export const insertArticleSchema = createInsertSchema(articles);

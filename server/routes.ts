@@ -11,8 +11,8 @@ export function registerRoutes(app: Express): Server {
       const results = await db
         .select()
         .from(articles)
-        .where(eq(articles.isDraft, false))
-        .orderBy(articles.createdAt);
+        .where(eq(articles.isdraft, false))
+        .orderBy(desc(articles.createdat));
       res.json(results);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch articles" });
@@ -26,10 +26,10 @@ export function registerRoutes(app: Express): Server {
         .select()
         .from(articles)
         .where(and(
-          eq(articles.isDraft, true),
-          eq(articles.authorAddress, req.params.address)
+          eq(articles.isdraft, true),
+          eq(articles.authoraddress, req.params.address)
         ))
-        .orderBy(articles.createdAt);
+        .orderBy(desc(articles.createdat));
       res.json(results);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch draft articles" });
@@ -43,10 +43,10 @@ export function registerRoutes(app: Express): Server {
         .select()
         .from(articles)
         .where(and(
-          eq(articles.isDraft, false),
-          eq(articles.authorAddress, req.params.address)
+          eq(articles.isdraft, false),
+          eq(articles.authoraddress, req.params.address)
         ))
-        .orderBy(articles.createdAt);
+        .orderBy(desc(articles.createdat));
       res.json(results);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch published articles" });
@@ -79,11 +79,13 @@ export function registerRoutes(app: Express): Server {
         title: req.body.title,
         content: req.body.content,
         description: req.body.description,
-        imageUrl: req.body.imageUrl,
-        authorAddress: req.body.authorAddress,
+        imageurl: req.body.imageUrl,
+        authoraddress: req.body.authorAddress.toLowerCase(),
         signature: req.body.signature,
-        videoUrl: req.body.videoUrl || '',
-        isDraft: req.body.isDraft ?? true
+        videourl: req.body.videoUrl || '',
+        isdraft: req.body.isDraft ?? true,
+        videoduration: req.body.videoDuration ?? 15,
+        hasbackgroundmusic: req.body.hasBackgroundMusic ?? true,
       }).returning();
       res.status(201).json(result[0]);
     } catch (error) {
@@ -166,8 +168,8 @@ export function registerRoutes(app: Express): Server {
       const publishedArticles = await db
         .select()
         .from(articles)
-        .where(eq(articles.isDraft, false))
-        .orderBy(desc(articles.createdAt))
+        .where(eq(articles.isdraft, false))
+        .orderBy(desc(articles.createdat))
         .limit(6);
 
       // Get total articles count
