@@ -163,34 +163,33 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/articles/analytics", async (req, res) => {
     try {
-      // Get all articles ordered by creation date
-      const results = await db
-        .select({
-          id: articles.id,
-          title: articles.title,
-          description: articles.description,
-          authorAddress: articles.authorAddress,
-          createdAt: articles.createdAt,
-          isDraft: articles.isDraft,
-        })
-        .from(articles)
-        .orderBy(articles.createdAt);
+      console.log('Starting analytics query...');
       
-      if (!Array.isArray(results)) {
-        throw new Error("Invalid response from database");
-      }
+      // Simplified query to test database connection
+      const results = await db.query.articles.findMany({
+        columns: {
+          id: true,
+          title: true,
+          description: true,
+          authorAddress: true,
+          createdAt: true,
+          isDraft: true,
+        },
+        orderBy: (articles, { desc }) => [desc(articles.createdAt)],
+      });
 
-      // Log success
-      console.log(`Analytics data fetched successfully: ${results.length} articles`);
-      
-      // Return the results, empty array if no articles found
-      return res.json(results);
-      
+      console.log('Query executed successfully');
+      console.log('Results:', JSON.stringify(results, null, 2));
+
+      return res.json(results || []);
     } catch (error) {
-      // Log the full error for debugging
-      console.error('Analytics query error:', error);
+      // Detailed error logging
+      console.error('Analytics query error details:', {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack,
+      });
       
-      // Send a clean error response
       return res.status(500).json({ 
         message: "Failed to fetch analytics data",
         error: error instanceof Error ? error.message : "Unknown error occurred"
