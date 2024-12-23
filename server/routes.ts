@@ -75,19 +75,26 @@ export function registerRoutes(app: Express): Server {
   // Create article
   app.post("/api/articles", async (req, res) => {
     try {
-      const result = await db.insert(articles).values({
-        title: req.body.title,
-        content: req.body.content,
-        description: req.body.description,
-        imageUrl: req.body.imageUrl,
-        authorAddress: req.body.authorAddress,
-        signature: req.body.signature,
-        videoUrl: req.body.videoUrl || '',
-        isDraft: req.body.isDraft ?? true
-      }).returning();
-      res.status(201).json(result[0]);
+      const { imageData, imageType, ...articleData } = req.body;
+      
+      const article = await db
+        .insert(articles)
+        .values({
+          ...articleData,
+          image: {
+            data: imageData,
+            type: imageType
+          }
+        })
+        .returning();
+
+      const response = {
+        ...article[0],
+        imageUrl: `/api/articles/${article[0].id}/image`
+      };
+
+      res.json(response);
     } catch (error) {
-      console.error('Article creation error:', error);
       res.status(500).json({ message: "Failed to create article" });
     }
   });
@@ -226,6 +233,28 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch analytics data" });
+    }
+  });
+
+  // Serve article image
+  app.get("/api/articles/:id/image", async (req, res) => {
+    try {
+      const [article] = await db
+        .select({
+          image: articles.image
+        })
+        .from(articles)
+        .where(eq(articles.id, parseInt(req.params.id)));
+
+      if (!article) {
+        return res.status(404).json({ message: "Article not found" });
+      }
+
+      const buffer = Buffer.from(article.image.data, 'base64');
+      res.setHeader('Content-Type', article.image.type);
+      res.send(buffer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch article image" });
     }
   });
 

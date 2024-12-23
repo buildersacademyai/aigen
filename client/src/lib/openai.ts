@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { gatherRelatedContent } from './scraper';
+import { processImageFromUrl } from './storage';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -9,24 +10,44 @@ const openai = new OpenAI({
 
 export async function generateArticle(topic: string) {
   try {
+    console.log('Starting article generation for topic:', topic);
+    
     // First, gather related content
     const relatedContent = await gatherRelatedContent(topic);
     
-    // Prepare context from search results
+    if (relatedContent.length === 0) {
+      throw new Error("No research content found for the topic");
+    }
+    
+    // Prepare context from search results, including full content where available
     const context = relatedContent
       .map(result => `
 Source: ${result.link}
 Title: ${result.title}
 Summary: ${result.snippet}
+Content: ${result.content || 'No detailed content available'}
       `)
       .join('\n\n');
 
+    console.log('Generating article content with OpenAI...');
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert content writer. Using the provided research context, generate a comprehensive article. The article should be original, engaging, and well-structured. Respond with JSON in this format: { title: string, content: string, description: string }"
+          content: `You are an expert content writer specializing in Web3, blockchain, and emerging technologies. 
+Using the provided research context, generate a comprehensive article that is:
+1. Original and well-researched
+2. Engaging and accessible to a technical audience
+3. Well-structured with clear sections
+4. Focused on practical insights and real-world applications
+
+Your response must be in this JSON format:
+{
+  "title": "string (compelling title)",
+  "description": "string (2-3 sentences summary)",
+  "content": "string (full article with markdown formatting)"
+}`
         },
         {
           role: "user",
@@ -40,45 +61,48 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
     
-    // Generate image for the article with more specific prompt
+    console.log('Generating article image...');
+    // Generate image with a more detailed prompt based on the article content
+    const imagePrompt = `Create a high-quality, professional image for an article titled "${result.title}". 
+Style: Modern tech illustration, minimalist, professional
+Theme: Web3, blockchain, digital innovation
+Composition: Clear focal point, balanced layout, subtle tech elements
+Colors: Rich, vibrant, professional palette
+Must not include: Text overlays, human faces, copyrighted logos`;
+
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
+      prompt: imagePrompt,
       n: 1,
       size: "1024x1024",
       quality: "hd",
+      style: "vivid"
     });
 
-    // Generate video thumbnail image with watermark
-    const thumbnailResponse = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Create a cinematic thumbnail for "${topic}". Requirements:
-1. Professional tech-focused composition
-2. Include "BuildersAcademy" watermark in bottom right (80% opacity)
-3. High contrast and modern design style
-4. Visual elements representing ${topic}
-5. Suitable for a video cover image`,
-      n: 1,
-      size: "1024x1024",
-      quality: "hd",
-    });
+    console.log('Processing generated image...');
+    // Get the image URL from the response
+    const imageUrl = imageResponse.data[0].url;
+    
+    // Process and optimize the image for storage
+    const { data: imageData, type: imageType } = await processImageFromUrl(imageUrl);
 
     // Select an appropriate video based on the topic
-    let videoUrl;
-    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"; // Futuristic tech video
-    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"; // AI/Tech focused
-    } else {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; // Default tech video
-    }
+    console.log('Selecting appropriate video...');
+    const videoUrl = topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')
+      ? "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+      : topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')
+      ? "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+      : "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
+    console.log('Article generation complete');
     return {
       ...result,
-      imageUrl: imageResponse.data[0].url,
-      videoUrl: videoUrl
+      imageData,
+      imageType,
+      videoUrl
     };
   } catch (error) {
+    console.error('Error in generateArticle:', error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error("Failed to generate article: " + errorMessage);
   }
