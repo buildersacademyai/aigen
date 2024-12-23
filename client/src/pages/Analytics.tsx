@@ -151,6 +151,35 @@ export function Analytics() {
             </Card>
           </div>
         )}
+
+        {articles && articles.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Article Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {articles.map((article) => (
+                  <div key={article.id} className="p-4 rounded-lg border border-border bg-card">
+                    <h3 className="font-semibold mb-2 line-clamp-1">{article.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      {article.description}
+                    </p>
+                    <div className="text-xs text-muted-foreground">
+                      <div className="flex justify-between items-center">
+                        <span>Created by: {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}</span>
+                        <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="mt-1">
+                        Status: {article.isDraft ? 'Draft' : 'Published'}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
