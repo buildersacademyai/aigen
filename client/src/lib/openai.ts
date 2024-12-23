@@ -94,21 +94,17 @@ Summary: ${result.snippet}
         throw new Error(`Invalid content type: ${contentType}`);
       }
 
-      const imageBuffer = await imageResponse2.arrayBuffer();
-      if (!imageBuffer || imageBuffer.byteLength === 0) {
-        throw new Error('Empty image buffer received');
-      }
-
-      const base64Image = `data:${contentType};base64,${Buffer.from(imageBuffer).toString('base64')}`;
-
-      // Verify the base64 string is valid and has content
-      if (!base64Image.startsWith('data:image/') || base64Image.length < 100) {
-        throw new Error("Invalid base64 image data");
+      // Instead of converting to base64, we'll use the direct URL from OpenAI
+      const imageUrlFromOpenAI = imageResponse.data[0].url;
+      
+      // Verify the URL is valid
+      if (!imageUrlFromOpenAI || !imageUrlFromOpenAI.startsWith('http')) {
+        throw new Error("Invalid image URL received from OpenAI");
       }
 
       return {
         ...result,
-        imageUrl: base64Image,
+        imageUrl: imageUrlFromOpenAI,
         videoUrl: videoUrl
       };
     } catch (error) {
