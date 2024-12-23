@@ -75,26 +75,19 @@ export function registerRoutes(app: Express): Server {
   // Create article
   app.post("/api/articles", async (req, res) => {
     try {
-      const { imageData, imageType, ...articleData } = req.body;
-      
-      const article = await db
-        .insert(articles)
-        .values({
-          ...articleData,
-          image: {
-            data: imageData,
-            type: imageType
-          }
-        })
-        .returning();
-
-      const response = {
-        ...article[0],
-        imageUrl: `/api/articles/${article[0].id}/image`
-      };
-
-      res.json(response);
+      const result = await db.insert(articles).values({
+        title: req.body.title,
+        content: req.body.content,
+        description: req.body.description,
+        imageUrl: req.body.imageUrl,
+        authorAddress: req.body.authorAddress,
+        signature: req.body.signature,
+        videoUrl: req.body.videoUrl || '',
+        isDraft: req.body.isDraft ?? true
+      }).returning();
+      res.status(201).json(result[0]);
     } catch (error) {
+      console.error('Article creation error:', error);
       res.status(500).json({ message: "Failed to create article" });
     }
   });
@@ -169,19 +162,13 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/analytics", async (req, res) => {
     try {
-      // Get published articles with complete data including images
+      // Get published articles
       const publishedArticles = await db
         .select()
         .from(articles)
         .where(eq(articles.isDraft, false))
         .orderBy(desc(articles.createdAt))
         .limit(6);
-
-      // Add image URLs to the articles
-      const articlesWithUrls = publishedArticles.map(article => ({
-        ...article,
-        imageUrl: `/api/articles/${article.id}/image`
-      }));
 
       // Get total articles count
       const [{ count: totalArticles }] = await db
@@ -218,7 +205,7 @@ export function registerRoutes(app: Express): Server {
           .split(/\W+/)
           .filter(word => 
             word.length > 3 && 
-            !['the', 'and', 'for', 'that', 'with', 'this', 'from'].includes(word)
+            !['the', 'and', 'for', 'that', 'with'].includes(word)
           );
 
         words.forEach(word => {
@@ -232,37 +219,13 @@ export function registerRoutes(app: Express): Server {
         .map(([keyword, count]) => ({ keyword, count }));
 
       res.json({
-        articles: articlesWithUrls,
+        articles: publishedArticles,
         totalArticles,
         authorStats,
         topKeywords,
       });
     } catch (error) {
-      console.error('Analytics error:', error);
       res.status(500).json({ message: "Failed to fetch analytics data" });
-    }
-  });
-
-  // Serve article image
-  app.get("/api/articles/:id/image", async (req, res) => {
-    try {
-      const [article] = await db
-        .select({
-          image: articles.image
-        })
-        .from(articles)
-        .where(eq(articles.id, parseInt(req.params.id)));
-
-      if (!article) {
-        return res.status(404).json({ message: "Article not found" });
-      }
-
-      const imageData = article.image as { data: string; type: string };
-      const buffer = Buffer.from(imageData.data, 'base64');
-      res.setHeader('Content-Type', imageData.type);
-      res.send(buffer);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch article image" });
     }
   });
 
