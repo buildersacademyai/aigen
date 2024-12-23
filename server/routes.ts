@@ -146,7 +146,7 @@ export function registerRoutes(app: Express): Server {
       const result = await db
         .update(articles)
         .set({ 
-          isDraft: false,
+          isdraft: false,
           signature: req.body.signature 
         })
         .where(eq(articles.id, parseInt(req.params.id)))
@@ -158,6 +158,7 @@ export function registerRoutes(app: Express): Server {
 
       res.json(result[0]);
     } catch (error) {
+      console.error('Publish error:', error);
       res.status(500).json({ message: "Failed to publish article" });
     }
   });
