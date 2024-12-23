@@ -163,46 +163,29 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/articles/analytics", async (req, res) => {
     try {
-      console.log('Starting analytics query...');
+      // Simple query to get all articles
+      const query = `
+        SELECT 
+          id, 
+          title, 
+          description, 
+          author_address as "authorAddress",
+          created_at as "createdAt",
+          is_draft as "isDraft"
+        FROM articles 
+        ORDER BY created_at DESC;
+      `;
       
-      // Use direct select query instead of query builder
-      const results = await db
-        .select({
-          id: articles.id,
-          title: articles.title,
-          description: articles.description,
-          authorAddress: articles.authorAddress,
-          createdAt: articles.createdAt,
-          isDraft: articles.isDraft,
-        })
-        .from(articles)
-        .orderBy(articles.createdAt);
-
-      console.log('Query executed successfully');
+      const { rows } = await db.query(query);
       
-      // Ensure we have an array of results
-      if (!Array.isArray(results)) {
-        console.error('Invalid query results format:', typeof results);
-        throw new Error('Invalid database response format');
-      }
-
-      console.log(`Retrieved ${results.length} articles for analytics`);
-      return res.json(results);
+      console.log(`Successfully retrieved ${rows.length} articles for analytics`);
+      return res.json(rows);
       
     } catch (error) {
-      // Enhanced error logging
-      console.error('Analytics query error:', {
-        error: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        } : 'Unknown error type',
-        timestamp: new Date().toISOString()
-      });
-      
+      console.error('Failed to fetch analytics data:', error);
       return res.status(500).json({ 
         message: "Failed to fetch analytics data",
-        error: error instanceof Error ? error.message : "Database query failed"
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
