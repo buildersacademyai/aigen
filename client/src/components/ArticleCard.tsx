@@ -23,7 +23,7 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
       <CardHeader className="p-0">
         <AspectRatio ratio={16 / 9}>
           <img
-            src={article.imageUrl}
+            src={article.imageurl}
             alt={article.title}
             className="object-cover w-full h-full"
           />
