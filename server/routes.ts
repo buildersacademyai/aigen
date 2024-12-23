@@ -163,29 +163,41 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/articles/analytics", async (req, res) => {
     try {
-      // Simple query to get all articles
-      const query = `
-        SELECT 
-          id, 
-          title, 
-          description, 
-          author_address as "authorAddress",
-          created_at as "createdAt",
-          is_draft as "isDraft"
-        FROM articles 
-        ORDER BY created_at DESC;
-      `;
+      console.log('Starting analytics query using Drizzle ORM...');
       
-      const { rows } = await db.query(query);
+      const results = await db
+        .select({
+          id: articles.id,
+          title: articles.title,
+          description: articles.description,
+          authorAddress: articles.authorAddress,
+          createdAt: articles.createdAt,
+          isDraft: articles.isDraft,
+        })
+        .from(articles);
+
+      console.log('Query execution completed successfully');
       
-      console.log(`Successfully retrieved ${rows.length} articles for analytics`);
-      return res.json(rows);
-      
+      if (!results) {
+        console.error('No results returned from database');
+        throw new Error('Database returned no results');
+      }
+
+      console.log(`Retrieved ${results.length} articles for analytics`);
+      return res.json(results);
+
     } catch (error) {
-      console.error('Failed to fetch analytics data:', error);
+      // Detailed error logging for debugging
+      console.error('Analytics query error:', {
+        errorType: error?.constructor?.name,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      });
+
       return res.status(500).json({ 
         message: "Failed to fetch analytics data",
-        error: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown database error occurred"
       });
     }
   });
