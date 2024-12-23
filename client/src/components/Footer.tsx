@@ -20,11 +20,6 @@ export function Footer() {
                   Mission/Vision
                 </Link>
               </li>
-              <li>
-                <Link href="/analytics" className="text-foreground hover:text-primary">
-                  Analytics
-                </Link>
-              </li>
             </ul>
           </div>
 

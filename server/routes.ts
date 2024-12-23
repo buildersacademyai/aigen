@@ -160,40 +160,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get analytics data
-  app.get("/api/articles/analytics", async (_req, res) => {
-    try {
-      // Simple query to get published articles
-      const results = await db.query.articles.findMany({
-        where: eq(articles.isDraft, false),
-        orderBy: articles.createdAt,
-        columns: {
-          id: true,
-          title: true,
-          content: true,
-          description: true,
-          authorAddress: true,
-          createdAt: true,
-          isDraft: true,
-        },
-      });
-
-      // Transform dates to ISO strings
-      const processedResults = results.map(article => ({
-        ...article,
-        createdAt: article.createdAt.toISOString(),
-      }));
-
-      res.json(processedResults);
-    } catch (error) {
-      console.error('Failed to fetch analytics:', error);
-      res.status(500).json({ 
-        message: "Failed to fetch analytics data",
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      });
-    }
-  });
-
   const httpServer = createServer(app);
   return httpServer;
 }
