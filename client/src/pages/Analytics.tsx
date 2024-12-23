@@ -25,14 +25,51 @@ function formatMonthData(articles: SelectArticle[]): MonthlyStats[] {
 }
 
 export function Analytics() {
-  const { data: articles, isLoading } = useQuery<SelectArticle[]>({
+  const { data: articles, isLoading, isError, error } = useQuery<SelectArticle[]>({
     queryKey: ["/api/articles/analytics"],
+    retry: 2,
   });
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <h1 className="text-3xl font-bold mb-8">Content Analytics</h1>
+        <Card>
+          <CardContent className="flex justify-center items-center min-h-[400px]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <h1 className="text-3xl font-bold mb-8">Content Analytics</h1>
+        <Card>
+          <CardContent className="flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-lg text-destructive mb-2">Failed to load analytics data</p>
+              <p className="text-sm text-muted-foreground">
+                {error instanceof Error ? error.message : "Please try again later"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!articles || articles.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <h1 className="text-3xl font-bold mb-8">Content Analytics</h1>
+        <Card>
+          <CardContent className="flex justify-center items-center min-h-[400px]">
+            <p className="text-lg text-muted-foreground">No content available for analysis</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -52,24 +89,34 @@ export function Analytics() {
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--primary)/0.1)" />
                   <XAxis 
                     dataKey="month"
-                    stroke="#888888"
+                    stroke="hsl(var(--primary))"
                     fontSize={12}
+                    tick={{ fill: "hsl(var(--primary))" }}
                   />
                   <YAxis
-                    stroke="#888888"
+                    stroke="hsl(var(--primary))"
                     fontSize={12}
+                    tick={{ fill: "hsl(var(--primary))" }}
                     tickFormatter={(value) => `${value}`}
                   />
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: "hsl(var(--background))",
+                      border: "1px solid hsl(var(--primary))",
+                      borderRadius: "var(--radius)",
+                      color: "hsl(var(--primary))"
+                    }}
+                  />
                   <Line
                     type="monotone"
                     dataKey="count"
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))" }}
+                    dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                    activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
