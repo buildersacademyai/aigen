@@ -85,24 +85,17 @@ Respond with JSON in this format:
       throw new Error('No image URL received from DALL-E');
     }
 
-    console.log('Converting image to base64');
-    // Fetch and convert the image to base64
+    console.log('Using generated image URL');
+    // Use the generated image URL directly
     const imageUrl = imageResponse.data[0].url;
-    const imageResponse2 = await fetch(imageUrl).catch(error => {
-      console.error('Image fetch error:', error);
-      throw new Error('Failed to fetch generated image: ' + error.message);
-    });
-
-    const imageBuffer = await imageResponse2.arrayBuffer();
-    const base64Image = `data:image/png;base64,${Buffer.from(imageBuffer).toString('base64')}`;
-
+    
     // Select an appropriate video URL based on the topic
     const videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
     console.log('Article generation complete');
     return {
       ...result,
-      imageUrl: base64Image,
+      imageUrl: imageUrl,
       videoUrl: videoUrl
     };
   } catch (error) {
