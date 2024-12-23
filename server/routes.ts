@@ -163,11 +163,20 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/articles/analytics", async (_req, res) => {
     try {
-      // Simple query to validate db connection
-      console.log('Validating database connection...');
-      await db.select().from(articles).limit(1);
+      console.log('Starting analytics query...');
       
-      console.log('Fetching published articles...');
+      // First verify database connection
+      try {
+        console.log('Verifying database connection...');
+        const testQuery = await db.select({ count: articles.id }).from(articles).limit(1);
+        console.log('Database connection test successful:', testQuery);
+      } catch (dbError) {
+        console.error('Database connection test failed:', dbError);
+        throw new Error('Failed to connect to database');
+      }
+      
+      // Then attempt to fetch articles
+      console.log('Executing articles query...');
       const results = await db
         .select({
           id: articles.id,
@@ -182,30 +191,47 @@ export function registerRoutes(app: Express): Server {
         .where(eq(articles.isDraft, false))
         .orderBy(articles.createdAt);
 
+      console.log('Raw query results:', {
+        isArray: Array.isArray(results),
+        length: results?.length,
+        sampleId: results?.[0]?.id,
+      });
+
       if (!Array.isArray(results)) {
-        throw new Error('Query did not return an array');
+        console.error('Query results are not an array:', typeof results);
+        throw new Error('Invalid query results format');
       }
 
-      console.log(`Successfully fetched ${results.length} articles`);
-      
-      const processedResults = results.map(article => ({
-        ...article,
-        content: article.content || '',  // Ensure content is never undefined
-        createdAt: new Date(article.createdAt).toISOString()
-      }));
+      // Process the results
+      console.log('Processing results...');
+      const processedResults = results.map(article => {
+        try {
+          return {
+            ...article,
+            content: article.content || '',
+            createdAt: new Date(article.createdAt).toISOString(),
+            // Add fallbacks for potential null values
+            title: article.title || '',
+            description: article.description || '',
+            authorAddress: article.authorAddress || '',
+          };
+        } catch (processError) {
+          console.error('Error processing article:', article.id, processError);
+          throw new Error(`Failed to process article ${article.id}: ${processError.message}`);
+        }
+      });
 
+      console.log('Successfully processed results:', processedResults.length);
       res.json(processedResults);
     } catch (error) {
-      console.error('Analytics query failed:', error);
+      console.error('Analytics query failed:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       
-      // Send a more specific error message
-      const errorMessage = error instanceof Error 
-        ? `Database error: ${error.message}`
-        : 'Unknown database error occurred';
-        
       res.status(500).json({
         message: "Failed to fetch analytics data",
-        error: errorMessage,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         timestamp: new Date().toISOString()
       });
     }
