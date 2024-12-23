@@ -75,15 +75,29 @@ Summary: ${result.snippet}
 
     // Fetch and convert the image to base64
     const imageUrl = imageResponse.data[0].url;
-    const imageResponse2 = await fetch(imageUrl);
-    const imageBuffer = await imageResponse2.arrayBuffer();
-    const base64Image = `data:image/png;base64,${Buffer.from(imageBuffer).toString('base64')}`;
+    if (!imageUrl) throw new Error("Failed to generate image");
+    
+    try {
+      const imageResponse2 = await fetch(imageUrl);
+      if (!imageResponse2.ok) throw new Error("Failed to fetch generated image");
+      
+      const imageBuffer = await imageResponse2.arrayBuffer();
+      const base64Image = `data:image/jpeg;base64,${Buffer.from(imageBuffer).toString('base64')}`;
 
-    return {
-      ...result,
-      imageUrl: base64Image,
-      videoUrl: videoUrl
-    };
+      // Verify the base64 string is valid
+      if (!base64Image.startsWith('data:image')) {
+        throw new Error("Invalid base64 image data");
+      }
+
+      return {
+        ...result,
+        imageUrl: base64Image,
+        videoUrl: videoUrl
+      };
+    } catch (error) {
+      console.error('Image processing error:', error);
+      throw new Error("Failed to process generated image");
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error("Failed to generate article: " + errorMessage);
