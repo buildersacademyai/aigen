@@ -19,11 +19,7 @@ interface FormData {
 }
 
 export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps) {
-  const form = useForm<FormData>({
-    defaultValues: {
-      topic: ''
-    }
-  });
+  const form = useForm<FormData>();
   const { toast } = useToast();
 
   const createArticle = useMutation({
@@ -82,59 +78,56 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
   return (
     <Form {...form}>
-      <div>
-        <form onSubmit={onSubmit} className="space-y-6" aria-describedby="create-article-description">
-          <FormField
-            control={form.control}
-            name="topic"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="topic-input">Topic</FormLabel>
-                <FormControl>
-                  <Input id="topic-input" placeholder="Enter article topic" {...field} aria-label="Article Topic" />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <p id="create-article-description" className="text-sm text-muted-foreground">Enter a topic to generate an AI-powered article</p>
-
-          {createArticle.isPending && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
-              {steps.map((step, index) => (
-                <motion.div
-                  key={step.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.2 }}
-                  className="flex items-center gap-3 text-sm text-muted-foreground"
-                >
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {step.title}
-                </motion.div>
-              ))}
-            </motion.div>
+      <form onSubmit={onSubmit} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="topic"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Topic</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter article topic" {...field} />
+              </FormControl>
+            </FormItem>
           )}
+        />
 
-          <Button 
-            type="submit" 
-            disabled={createArticle.isPending}
-            className="w-full"
+        {createArticle.isPending && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
           >
-            {createArticle.isPending ? (
-              <span className="flex items-center gap-2">
+            {steps.map((step, index) => (
+              <motion.div
+                key={step.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.2 }}
+                className="flex items-center gap-3 text-sm text-muted-foreground"
+              >
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Creating Draft...
-              </span>
-            ) : (
-              "Generate Article"
-            )}
-          </Button>
-        </form>
-      </div>
+                {step.title}
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        <Button 
+          type="submit" 
+          disabled={createArticle.isPending}
+          className="w-full"
+        >
+          {createArticle.isPending ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Creating Draft...
+            </span>
+          ) : (
+            "Generate Article"
+          )}
+        </Button>
+      </form>
     </Form>
   );
 }

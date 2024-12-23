@@ -6,7 +6,7 @@ export const articles = pgTable("articles", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   description: text("description").notNull(),
-  imageUrl: text("image_url", { length: 'unlimited' }).notNull(),
+  imageUrl: text("image_url").notNull(),
   videoUrl: text("video_url").notNull().default(''),
   videoDuration: integer("video_duration").notNull().default(15),
   hasBackgroundMusic: boolean("has_background_music").notNull().default(true),

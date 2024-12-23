@@ -40,44 +40,44 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
     
-    try {
-      // Generate image for the article
-      const imageResponse = await openai.images.generate({
-        model: "dall-e-3",
-        prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
-        n: 1,
-        size: "1024x1024",
-        quality: "hd",
-      });
+    // Generate image for the article with more specific prompt
+    const imageResponse = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
+      n: 1,
+      size: "1024x1024",
+      quality: "hd",
+    });
 
-      if (!imageResponse.data?.[0]?.url) {
-        throw new Error("No image URL received from OpenAI");
-      }
+    // Generate video thumbnail image with watermark
+    const thumbnailResponse = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: `Create a cinematic thumbnail for "${topic}". Requirements:
+1. Professional tech-focused composition
+2. Include "BuildersAcademy" watermark in bottom right (80% opacity)
+3. High contrast and modern design style
+4. Visual elements representing ${topic}
+5. Suitable for a video cover image`,
+      n: 1,
+      size: "1024x1024",
+      quality: "hd",
+    });
 
-      // Select an appropriate video based on the topic
-      let videoUrl;
-      if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-        videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
-      } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-        videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
-      } else {
-        videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-      }
-
-      return {
-        ...result,
-        imageUrl: imageResponse.data[0].url,
-        videoUrl: videoUrl
-      };
-    } catch (error) {
-      console.error('Image generation error:', error);
-      // Provide a fallback image URL when image generation fails
-      return {
-        ...result,
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyMjIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5OTkiPkltYWdlIGdlbmVyYXRpb24gZmFpbGVkPC90ZXh0Pjwvc3ZnPg==',
-        videoUrl: videoUrl
-      };
+    // Select an appropriate video based on the topic
+    let videoUrl;
+    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"; // Futuristic tech video
+    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"; // AI/Tech focused
+    } else {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; // Default tech video
     }
+
+    return {
+      ...result,
+      imageUrl: imageResponse.data[0].url,
+      videoUrl: videoUrl
+    };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error("Failed to generate article: " + errorMessage);
