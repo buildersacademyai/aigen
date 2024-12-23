@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { SelectArticle } from "@db/schema";
 import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface MonthlyStats {
   month: string;
@@ -25,14 +26,18 @@ function formatMonthData(articles: SelectArticle[]): MonthlyStats[] {
 }
 
 export function Analytics() {
-  const { data: articles, isLoading, isError, error } = useQuery<SelectArticle[]>({
+  const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
+  
+  const { data: articles = [], isLoading, isError, error } = useQuery<SelectArticle[]>({
     queryKey: ["/api/articles/analytics"],
-    retry: 3,
-    retryDelay: 1000,
-    onError: (error) => {
-      console.error('Analytics fetch error:', error);
-    }
   });
+
+  // Update monthly stats when articles data changes
+  useEffect(() => {
+    if (articles && articles.length > 0) {
+      setMonthlyStats(formatMonthData(articles));
+    }
+  }, [articles]);
 
   if (isLoading) {
     return (
@@ -65,7 +70,7 @@ export function Analytics() {
     );
   }
 
-  if (!articles || articles.length === 0) {
+  if (articles.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <h1 className="text-3xl font-bold mb-8">Content Analytics</h1>
@@ -77,8 +82,6 @@ export function Analytics() {
       </div>
     );
   }
-
-  const monthlyData = articles ? formatMonthData(articles) : [];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -92,7 +95,7 @@ export function Analytics() {
           <CardContent>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData}>
+                <LineChart data={monthlyStats}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--primary)/0.1)" />
                   <XAxis 
                     dataKey="month"
@@ -128,62 +131,58 @@ export function Analytics() {
           </CardContent>
         </Card>
 
-        {articles && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Articles
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{articles.length}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  This Month
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {monthlyData[monthlyData.length - 1]?.count || 0}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {articles && articles.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Article Details</CardTitle>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Articles
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {articles.map((article) => (
-                  <div key={article.id} className="p-4 rounded-lg border border-border bg-card">
-                    <h3 className="font-semibold mb-2 line-clamp-1">{article.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                      {article.description}
-                    </p>
-                    <div className="text-xs text-muted-foreground">
-                      <div className="flex justify-between items-center">
-                        <span>Created by: {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}</span>
-                        <span>{new Date(article.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      <div className="mt-1">
-                        Status: {article.isDraft ? 'Draft' : 'Published'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-2xl font-bold">{articles.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                This Month
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {monthlyStats[monthlyStats.length - 1]?.count || 0}
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Article Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {articles.map((article) => (
+                <div key={article.id} className="p-4 rounded-lg border border-border bg-card">
+                  <h3 className="font-semibold mb-2 line-clamp-1">{article.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                    {article.description}
+                  </p>
+                  <div className="text-xs text-muted-foreground">
+                    <div className="flex justify-between items-center">
+                      <span>Created by: {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}</span>
+                      <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="mt-1">
+                      Status: {article.isDraft ? 'Draft' : 'Published'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

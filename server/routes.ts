@@ -163,20 +163,19 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/articles/analytics", async (req, res) => {
     try {
+      // Get all articles ordered by creation date
       const results = await db
         .select()
         .from(articles)
         .orderBy(articles.createdAt);
       
-      if (!results) {
-        return res.status(404).json({ message: "No analytics data found" });
-      }
+      // Even if there are no articles, return an empty array instead of 404
+      console.log('Analytics data fetched:', results?.length || 0, 'articles');
+      return res.json(results || []);
       
-      console.log('Analytics data fetched:', results.length, 'articles');
-      res.json(results);
     } catch (error) {
       console.error('Analytics query error:', error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         message: "Failed to fetch analytics data",
         details: error instanceof Error ? error.message : "Unknown error"
       });
