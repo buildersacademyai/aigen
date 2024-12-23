@@ -169,13 +169,19 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/analytics", async (req, res) => {
     try {
-      // Get published articles
+      // Get published articles with complete data including images
       const publishedArticles = await db
         .select()
         .from(articles)
         .where(eq(articles.isDraft, false))
         .orderBy(desc(articles.createdAt))
         .limit(6);
+
+      // Add image URLs to the articles
+      const articlesWithUrls = publishedArticles.map(article => ({
+        ...article,
+        imageUrl: `/api/articles/${article.id}/image`
+      }));
 
       // Get total articles count
       const [{ count: totalArticles }] = await db
@@ -212,7 +218,7 @@ export function registerRoutes(app: Express): Server {
           .split(/\W+/)
           .filter(word => 
             word.length > 3 && 
-            !['the', 'and', 'for', 'that', 'with'].includes(word)
+            !['the', 'and', 'for', 'that', 'with', 'this', 'from'].includes(word)
           );
 
         words.forEach(word => {
@@ -226,12 +232,13 @@ export function registerRoutes(app: Express): Server {
         .map(([keyword, count]) => ({ keyword, count }));
 
       res.json({
-        articles: publishedArticles,
+        articles: articlesWithUrls,
         totalArticles,
         authorStats,
         topKeywords,
       });
     } catch (error) {
+      console.error('Analytics error:', error);
       res.status(500).json({ message: "Failed to fetch analytics data" });
     }
   });
@@ -250,8 +257,9 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Article not found" });
       }
 
-      const buffer = Buffer.from(article.image.data, 'base64');
-      res.setHeader('Content-Type', article.image.type);
+      const imageData = article.image as { data: string; type: string };
+      const buffer = Buffer.from(imageData.data, 'base64');
+      res.setHeader('Content-Type', imageData.type);
       res.send(buffer);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch article image" });

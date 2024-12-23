@@ -17,7 +17,9 @@ function App() {
           <Route path="/" component={Home} />
           <Route path="/articles" component={Articles} />
           <Route path="/mission" component={Mission} />
-          <Route path="/analytics" component={Analytics} />
+          <Route path="/analytics">
+            {() => <Analytics />}
+          </Route>
           <Route path="/article/:id" component={ArticleDetails} />
           <Route path="/profile">
             {(params) => <Profile address={window.ethereum?.selectedAddress || ''} />}
