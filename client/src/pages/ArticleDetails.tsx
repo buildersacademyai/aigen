@@ -72,7 +72,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              By {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}
+              By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
             </motion.div>
 
             {/* Main Image */}
@@ -82,7 +82,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               transition={{ delay: 0.4 }}
             >
               <img
-                src={article.imageUrl}
+                src={article.imageurl}
                 alt={article.title}
                 className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
               />
@@ -117,7 +117,7 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Video Section */}
-            {article.videoUrl && (
+            {article.videourl && (
               <motion.div 
                 className="mt-6 mb-6"
                 initial={{ opacity: 0, y: 20 }}
@@ -135,7 +135,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                     poster={article.imageUrl}
                   >
                     <source 
-                      src={article.videoUrl} 
+                      src={article.videourl} 
                       type="video/mp4"
                     />
                     Your browser does not support the video tag.
