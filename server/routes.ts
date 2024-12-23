@@ -179,12 +179,14 @@ export function registerRoutes(app: Express): Server {
         .select({
           id: articles.id,
           title: articles.title,
+          content: articles.content,
           description: articles.description,
           authorAddress: articles.authorAddress,
           createdAt: articles.createdAt,
           isDraft: articles.isDraft,
         })
         .from(articles)
+        .where(eq(articles.isDraft, false))  // Only get published content
         .orderBy(articles.createdAt);
 
       console.log('Query results structure:', {

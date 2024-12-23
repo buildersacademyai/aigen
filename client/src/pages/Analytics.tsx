@@ -2,8 +2,32 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { ArticleAnalytics } from "@db/schema";
-import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Loader2, Calendar, User, Tag } from "lucide-react";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { useState, useEffect, useMemo } from "react";
+
+// Function to extract keywords from content
+function extractKeywords(content: string): string[] {
+  // Split into words and filter out common words
+  const commonWords = new Set(['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at']);
+  const words = content.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter(word => word.length > 3 && !commonWords.has(word));
+  
+  // Count word frequency
+  const wordCount = new Map<string, number>();
+  words.forEach(word => {
+    wordCount.set(word, (wordCount.get(word) || 0) + 1);
+  });
+  
+  // Get top 5 keywords
+  return Array.from(wordCount.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([word]) => word);
+}
 
 interface MonthlyStats {
   month: string;
@@ -173,24 +197,47 @@ export function Analytics() {
             <CardTitle>Article Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {articles.map((article) => (
-                <div key={article.id} className="p-4 rounded-lg border border-border bg-card">
-                  <h3 className="font-semibold mb-2 line-clamp-1">{article.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                    {article.description}
-                  </p>
-                  <div className="text-xs text-muted-foreground">
-                    <div className="flex justify-between items-center">
-                      <span>Created by: {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}</span>
-                      <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+            <div className="space-y-4">
+              {articles.map((article) => {
+                const keywords = extractKeywords(article.content || '');
+                return (
+                  <div key={article.id} className="p-6 rounded-lg border border-border bg-card">
+                    <h3 className="text-xl font-semibold mb-3">{article.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {article.description}
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-4 w-4" />
+                        <span>Published by: </span>
+                        <span className="font-mono">
+                          {article.authorAddress.slice(0, 6)}...{article.authorAddress.slice(-4)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4" />
+                        <span>Published on: </span>
+                        <span>
+                          {format(new Date(article.createdAt), 'PPP')}
+                        </span>
+                      </div>
                     </div>
-                    <div className="mt-1">
-                      Status: {article.isDraft ? 'Draft' : 'Published'}
+                    
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      <span className="text-sm">Keywords: </span>
+                      <div className="flex flex-wrap gap-2">
+                        {keywords.map((keyword, idx) => (
+                          <Badge key={idx} variant="secondary">
+                            {keyword}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
