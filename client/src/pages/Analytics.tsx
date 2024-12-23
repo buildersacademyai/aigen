@@ -31,10 +31,15 @@ export function Analytics() {
   const { data: articles = [], isLoading, isError, error } = useQuery<ArticleAnalytics[]>({
     queryKey: ["/api/articles/analytics"],
     retry: 1,
-    staleTime: 30000,
+    staleTime: 30000, // Cache for 30 seconds
     refetchOnWindowFocus: false,
-    onError: (err: Error) => {
-      console.error('Analytics query error:', err);
+    select: (data) => {
+      // Ensure we always return an array and process dates
+      const processedData = Array.isArray(data) ? data : [];
+      return processedData.map(article => ({
+        ...article,
+        createdAt: new Date(article.createdAt)
+      }));
     }
   });
 

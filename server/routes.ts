@@ -164,33 +164,58 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/articles/analytics", async (_req, res) => {
     try {
       console.log('Starting analytics query...');
-      
-      // Use a simpler query structure
-      const results = await db.select({
-        id: articles.id,
-        title: articles.title,
-        description: articles.description,
-        authorAddress: articles.authorAddress,
-        createdAt: articles.createdAt,
-        isDraft: articles.isDraft,
-      })
-      .from(articles)
-      .orderBy(articles.createdAt);
+      console.log('Database connection status:', !!db);
 
-      console.log('Analytics query successful, processing results...');
+      // First check if the table exists and has data
+      const tableCheck = await db
+        .select({ count: articles.id })
+        .from(articles)
+        .limit(1);
       
-      // Transform dates to ensure proper JSON serialization
-      const processedResults = results.map(article => ({
+      console.log('Table check result:', tableCheck);
+
+      // Perform the actual query with explicit type casting
+      const results = await db
+        .select({
+          id: articles.id,
+          title: articles.title,
+          description: articles.description,
+          authorAddress: articles.authorAddress,
+          createdAt: articles.createdAt,
+          isDraft: articles.isDraft,
+        })
+        .from(articles)
+        .orderBy(articles.createdAt);
+
+      console.log('Query results structure:', {
+        resultType: typeof results,
+        isArray: Array.isArray(results),
+        length: results?.length,
+        sample: results?.[0] ? { ...results[0], content: '[truncated]' } : null
+      });
+
+      // Ensure the results are properly formatted
+      const processedResults = Array.isArray(results) ? results.map(article => ({
         ...article,
-        createdAt: article.createdAt.toISOString(),
-      }));
+        createdAt: article.createdAt instanceof Date 
+          ? article.createdAt.toISOString() 
+          : new Date(article.createdAt).toISOString()
+      })) : [];
 
+      console.log('Processed results count:', processedResults.length);
       res.json(processedResults);
     } catch (error) {
-      console.error('Analytics query failed:', error);
+      console.error('Analytics query error details:', {
+        name: error?.name,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: typeof error
+      });
+
       res.status(500).json({
         message: "Failed to fetch analytics data",
-        error: error instanceof Error ? error.message : "Unknown error occurred"
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+        timestamp: new Date().toISOString()
       });
     }
   });
