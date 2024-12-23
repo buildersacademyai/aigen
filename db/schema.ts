@@ -6,7 +6,7 @@ export const articles = pgTable("articles", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   description: text("description").notNull(),
-  imageUrl: text("image_url", { length: 'unlimited' }).notNull().default(''),
+  imageUrl: text("image_url").notNull().default(''),
   videoUrl: text("video_url").notNull().default(''),
   videoDuration: integer("video_duration").notNull().default(15),
   hasBackgroundMusic: boolean("has_background_music").notNull().default(true),
@@ -20,3 +20,13 @@ export const insertArticleSchema = createInsertSchema(articles);
 export const selectArticleSchema = createSelectSchema(articles);
 export type InsertArticle = typeof articles.$inferInsert;
 export type SelectArticle = typeof articles.$inferSelect;
+
+// Analytics-specific type for the frontend
+export type ArticleAnalytics = {
+  id: number;
+  title: string;
+  description: string;
+  authorAddress: string;
+  createdAt: Date;
+  isDraft: boolean;
+};

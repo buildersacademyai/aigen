@@ -161,14 +161,11 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Get analytics data
-  app.get("/api/articles/analytics", async (req, res) => {
+  app.get("/api/articles/analytics", async (_req, res) => {
     try {
-      // Verify database connection first
-      console.log('Verifying database connection...');
-      const testQuery = await db.select({ count: articles.id }).from(articles);
-      console.log('Database connection verified:', testQuery);
-
       console.log('Starting analytics query...');
+      
+      // Use a simpler query structure
       const results = await db.select({
         id: articles.id,
         title: articles.title,
@@ -176,30 +173,24 @@ export function registerRoutes(app: Express): Server {
         authorAddress: articles.authorAddress,
         createdAt: articles.createdAt,
         isDraft: articles.isDraft,
-      }).from(articles).execute();
+      })
+      .from(articles)
+      .orderBy(articles.createdAt);
 
-      // Ensure we have an array of results
-      if (!Array.isArray(results)) {
-        console.error('Invalid results format:', typeof results);
-        throw new Error('Invalid query results format');
-      }
+      console.log('Analytics query successful, processing results...');
+      
+      // Transform dates to ensure proper JSON serialization
+      const processedResults = results.map(article => ({
+        ...article,
+        createdAt: article.createdAt.toISOString(),
+      }));
 
-      console.log('Analytics query successful, found', results.length, 'articles');
-      res.json(results);
-
+      res.json(processedResults);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Analytics query failed:', {
-        error: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-        time: new Date().toISOString()
-      });
-
-      // Send a more detailed error response
+      console.error('Analytics query failed:', error);
       res.status(500).json({
         message: "Failed to fetch analytics data",
-        error: errorMessage,
-        timestamp: new Date().toISOString()
+        error: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }
   });

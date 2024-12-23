@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import type { SelectArticle } from "@db/schema";
+import type { ArticleAnalytics } from "@db/schema";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -10,7 +10,7 @@ interface MonthlyStats {
   count: number;
 }
 
-function formatMonthData(articles: SelectArticle[]): MonthlyStats[] {
+function formatMonthData(articles: ArticleAnalytics[]): MonthlyStats[] {
   const monthCounts = new Map<string, number>();
   
   articles.forEach(article => {
@@ -28,11 +28,13 @@ function formatMonthData(articles: SelectArticle[]): MonthlyStats[] {
 export function Analytics() {
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
   
-  const { data: articles = [], isLoading, isError, error } = useQuery<SelectArticle[]>({
+  const { data: articles = [], isLoading, isError, error } = useQuery<ArticleAnalytics[]>({
     queryKey: ["/api/articles/analytics"],
     retry: 1,
-    onError: (error) => {
-      console.error('Analytics query error:', error);
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    onError: (err: Error) => {
+      console.error('Analytics query error:', err);
     }
   });
 
