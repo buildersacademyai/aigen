@@ -163,41 +163,43 @@ export function registerRoutes(app: Express): Server {
   // Get analytics data
   app.get("/api/articles/analytics", async (req, res) => {
     try {
-      console.log('Starting analytics query using Drizzle ORM...');
-      
-      const results = await db
-        .select({
-          id: articles.id,
-          title: articles.title,
-          description: articles.description,
-          authorAddress: articles.authorAddress,
-          createdAt: articles.createdAt,
-          isDraft: articles.isDraft,
-        })
-        .from(articles);
+      // Verify database connection first
+      console.log('Verifying database connection...');
+      const testQuery = await db.select({ count: articles.id }).from(articles);
+      console.log('Database connection verified:', testQuery);
 
-      console.log('Query execution completed successfully');
-      
-      if (!results) {
-        console.error('No results returned from database');
-        throw new Error('Database returned no results');
+      console.log('Starting analytics query...');
+      const results = await db.select({
+        id: articles.id,
+        title: articles.title,
+        description: articles.description,
+        authorAddress: articles.authorAddress,
+        createdAt: articles.createdAt,
+        isDraft: articles.isDraft,
+      }).from(articles).execute();
+
+      // Ensure we have an array of results
+      if (!Array.isArray(results)) {
+        console.error('Invalid results format:', typeof results);
+        throw new Error('Invalid query results format');
       }
 
-      console.log(`Retrieved ${results.length} articles for analytics`);
-      return res.json(results);
+      console.log('Analytics query successful, found', results.length, 'articles');
+      res.json(results);
 
     } catch (error) {
-      // Detailed error logging for debugging
-      console.error('Analytics query error:', {
-        errorType: error?.constructor?.name,
-        message: error instanceof Error ? error.message : 'Unknown error',
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Analytics query failed:', {
+        error: errorMessage,
         stack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString()
+        time: new Date().toISOString()
       });
 
-      return res.status(500).json({ 
+      // Send a more detailed error response
+      res.status(500).json({
         message: "Failed to fetch analytics data",
-        details: error instanceof Error ? error.message : "Unknown database error occurred"
+        error: errorMessage,
+        timestamp: new Date().toISOString()
       });
     }
   });

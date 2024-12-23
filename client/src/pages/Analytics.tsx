@@ -30,6 +30,10 @@ export function Analytics() {
   
   const { data: articles = [], isLoading, isError, error } = useQuery<SelectArticle[]>({
     queryKey: ["/api/articles/analytics"],
+    retry: 1,
+    onError: (error) => {
+      console.error('Analytics query error:', error);
+    }
   });
 
   // Update monthly stats when articles data changes
