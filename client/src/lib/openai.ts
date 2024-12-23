@@ -40,76 +40,38 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
     
-    // Generate image for the article with more specific prompt
-    const imageResponse = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
-      n: 1,
-      size: "1024x1024",
-      quality: "hd",
-    });
-
-    // Generate video thumbnail image with watermark
-    const thumbnailResponse = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Create a cinematic thumbnail for "${topic}". Requirements:
-1. Professional tech-focused composition
-2. Include "BuildersAcademy" watermark in bottom right (80% opacity)
-3. High contrast and modern design style
-4. Visual elements representing ${topic}
-5. Suitable for a video cover image`,
-      n: 1,
-      size: "1024x1024",
-      quality: "hd",
-    });
-
-    // Select an appropriate video based on the topic
-    let videoUrl;
-    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"; // Futuristic tech video
-    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"; // AI/Tech focused
-    } else {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; // Default tech video
-    }
-
-    // Fetch and convert the image to base64
-    const imageUrl = imageResponse.data[0].url;
-    if (!imageUrl) throw new Error("Failed to generate image");
-    
     try {
-      const imageResponse2 = await fetch(imageUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'image/jpeg, image/png, image/*'
-        }
+      // Generate image for the article
+      const imageResponse = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
+        n: 1,
+        size: "1024x1024",
+        quality: "hd",
       });
-      
-      if (!imageResponse2.ok) {
-        throw new Error(`Failed to fetch image: ${imageResponse2.status} ${imageResponse2.statusText}`);
-      }
-      
-      const contentType = imageResponse2.headers.get('content-type');
-      if (!contentType || !contentType.startsWith('image/')) {
-        throw new Error(`Invalid content type: ${contentType}`);
+
+      if (!imageResponse.data?.[0]?.url) {
+        throw new Error("No image URL received from OpenAI");
       }
 
-      // Instead of converting to base64, we'll use the direct URL from OpenAI
-      const imageUrlFromOpenAI = imageResponse.data[0].url;
-      
-      // Verify the URL is valid
-      if (!imageUrlFromOpenAI || !imageUrlFromOpenAI.startsWith('http')) {
-        throw new Error("Invalid image URL received from OpenAI");
+      // Select an appropriate video based on the topic
+      let videoUrl;
+      if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
+        videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
+      } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
+        videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+      } else {
+        videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
       }
 
       return {
         ...result,
-        imageUrl: imageUrlFromOpenAI,
+        imageUrl: imageResponse.data[0].url,
         videoUrl: videoUrl
       };
     } catch (error) {
-      console.error('Image processing error:', error);
-      // Provide a fallback image URL when the main image fails
+      console.error('Image generation error:', error);
+      // Provide a fallback image URL when image generation fails
       return {
         ...result,
         imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyMjIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5OTkiPkltYWdlIGdlbmVyYXRpb24gZmFpbGVkPC90ZXh0Pjwvc3ZnPg==',
