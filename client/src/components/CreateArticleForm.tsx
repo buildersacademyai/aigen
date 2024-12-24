@@ -32,14 +32,14 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...article,
-          authoraddress: address,
+          title: article.title,
+          content: article.content,
+          description: article.description,
+          imageurl: article.imageUrl,
+          videourl: article.videoUrl || '',
+          authoraddress: address,  // Send address directly without manipulation
           signature: "", // Empty signature for drafts
           isdraft: true,
-          // Ensure properties match database column names
-          imageurl: article.imageUrl,
-          videourl: article.videoUrl,
-          // Add other required fields
           videoduration: 15,
           hasbackgroundmusic: true
         })
@@ -47,7 +47,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to save draft");
+        throw new Error(errorData.message || "Failed to create article");
       }
 
       return response.json();
@@ -70,6 +70,15 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
   });
 
   const onSubmit = form.handleSubmit((data) => {
+    if (!address) {
+      toast({
+        title: "Error",
+        description: "Please connect your wallet first",
+        variant: "destructive"
+      });
+      return;
+    }
+
     toast({
       title: "Starting Generation",
       description: "Please wait while we generate your article...",

@@ -61,7 +61,7 @@ export function registerRoutes(app: Express): Server {
         .from(articles)
         .where(eq(articles.id, parseInt(req.params.id)))
         .limit(1);
-      
+
       if (result.length === 0) {
         return res.status(404).json({ message: "Article not found" });
       }
@@ -75,17 +75,22 @@ export function registerRoutes(app: Express): Server {
   // Create article
   app.post("/api/articles", async (req, res) => {
     try {
+      // Validate required fields
+      if (!req.body.authoraddress) {
+        return res.status(400).json({ message: "Author address is required" });
+      }
+
       const result = await db.insert(articles).values({
         title: req.body.title,
         content: req.body.content,
         description: req.body.description,
-        imageurl: req.body.imageUrl,
-        authoraddress: req.body.authorAddress.toLowerCase(),
+        imageurl: req.body.imageurl,
+        authoraddress: req.body.authoraddress.toLowerCase(),
         signature: req.body.signature,
-        videourl: req.body.videoUrl || '',
-        isdraft: req.body.isDraft ?? true,
-        videoduration: req.body.videoDuration ?? 15,
-        hasbackgroundmusic: req.body.hasBackgroundMusic ?? true,
+        videourl: req.body.videourl || '',
+        isdraft: req.body.isdraft ?? true,
+        videoduration: req.body.videoduration ?? 15,
+        hasbackgroundmusic: req.body.hasbackgroundmusic ?? true,
       }).returning();
       res.status(201).json(result[0]);
     } catch (error) {
@@ -145,9 +150,9 @@ export function registerRoutes(app: Express): Server {
 
       const result = await db
         .update(articles)
-        .set({ 
+        .set({
           isdraft: false,
-          signature: req.body.signature 
+          signature: req.body.signature
         })
         .where(eq(articles.id, parseInt(req.params.id)))
         .returning();
@@ -201,13 +206,13 @@ export function registerRoutes(app: Express): Server {
         .where(eq(articles.isdraft, false));
 
       const keywordMap = new Map<string, number>();
-      
+
       allArticles.forEach(article => {
         const words = `${article.title} ${article.description}`
           .toLowerCase()
           .split(/\W+/)
-          .filter(word => 
-            word.length > 3 && 
+          .filter(word =>
+            word.length > 3 &&
             !['the', 'and', 'for', 'that', 'with'].includes(word)
           );
 
