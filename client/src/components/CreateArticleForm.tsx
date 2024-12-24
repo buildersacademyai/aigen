@@ -27,20 +27,27 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
       // First generate the article
       const article = await generateArticle(data.topic);
 
-      // Then save it as draft
+      // Then save it as draft - ensure property names match database columns
       const response = await fetch("/api/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...article,
-          authorAddress: address,
+          authoraddress: address,
           signature: "", // Empty signature for drafts
-          isDraft: true
+          isdraft: true,
+          // Ensure properties match database column names
+          imageurl: article.imageUrl,
+          videourl: article.videoUrl,
+          // Add other required fields
+          videoduration: 15,
+          hasbackgroundmusic: true
         })
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save draft");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save draft");
       }
 
       return response.json();
@@ -51,7 +58,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
         description: "Article created and saved as draft"
       });
       form.reset();
-      window.location.href = '/profile';
+      onSuccess?.();
     },
     onError: (error) => {
       toast({

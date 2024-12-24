@@ -88,7 +88,6 @@ export function ArticleDetails({ params }: ArticleProps) {
               />
             </motion.div>
 
-            
 
             {/* Article Content */}
             <motion.div 
@@ -132,7 +131,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                     muted
                     playsInline
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                    poster={article.imageUrl}
+                    poster={article.imageurl}
                   >
                     <source 
                       src={article.videourl} 
