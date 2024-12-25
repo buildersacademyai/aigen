@@ -3,6 +3,10 @@ import { createServer, type Server } from "http";
 import { db } from "@db";
 import { articles } from "@db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
+import fetch from "node-fetch";
+import fs from "fs/promises";
+import path from "path";
+import { randomUUID } from "crypto";
 
 export function registerRoutes(app: Express): Server {
   // Get all published articles
@@ -234,6 +238,42 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch analytics data" });
+    }
+  });
+
+  // Add new route for saving images
+  app.post("/api/images/save", async (req, res) => {
+    try {
+      const { imageUrl } = req.body;
+      if (!imageUrl) {
+        return res.status(400).json({ message: "Image URL is required" });
+      }
+
+      // Create images directory if it doesn't exist
+      const imagesDir = path.join(process.cwd(), "public", "images");
+      await fs.mkdir(imagesDir, { recursive: true });
+
+      // Download the image
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error("Failed to download image");
+      }
+
+      // Generate a unique filename
+      const fileExt = "png";
+      const filename = `${randomUUID()}.${fileExt}`;
+      const filePath = path.join(imagesDir, filename);
+
+      // Save the image
+      const buffer = await imageResponse.buffer();
+      await fs.writeFile(filePath, buffer);
+
+      // Return the persisted URL
+      const persistedUrl = `/images/${filename}`;
+      res.json({ url: persistedUrl });
+    } catch (error) {
+      console.error("Error saving image:", error);
+      res.status(500).json({ message: "Failed to save image" });
     }
   });
 

@@ -7,11 +7,34 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true // Required for client-side usage
 });
 
+const saveImage = async (imageUrl: string): Promise<string> => {
+  try {
+    // Make the API call to save the image
+    const response = await fetch('/api/images/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ imageUrl }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save image');
+    }
+
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Error saving image:', error);
+    throw error;
+  }
+};
+
 export async function generateArticle(topic: string) {
   try {
     // First, gather related content
     const relatedContent = await gatherRelatedContent(topic);
-    
+
     // Prepare context from search results
     const context = relatedContent
       .map(result => `
@@ -39,7 +62,7 @@ Summary: ${result.snippet}
     const content = response.choices[0].message.content;
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
-    
+
     // Generate image for the article with more specific prompt
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
@@ -48,6 +71,9 @@ Summary: ${result.snippet}
       size: "1024x1024",
       quality: "hd",
     });
+
+    // Save the main article image
+    const persistedImageUrl = await saveImage(imageResponse.data[0].url);
 
     // Generate video thumbnail image with watermark
     const thumbnailResponse = await openai.images.generate({
@@ -63,20 +89,24 @@ Summary: ${result.snippet}
       quality: "hd",
     });
 
+    // Save the thumbnail image
+    const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
+
     // Select an appropriate video based on the topic
     let videoUrl;
     if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"; // Futuristic tech video
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
     } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"; // AI/Tech focused
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
     } else {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; // Default tech video
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
     }
 
     return {
       ...result,
-      imageUrl: imageResponse.data[0].url,
-      videoUrl: videoUrl
+      imageUrl: persistedImageUrl,
+      videoUrl: videoUrl,
+      thumbnailUrl: persistedThumbnailUrl
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
