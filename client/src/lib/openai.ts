@@ -19,14 +19,15 @@ const saveImage = async (imageUrl: string): Promise<string> => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to save image');
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to save image');
     }
 
     const data = await response.json();
     return data.url;
   } catch (error) {
     console.error('Error saving image:', error);
-    throw error;
+    throw new Error(`Failed to save image: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -72,6 +73,10 @@ Summary: ${result.snippet}
       quality: "hd",
     });
 
+    if (!imageResponse.data[0]?.url) {
+      throw new Error("No image URL received from OpenAI");
+    }
+
     // Save the main article image
     const persistedImageUrl = await saveImage(imageResponse.data[0].url);
 
@@ -88,6 +93,10 @@ Summary: ${result.snippet}
       size: "1024x1024",
       quality: "hd",
     });
+
+    if (!thumbnailResponse.data[0]?.url) {
+      throw new Error("No thumbnail URL received from OpenAI");
+    }
 
     // Save the thumbnail image
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
