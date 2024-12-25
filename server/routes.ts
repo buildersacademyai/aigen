@@ -1,14 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
-import { articles } from "@db/schema";
+import { articles, storedImages } from "@db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import fetch from "node-fetch";
 import fs from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
+import express from 'express';
 
 export function registerRoutes(app: Express): Server {
+  // Serve static files from public directory
+  app.use('/images', express.static(path.join(process.cwd(), 'public', 'images')));
+
   // Get all published articles
   app.get("/api/articles", async (req, res) => {
     try {
@@ -268,12 +272,36 @@ export function registerRoutes(app: Express): Server {
       const buffer = await imageResponse.buffer();
       await fs.writeFile(filePath, buffer);
 
-      // Return the persisted URL
-      const persistedUrl = `/images/${filename}`;
-      res.json({ url: persistedUrl });
+      // Store image information in database
+      const [storedImage] = await db.insert(storedImages).values({
+        filename,
+        originalurl: imageUrl,
+        localpath: `/images/${filename}`,
+      }).returning();
+
+      res.json({ url: storedImage.localpath });
     } catch (error) {
       console.error("Error saving image:", error);
       res.status(500).json({ message: "Failed to save image" });
+    }
+  });
+
+  // Get image by filename
+  app.get("/api/images/:filename", async (req, res) => {
+    try {
+      const result = await db
+        .select()
+        .from(storedImages)
+        .where(eq(storedImages.filename, req.params.filename))
+        .limit(1);
+
+      if (result.length === 0) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      res.json(result[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch image" });
     }
   });
 
