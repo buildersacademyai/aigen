@@ -89,7 +89,7 @@ Summary: ${result.snippet}
       messages: [
         {
           role: "system",
-          content: "You are an expert content writer. Using the provided research context, generate a comprehensive article. The article should be original, engaging, and well-structured. Respond with JSON in this format: { title: string, content: string, description: string }"
+          content: "You are an expert content writer. Using the provided research context, generate a comprehensive article. The article should be original, engaging, and well-structured. Respond with JSON in this format: { title: string, content: string, description: string, summary: string }"
         },
         {
           role: "user",
@@ -141,7 +141,7 @@ Summary: ${result.snippet}
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
 
     // Generate audio for the article
-    const audio = await generateAudio(result.content, 1); // Assuming articleId is 1 for now.  This should be replaced with a dynamic article ID.
+    const audio = await generateAudio(result.content, 1); // Assuming articleId is 1 for now. This should be replaced with a dynamic article ID.
 
     // Select an appropriate video based on the topic
     let videoUrl;
