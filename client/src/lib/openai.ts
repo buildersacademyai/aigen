@@ -47,8 +47,14 @@ Summary: ${result.snippet}
 
     // Generate audio for the article
     console.log('Starting audio generation...');
-    const audioUrl = await generateAudio(result.content);
-    console.log('Audio URL received:', audioUrl);
+    try {
+      const audioUrl = await generateAudio(result.content);
+      console.log('Audio URL received:', audioUrl);
+      if (!audioUrl) throw new Error("No audio URL received");
+    } catch (error) {
+      console.error('Audio generation failed:', error);
+      throw new Error("Failed to generate audio: " + (error instanceof Error ? error.message : 'Unknown error'));
+    }
 
     // Generate image for the article with more specific prompt
     const imageResponse = await openai.images.generate({
@@ -89,27 +95,27 @@ Summary: ${result.snippet}
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
     console.log('Thumbnail saved successfully:', persistedThumbnailUrl);
 
-    // Select an appropriate video based on the topic
-    let videoUrl;
-    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
-    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
-    } else {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-    }
-
     return {
       ...result,
       imageUrl: persistedImageUrl,
       thumbnailUrl: persistedThumbnailUrl,
       audioUrl: audioUrl,
-      videoUrl: videoUrl
+      videoUrl: selectVideoUrl(topic)
     };
   } catch (error) {
     console.error('Article generation error:', error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error("Failed to generate article: " + errorMessage);
+  }
+}
+
+function selectVideoUrl(topic: string): string {
+  if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
+    return "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
+  } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
+    return "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+  } else {
+    return "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   }
 }
 
