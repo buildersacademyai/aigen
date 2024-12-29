@@ -69,15 +69,22 @@ export function ArticleDetails({ params }: ArticleProps) {
 
             {/* Author and Audio Section */}
             <motion.div
-              className="flex flex-col mb-6 bg-accent/5 p-4 rounded-lg"
+              className="flex flex-col gap-4 mb-6 bg-accent/5 p-4 rounded-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="text-sm text-muted-foreground mb-4">
-                By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="text-sm text-muted-foreground">
+                  Author: {article.authoraddress}
+                </div>
+                {article.audiourl && (
+                  <div className="text-sm text-muted-foreground">
+                    Audio version available
+                  </div>
+                )}
               </div>
-              {article.audiourl && article.audiourl !== "" && (
+              {article.audiourl && (
                 <WaveformPlayer
                   audioUrl={article.audiourl}
                   className="w-full"
