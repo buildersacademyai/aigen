@@ -6,6 +6,7 @@ export const articles = pgTable("articles", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   description: text("description").notNull(),
+  summary: text("summary"),  // Made optional
   imageurl: text("imageurl").notNull(),
   thumbnailurl: text("thumbnailurl"),
   videourl: text("videourl").notNull().default(''),

@@ -39,6 +39,7 @@ export function registerRoutes(app: Express): Server {
         .orderBy(desc(articles.createdat));
       res.json(results);
     } catch (error) {
+      console.error('Error fetching articles:', error);
       res.status(500).json({ message: "Failed to fetch articles" });
     }
   });
@@ -99,6 +100,8 @@ export function registerRoutes(app: Express): Server {
   // Create article
   app.post("/api/articles", async (req, res) => {
     try {
+      console.log('Creating article with data:', JSON.stringify(req.body, null, 2));
+
       // Validate required fields
       if (!req.body.authoraddress) {
         return res.status(400).json({ message: "Author address is required" });
@@ -108,22 +111,27 @@ export function registerRoutes(app: Express): Server {
         title: req.body.title,
         content: req.body.content,
         description: req.body.description,
-        summary: req.body.summary || req.body.description, // Use description as summary if not provided
+        summary: req.body.summary || req.body.description,
         imageurl: req.body.imageurl,
         thumbnailurl: req.body.thumbnailurl,
-        authoraddress: req.body.authoraddress.toLowerCase(),
-        signature: req.body.signature,
         videourl: req.body.videourl || '',
         audiourl: req.body.audiourl || '',
         audioduration: req.body.audioduration || null,
+        authoraddress: req.body.authoraddress.toLowerCase(),
+        signature: req.body.signature || "",
         isdraft: req.body.isdraft ?? true,
         videoduration: req.body.videoduration ?? 15,
         hasbackgroundmusic: req.body.hasbackgroundmusic ?? true,
       }).returning();
+
+      console.log('Article created successfully:', JSON.stringify(result[0], null, 2));
       res.status(201).json(result[0]);
     } catch (error) {
       console.error('Article creation error:', error);
-      res.status(500).json({ message: "Failed to create article" });
+      res.status(500).json({ 
+        message: "Failed to create article",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -268,6 +276,7 @@ export function registerRoutes(app: Express): Server {
   // Add new route for saving images
   app.post("/api/images/save", async (req, res) => {
     try {
+      console.log('Saving image with URL:', req.body.imageUrl);
       const { imageUrl } = req.body;
       if (!imageUrl) {
         return res.status(400).json({ message: "Image URL is required" });
@@ -289,8 +298,8 @@ export function registerRoutes(app: Express): Server {
       const filePath = path.join(imagesDir, filename);
 
       // Save the image
-      const buffer = await imageResponse.buffer();
-      await fs.writeFile(filePath, buffer);
+      const buffer = await imageResponse.arrayBuffer();
+      await fs.writeFile(filePath, Buffer.from(buffer));
 
       // Store image information in database
       const [storedImage] = await db.insert(storedImages).values({
@@ -299,10 +308,14 @@ export function registerRoutes(app: Express): Server {
         localpath: `/images/${filename}`,
       }).returning();
 
+      console.log('Image saved successfully:', storedImage.localpath);
       res.json({ url: storedImage.localpath });
     } catch (error) {
       console.error("Error saving image:", error);
-      res.status(500).json({ message: "Failed to save image" });
+      res.status(500).json({ 
+        message: "Failed to save image",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -337,6 +350,8 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Invalid article ID" });
       }
 
+      console.log('Processing audio file:', req.file.filename);
+
       // Get audio duration
       const duration = Math.ceil(await getAudioDurationInSeconds(req.file.path));
 
@@ -348,13 +363,7 @@ export function registerRoutes(app: Express): Server {
         articleid: articleId,
       }).returning();
 
-      // Update article with audio URL and duration
-      await db.update(articles)
-        .set({
-          audiourl: storedAudioFile.localpath,
-          audioduration: duration,
-        })
-        .where(eq(articles.id, articleId));
+      console.log('Audio file processed and stored:', storedAudioFile);
 
       res.json({
         url: storedAudioFile.localpath,
@@ -362,7 +371,10 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error saving audio:", error);
-      res.status(500).json({ message: "Failed to save audio file" });
+      res.status(500).json({ 
+        message: "Failed to save audio file",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
