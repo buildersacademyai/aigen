@@ -27,16 +27,17 @@ export async function generateAudio(text: string, speed: number = 1): Promise<st
       throw new Error(`API Error: ${response.status} - ${response.statusText}`);
     }
 
-    const json = await response.json();
-    console.log('API Response:', json);
+    const data = await response.json();
+    console.log('API Response:', data);
 
-    const output = json.images[0];
-    if (!output) {
+    // The API returns the audio URL directly in the response
+    const audioUrl = data.audio_url || data.audioUrl;
+    if (!audioUrl) {
       throw new Error('No audio URL in API response');
     }
 
-    console.log('Generated audio URL:', output);
-    return output;
+    console.log('Generated audio URL:', audioUrl);
+    return audioUrl;
 
   } catch (error) {
     console.error('Error generating audio:', error);
