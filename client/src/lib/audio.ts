@@ -1,5 +1,6 @@
+import { HYPERBOLIC_API_KEY } from "./config";
+
 const HYPERBOLIC_API_URL = 'https://api.hyperbolic.xyz/v1/audio/generation';
-const HYPERBOLIC_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0YnVnMzQ3OEBnbWFpbC5jb20iLCJpYXQiOjE3MzU0ODUyMTN9.kAjkSvkjGrKBdw9RfQVGNi5l70W-LxBx7X0OKAHX_ek';
 
 export async function generateAudio(text: string, speed: number = 1): Promise<string> {
   try {
@@ -28,6 +29,6 @@ export async function generateAudio(text: string, speed: number = 1): Promise<st
     return data.url;
   } catch (error) {
     console.error('Error generating audio:', error);
-    return ''; // Return empty string instead of throwing to prevent article creation from failing
+    throw new Error('Failed to generate audio');
   }
 }

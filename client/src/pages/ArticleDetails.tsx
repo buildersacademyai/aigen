@@ -67,38 +67,42 @@ export function ArticleDetails({ params }: ArticleProps) {
               {article.title}
             </motion.h1>
 
-            {/* Author and Audio Section */}
+            {/* Author Section */}
             <motion.div
-              className="mb-6 space-y-4"
+              className="mb-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              {/* Author Info */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>By</span>
                 <code className="bg-accent/10 px-2 py-1 rounded">
                   {article.authoraddress}
                 </code>
               </div>
-
-              {/* Audio Player */}
-              {article.audiourl && (
-                <div className="bg-accent/5 p-4 rounded-lg border border-accent/10">
-                  <h3 className="text-lg font-semibold mb-4">Listen to Article</h3>
-                  <WaveformPlayer
-                    audioUrl={article.audiourl}
-                    className="w-full"
-                  />
-                </div>
-              )}
             </motion.div>
+
+            {/* Audio Player Section - Moved before main image */}
+            {article.audiourl && article.audiourl !== '' && (
+              <motion.div
+                className="mb-6 bg-accent/5 p-4 rounded-lg border border-accent/10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold mb-4">Listen to Article</h3>
+                <WaveformPlayer
+                  audioUrl={article.audiourl}
+                  className="w-full"
+                />
+              </motion.div>
+            )}
 
             {/* Main Image */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.5 }}
             >
               <img
                 src={article.imageurl}
