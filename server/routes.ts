@@ -13,6 +13,32 @@ export function registerRoutes(app: Express): Server {
   // Serve static files from public directory
   app.use('/images', express.static(path.join(process.cwd(), 'public', 'images')));
 
+  // Create test article with audio
+  app.post("/api/test-article", async (req, res) => {
+    try {
+      const testArticle = {
+        title: "Blockchain Development: Harnessing the Power of Web3",
+        content: "Blockchain technology is revolutionizing the way we think about digital transactions and decentralized applications. This comprehensive guide explores the fundamental concepts of blockchain development and its practical applications in the Web3 ecosystem.\n\nWe'll dive deep into smart contracts, decentralized finance (DeFi), and the technical infrastructure that powers modern blockchain applications.",
+        description: "A comprehensive guide to blockchain development and Web3 technologies",
+        imageurl: "/images/blockchain-dev.jpg",
+        thumbnailurl: "/images/blockchain-thumb.jpg",
+        videourl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        audiourl: "https://assets.mixkit.co/music/preview/mixkit-tech-startup-story-560.mp3",
+        authoraddress: "0x5a49...35a7",
+        signature: "0x...",
+        isdraft: false,
+        videoduration: 15,
+        hasbackgroundmusic: true
+      };
+
+      const result = await db.insert(articles).values(testArticle).returning();
+      res.status(201).json(result[0]);
+    } catch (error) {
+      console.error('Test article creation error:', error);
+      res.status(500).json({ message: "Failed to create test article" });
+    }
+  });
+
   // Get all published articles
   app.get("/api/articles", async (req, res) => {
     try {
