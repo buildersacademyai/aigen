@@ -117,11 +117,22 @@ Summary: ${result.snippet}
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
     console.log('Thumbnail saved successfully:', persistedThumbnailUrl);
 
+    // Select an appropriate video based on the topic
+    let videoUrl;
+    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
+    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+    } else {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    }
+
     return {
       ...result,
       imageUrl: persistedImageUrl,
       thumbnailUrl: persistedThumbnailUrl,
-      audioUrl: audioUrl
+      audioUrl: audioUrl,
+      videoUrl: videoUrl
     };
   } catch (error) {
     console.error('Article generation error:', error);

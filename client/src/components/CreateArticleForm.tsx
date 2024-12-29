@@ -36,9 +36,11 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           content: article.content,
           description: article.description,
           imageurl: article.imageUrl,
+          thumbnailurl: article.thumbnailUrl,
           videourl: article.videoUrl || '',
-          authoraddress: address,  // Send address directly without manipulation
-          signature: "", // Empty signature for drafts
+          audiourl: article.audioUrl || '', // Add audio URL
+          authoraddress: address,
+          signature: "",
           isdraft: true,
           videoduration: 15,
           hasbackgroundmusic: true
@@ -89,7 +91,8 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
   const steps = [
     { id: 1, title: "Generating article content" },
     { id: 2, title: "Creating article image" },
-    { id: 3, title: "Saving as draft" }
+    { id: 3, title: "Generating audio" },
+    { id: 4, title: "Saving as draft" }
   ];
 
   return (

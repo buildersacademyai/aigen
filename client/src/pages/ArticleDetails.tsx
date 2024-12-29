@@ -76,7 +76,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               <div className="text-sm text-muted-foreground">
                 By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
               </div>
-              {article.audiourl && (
+              {article.audiourl && article.audiourl !== '' && (
                 <div className="flex-1 ml-4">
                   <audio 
                     controls 
@@ -129,7 +129,7 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Video Section */}
-            {article.videourl && (
+            {article.videourl && article.videourl !== '' && (
               <motion.div 
                 className="mt-6 mb-6"
                 initial={{ opacity: 0, y: 20 }}
@@ -144,7 +144,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                     muted
                     playsInline
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                    poster={article.imageurl}
+                    poster={article.thumbnailurl || article.imageurl}
                   >
                     <source 
                       src={article.videourl} 
