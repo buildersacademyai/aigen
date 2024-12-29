@@ -47,8 +47,9 @@ Summary: ${result.snippet}
 
     // Generate audio for the article
     console.log('Starting audio generation...');
+    let audioUrl = '';
     try {
-      const audioUrl = await generateAudio(result.content);
+      audioUrl = await generateAudio(result.content);
       console.log('Audio URL received:', audioUrl);
       if (!audioUrl) throw new Error("No audio URL received");
     } catch (error) {
