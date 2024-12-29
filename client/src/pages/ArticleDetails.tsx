@@ -2,6 +2,7 @@ import { SocialShare } from "@/components/SocialShare";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { Volume2 } from "lucide-react";
 import type { SelectArticle } from "@db/schema";
 
 interface ArticleProps {
@@ -74,6 +75,28 @@ export function ArticleDetails({ params }: ArticleProps) {
             >
               By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
             </motion.div>
+
+            {/* Audio Player Section */}
+            {article.audiourl && (
+              <motion.div
+                className="mb-6 bg-muted/30 rounded-lg p-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.35 }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Volume2 className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Listen to Article</span>
+                </div>
+                <audio 
+                  controls 
+                  className="w-full"
+                  src={article.audiourl}
+                >
+                  Your browser does not support the audio element.
+                </audio>
+              </motion.div>
+            )}
 
             {/* Main Image */}
             <motion.div

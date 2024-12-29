@@ -4,11 +4,15 @@ import { setupVite, serveStatic, log } from "./vite";
 import fs from "fs/promises";
 import path from "path";
 
-// Ensure public/images directory exists
+// Ensure public/images and public/audio directories exist
 async function ensureDirectories() {
   const imagesDir = path.join(process.cwd(), "public", "images");
+  const audioDir = path.join(process.cwd(), "public", "audio");
+
   await fs.mkdir(imagesDir, { recursive: true });
-  log(`Ensured directory exists: ${imagesDir}`);
+  await fs.mkdir(audioDir, { recursive: true });
+
+  log(`Ensured directories exist: ${imagesDir}, ${audioDir}`);
 }
 
 const app = express();

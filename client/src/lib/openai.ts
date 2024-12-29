@@ -31,6 +31,45 @@ const saveImage = async (imageUrl: string): Promise<string> => {
   }
 };
 
+const generateAudio = async (text: string, articleId: number): Promise<{ url: string, duration: number }> => {
+  try {
+    // Generate speech using OpenAI
+    const response = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: "alloy",
+      input: text,
+    });
+
+    // Convert the response to a blob
+    const audioBlob = new Blob([await response.arrayBuffer()], { type: 'audio/mpeg' });
+
+    // Create form data to send the audio file
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'speech.mp3');
+    formData.append('articleId', articleId.toString());
+
+    // Save the audio file
+    const saveResponse = await fetch('/api/audio/save', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!saveResponse.ok) {
+      const error = await saveResponse.json();
+      throw new Error(error.message || 'Failed to save audio');
+    }
+
+    const data = await saveResponse.json();
+    return {
+      url: data.url,
+      duration: data.duration,
+    };
+  } catch (error) {
+    console.error('Error generating audio:', error);
+    throw new Error(`Failed to generate audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
 export async function generateArticle(topic: string) {
   try {
     // First, gather related content
@@ -101,6 +140,9 @@ Summary: ${result.snippet}
     // Save the thumbnail image
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
 
+    // Generate audio for the article
+    const audio = await generateAudio(result.content, 1); // Assuming articleId is 1 for now.  This should be replaced with a dynamic article ID.
+
     // Select an appropriate video based on the topic
     let videoUrl;
     if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
@@ -115,7 +157,9 @@ Summary: ${result.snippet}
       ...result,
       imageUrl: persistedImageUrl,
       videoUrl: videoUrl,
-      thumbnailUrl: persistedThumbnailUrl
+      thumbnailUrl: persistedThumbnailUrl,
+      audioUrl: audio.url,
+      audioDuration: audio.duration
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";

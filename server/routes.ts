@@ -1,17 +1,33 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
-import { articles, storedImages } from "@db/schema";
+import { articles, storedImages, storedAudio } from "@db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import fetch from "node-fetch";
 import fs from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import express from 'express';
+import multer from 'multer';
+import { getAudioDurationInSeconds } from 'get-audio-duration';
+
+// Configure multer for audio file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(process.cwd(), 'public', 'audio'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${randomUUID()}${ext}`);
+  }
+});
+
+const upload = multer({ storage });
 
 export function registerRoutes(app: Express): Server {
-  // Serve static files from public directory
+  // Serve static files from public directories
   app.use('/images', express.static(path.join(process.cwd(), 'public', 'images')));
+  app.use('/audio', express.static(path.join(process.cwd(), 'public', 'audio')));
 
   // Get all published articles
   app.get("/api/articles", async (req, res) => {
@@ -302,6 +318,47 @@ export function registerRoutes(app: Express): Server {
       res.json(result[0]);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch image" });
+    }
+  });
+
+  // Save audio file
+  app.post("/api/audio/save", upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No audio file provided" });
+      }
+
+      const articleId = parseInt(req.body.articleId);
+      if (isNaN(articleId)) {
+        return res.status(400).json({ message: "Invalid article ID" });
+      }
+
+      // Get audio duration
+      const duration = Math.ceil(await getAudioDurationInSeconds(req.file.path));
+
+      // Store audio information in database
+      const [storedAudioFile] = await db.insert(storedAudio).values({
+        filename: req.file.filename,
+        duration,
+        localpath: `/audio/${req.file.filename}`,
+        articleid: articleId,
+      }).returning();
+
+      // Update article with audio URL and duration
+      await db.update(articles)
+        .set({
+          audiourl: storedAudioFile.localpath,
+          audioduration: duration,
+        })
+        .where(eq(articles.id, articleId));
+
+      res.json({
+        url: storedAudioFile.localpath,
+        duration: duration,
+      });
+    } catch (error) {
+      console.error("Error saving audio:", error);
+      res.status(500).json({ message: "Failed to save audio file" });
     }
   });
 
