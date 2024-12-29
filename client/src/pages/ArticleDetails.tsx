@@ -3,13 +3,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type { SelectArticle } from "@db/schema";
+import { WaveformPlayer } from "@/components/WaveformPlayer";
 
 interface ArticleProps {
   params: { id: string };
 }
 
 export function ArticleDetails({ params }: ArticleProps) {
-  const { data: article, isLoading } = useQuery<SelectArticle>({ 
+  const { data: article, isLoading } = useQuery<SelectArticle>({
     queryKey: [`/api/articles/${params.id}`],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -50,13 +51,13 @@ export function ArticleDetails({ params }: ArticleProps) {
             transition={{ duration: 0.5 }}
           >
             {/* Title Section */}
-            <motion.h1 
+            <motion.h1
               className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              transition={{ 
+              transition={{
                 delay: 0.2,
                 type: "spring",
                 stiffness: 200,
@@ -67,25 +68,20 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.h1>
 
             {/* Author and Audio Section */}
-            <motion.div 
-              className="flex items-center justify-between mb-6 bg-accent/5 p-4 rounded-lg"
+            <motion.div
+              className="flex flex-col mb-6 bg-accent/5 p-4 rounded-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground mb-4">
                 By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
               </div>
-              {article.audiourl && article.audiourl !== '' && (
-                <div className="flex-1 ml-4">
-                  <audio 
-                    controls 
-                    className="w-full max-w-md"
-                    src={article.audiourl}
-                  >
-                    Your browser does not support the audio element.
-                  </audio>
-                </div>
+              {article.audiourl && article.audiourl !== "" && (
+                <WaveformPlayer
+                  audioUrl={article.audiourl}
+                  className="w-full"
+                />
               )}
             </motion.div>
 
@@ -103,20 +99,20 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Article Content */}
-            <motion.div 
+            <motion.div
               className="prose prose-invert max-w-none"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {article.content.split('\n\n').map((paragraph, index) => (
-                <motion.p 
-                  key={index} 
+              {article.content.split("\n\n").map((paragraph, index) => (
+                <motion.p
+                  key={index}
                   className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   whileHover={{ scale: 1.01, x: 4 }}
-                  transition={{ 
+                  transition={{
                     delay: 0.7 + index * 0.1,
                     type: "spring",
                     stiffness: 400,
@@ -129,8 +125,8 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Video Section */}
-            {article.videourl && article.videourl !== '' && (
-              <motion.div 
+            {article.videourl && article.videourl !== "" && (
+              <motion.div
                 className="mt-6 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -146,13 +142,13 @@ export function ArticleDetails({ params }: ArticleProps) {
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
                     poster={article.thumbnailurl || article.imageurl}
                   >
-                    <source 
-                      src={article.videourl} 
+                    <source
+                      src={article.videourl}
                       type="video/mp4"
                     />
                     Your browser does not support the video tag.
                   </video>
-                  <div 
+                  <div
                     className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
                   >
                     BuildersAcademy
@@ -162,7 +158,7 @@ export function ArticleDetails({ params }: ArticleProps) {
             )}
 
             {/* Share Section */}
-            <motion.div 
+            <motion.div
               className="border-t pt-6 mt-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
