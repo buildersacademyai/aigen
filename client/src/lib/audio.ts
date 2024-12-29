@@ -13,6 +13,7 @@ export async function generateAudio(text: string, speed: number = 1): Promise<st
       throw new Error('HYPERBOLIC_API_KEY is not configured');
     }
 
+    console.log('Making request to Hyperbolic API...');
     const response = await fetch(HYPERBOLIC_API_URL, {
       method: 'POST',
       headers: {
@@ -36,13 +37,22 @@ export async function generateAudio(text: string, speed: number = 1): Promise<st
     }
 
     const data = await response.json();
-    console.log('Audio generation response:', data);
+    console.log('Raw API Response:', data);
 
-    if (!data.images || !data.images[0]) {
-      throw new Error('No audio URL in API response');
+    if (!data.images) {
+      console.error('Unexpected API response structure:', data);
+      throw new Error('API response missing images array');
     }
 
-    return data.images[0];
+    if (!data.images[0]) {
+      console.error('No audio URL in images array:', data.images);
+      throw new Error('No audio URL found in API response');
+    }
+
+    const audioUrl = data.images[0];
+    console.log('Successfully extracted audio URL:', audioUrl);
+
+    return audioUrl;
   } catch (error) {
     console.error('Error generating audio:', error);
     throw error instanceof Error ? error : new Error('Failed to generate audio');
