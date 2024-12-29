@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
+import { Button } from "@/components/ui/button";
+import { PlayIcon, PauseIcon } from "lucide-react";
 
 interface WaveformPlayerProps {
   audioUrl: string;
@@ -65,37 +67,33 @@ export function WaveformPlayer({ audioUrl, className = "" }: WaveformPlayerProps
   };
 
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
+    <div className={`flex flex-col gap-4 ${className}`}>
+      {/* Audio Controls */}
+      <div className="flex items-center gap-4">
+        <Button
+          onClick={togglePlayPause}
+          variant="outline"
+          size="icon"
+          className="w-12 h-12 rounded-full"
+        >
+          {isPlaying ? (
+            <PauseIcon className="h-6 w-6" />
+          ) : (
+            <PlayIcon className="h-6 w-6" />
+          )}
+        </Button>
+        <div className="text-sm">
+          <span className="font-medium">{formatTime(currentTime)}</span>
+          <span className="mx-2 text-muted-foreground">/</span>
+          <span className="text-muted-foreground">{formatTime(duration)}</span>
+        </div>
+      </div>
+
       {/* Waveform container */}
       <div
         ref={containerRef}
-        className="w-full cursor-pointer rounded-md bg-accent/5 p-2"
+        className="w-full cursor-pointer rounded-lg bg-accent/5 p-4"
       />
-      
-      {/* Controls */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <button
-          onClick={togglePlayPause}
-          className="flex items-center gap-2 hover:text-primary transition-colors"
-        >
-          {isPlaying ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="6" y="4" width="4" height="16"/>
-              <rect x="14" y="4" width="4" height="16"/>
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-          )}
-          {isPlaying ? 'Pause' : 'Play'}
-        </button>
-        <div className="flex gap-2">
-          <span>{formatTime(currentTime)}</span>
-          <span>/</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-      </div>
     </div>
   );
 }
