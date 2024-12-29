@@ -66,13 +66,27 @@ export function ArticleDetails({ params }: ArticleProps) {
               {article.title}
             </motion.h1>
 
+            {/* Author and Audio Section */}
             <motion.div 
-              className="text-sm text-muted-foreground mb-6"
+              className="flex items-center justify-between mb-6 bg-accent/5 p-4 rounded-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
+              <div className="text-sm text-muted-foreground">
+                By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
+              </div>
+              {article.audiourl && (
+                <div className="flex-1 ml-4">
+                  <audio 
+                    controls 
+                    className="w-full max-w-md"
+                    src={article.audiourl}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
             </motion.div>
 
             {/* Main Image */}
@@ -87,7 +101,6 @@ export function ArticleDetails({ params }: ArticleProps) {
                 className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
               />
             </motion.div>
-
 
             {/* Article Content */}
             <motion.div 

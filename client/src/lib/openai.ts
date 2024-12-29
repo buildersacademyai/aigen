@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { gatherRelatedContent } from './scraper';
+import { generateAudio } from './audio';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -33,6 +34,8 @@ const saveImage = async (imageUrl: string): Promise<string> => {
 
 export async function generateArticle(topic: string) {
   try {
+    console.log('Starting article generation for topic:', topic);
+
     // First, gather related content
     const relatedContent = await gatherRelatedContent(topic);
 
@@ -64,6 +67,17 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
 
+    console.log('Article content generated successfully');
+
+    // Generate audio for the article
+    let audioUrl = '';
+    try {
+      audioUrl = await generateAudio(result.content);
+      console.log('Audio generated successfully:', audioUrl);
+    } catch (error) {
+      console.error('Audio generation failed, continuing without audio:', error);
+    }
+
     // Generate image for the article with more specific prompt
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
@@ -79,6 +93,7 @@ Summary: ${result.snippet}
 
     // Save the main article image
     const persistedImageUrl = await saveImage(imageResponse.data[0].url);
+    console.log('Main image saved successfully:', persistedImageUrl);
 
     // Generate video thumbnail image with watermark
     const thumbnailResponse = await openai.images.generate({
@@ -100,24 +115,16 @@ Summary: ${result.snippet}
 
     // Save the thumbnail image
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
-
-    // Select an appropriate video based on the topic
-    let videoUrl;
-    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
-    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
-    } else {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-    }
+    console.log('Thumbnail saved successfully:', persistedThumbnailUrl);
 
     return {
       ...result,
       imageUrl: persistedImageUrl,
-      videoUrl: videoUrl,
-      thumbnailUrl: persistedThumbnailUrl
+      thumbnailUrl: persistedThumbnailUrl,
+      audioUrl: audioUrl
     };
   } catch (error) {
+    console.error('Article generation error:', error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error("Failed to generate article: " + errorMessage);
   }
