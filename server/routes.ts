@@ -19,6 +19,7 @@ export function registerRoutes(app: Express): Server {
       const testArticle = {
         title: "Blockchain Development: Harnessing the Power of Web3",
         content: "Blockchain technology is revolutionizing the way we think about digital transactions and decentralized applications. This comprehensive guide explores the fundamental concepts of blockchain development and its practical applications in the Web3 ecosystem.\n\nWe'll dive deep into smart contracts, decentralized finance (DeFi), and the technical infrastructure that powers modern blockchain applications.",
+        summary: "A concise overview of blockchain technology and its applications in Web3, covering smart contracts and DeFi fundamentals.",
         description: "A comprehensive guide to blockchain development and Web3 technologies",
         imageurl: "/images/blockchain-dev.jpg",
         thumbnailurl: "/images/blockchain-thumb.jpg",
@@ -117,15 +118,19 @@ export function registerRoutes(app: Express): Server {
       const result = await db.insert(articles).values({
         title: req.body.title,
         content: req.body.content,
+        summary: req.body.summary,
         description: req.body.description,
         imageurl: req.body.imageurl,
+        thumbnailurl: req.body.thumbnailurl,
+        audiourl: req.body.audiourl || '',
+        videourl: req.body.videourl || '',
         authoraddress: req.body.authoraddress.toLowerCase(),
         signature: req.body.signature,
-        videourl: req.body.videourl || '',
         isdraft: req.body.isdraft ?? true,
         videoduration: req.body.videoduration ?? 15,
         hasbackgroundmusic: req.body.hasbackgroundmusic ?? true,
       }).returning();
+
       res.status(201).json(result[0]);
     } catch (error) {
       console.error('Article creation error:', error);

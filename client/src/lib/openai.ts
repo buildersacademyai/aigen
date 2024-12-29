@@ -8,6 +8,26 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true // Required for client-side usage
 });
 
+async function summarizeContent(content: string): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: "You are a content summarizer. Create a concise 200-word summary that captures the key points while maintaining a natural, engaging flow. The summary should work well when read aloud."
+      },
+      {
+        role: "user",
+        content: content
+      }
+    ],
+    temperature: 0.7,
+    max_tokens: 500,
+  });
+
+  return response.choices[0].message.content || '';
+}
+
 export async function generateArticle(topic: string) {
   try {
     console.log('Starting article generation for topic:', topic);
@@ -45,11 +65,16 @@ Summary: ${result.snippet}
 
     console.log('Article content generated successfully');
 
-    // Generate audio for the article
-    console.log('Starting audio generation...');
+    // Generate summary for audio
+    console.log('Generating summary for audio...');
+    const summary = await summarizeContent(result.content);
+    console.log('Summary generated:', summary.substring(0, 100) + '...');
+
+    // Generate audio for the summary
+    console.log('Starting audio generation for summary...');
     let audioUrl = '';
     try {
-      audioUrl = await generateAudio(result.content);
+      audioUrl = await generateAudio(summary);
       console.log('Audio URL received:', audioUrl);
       if (!audioUrl) throw new Error("No audio URL received");
     } catch (error) {
@@ -98,6 +123,7 @@ Summary: ${result.snippet}
 
     return {
       ...result,
+      summary,
       imageUrl: persistedImageUrl,
       thumbnailUrl: persistedThumbnailUrl,
       audioUrl: audioUrl,

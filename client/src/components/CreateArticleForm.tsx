@@ -40,11 +40,12 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
         body: JSON.stringify({
           title: article.title,
           content: article.content,
+          summary: article.summary, // Include the summary
           description: article.description,
           imageurl: article.imageUrl,
           thumbnailurl: article.thumbnailUrl,
           videourl: article.videoUrl || '',
-          audiourl: article.audioUrl, // Ensure audio URL is included
+          audiourl: article.audioUrl,
           authoraddress: address,
           signature: "",
           isdraft: true,
@@ -92,9 +93,10 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
   const steps = [
     { id: 1, title: "Generating article content" },
-    { id: 2, title: "Creating article image" },
+    { id: 2, title: "Creating summary for audio" },
     { id: 3, title: "Generating audio narration" },
-    { id: 4, title: "Saving as draft" }
+    { id: 4, title: "Creating article image" },
+    { id: 5, title: "Saving as draft" }
   ];
 
   return (

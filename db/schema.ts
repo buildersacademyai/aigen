@@ -5,11 +5,12 @@ export const articles = pgTable("articles", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   content: text("content").notNull(),
+  summary: text("summary").notNull(), // Add summary field
   description: text("description").notNull(),
   imageurl: text("imageurl").notNull(),
   thumbnailurl: text("thumbnailurl"),
   videourl: text("videourl").notNull().default(''),
-  audiourl: text("audiourl").notNull().default(''), // Making audiourl required
+  audiourl: text("audiourl").notNull().default(''),
   videoduration: integer("videoduration").notNull().default(15),
   hasbackgroundmusic: boolean("hasbackgroundmusic").notNull().default(true),
   authoraddress: varchar("authoraddress", { length: 42 }).notNull(),
@@ -19,7 +20,12 @@ export const articles = pgTable("articles", {
   updatedat: timestamp("updatedat").defaultNow().notNull(),
 });
 
-// Create stored images table
+export const insertArticleSchema = createInsertSchema(articles);
+export const selectArticleSchema = createSelectSchema(articles);
+export type InsertArticle = typeof articles.$inferInsert;
+export type SelectArticle = typeof articles.$inferSelect;
+
+// Keep existing storedImages table and types
 export const storedImages = pgTable("storedimages", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull().unique(),
@@ -27,11 +33,6 @@ export const storedImages = pgTable("storedimages", {
   localpath: text("localpath").notNull(),
   createdat: timestamp("createdat").defaultNow().notNull(),
 });
-
-export const insertArticleSchema = createInsertSchema(articles);
-export const selectArticleSchema = createSelectSchema(articles);
-export type InsertArticle = typeof articles.$inferInsert;
-export type SelectArticle = typeof articles.$inferSelect;
 
 export const insertStoredImageSchema = createInsertSchema(storedImages);
 export const selectStoredImageSchema = createSelectSchema(storedImages);
