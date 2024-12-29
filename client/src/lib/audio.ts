@@ -39,17 +39,13 @@ export async function generateAudio(text: string, speed: number = 1): Promise<st
     const data = await response.json();
     console.log('Raw API Response:', data);
 
-    if (!data.images) {
+    // The API returns an audio field instead of images
+    if (!data.audio) {
       console.error('Unexpected API response structure:', data);
-      throw new Error('API response missing images array');
+      throw new Error('API response missing audio field');
     }
 
-    if (!data.images[0]) {
-      console.error('No audio URL in images array:', data.images);
-      throw new Error('No audio URL found in API response');
-    }
-
-    const audioUrl = data.images[0];
+    const audioUrl = data.audio;
     console.log('Successfully extracted audio URL:', audioUrl);
 
     return audioUrl;
