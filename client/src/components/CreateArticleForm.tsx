@@ -24,10 +24,16 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
   const createArticle = useMutation({
     mutationFn: async (data: FormData) => {
+      // Show initial toast
+      toast({
+        title: "Starting Generation",
+        description: "Generating article content and media...",
+      });
+
       // First generate the article
       const article = await generateArticle(data.topic);
 
-      // Then save it as draft - ensure property names match database columns
+      // Save as draft
       const response = await fetch("/api/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,7 +44,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           imageurl: article.imageUrl,
           thumbnailurl: article.thumbnailUrl,
           videourl: article.videoUrl || '',
-          audiourl: article.audioUrl || '', // Add audio URL
+          audiourl: article.audioUrl, // Ensure audio URL is included
           authoraddress: address,
           signature: "",
           isdraft: true,
@@ -57,7 +63,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Article created and saved as draft"
+        description: "Article created with audio and saved as draft"
       });
       form.reset();
       onSuccess?.();
@@ -81,17 +87,13 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
       return;
     }
 
-    toast({
-      title: "Starting Generation",
-      description: "Please wait while we generate your article...",
-    });
     createArticle.mutate(data);
   });
 
   const steps = [
     { id: 1, title: "Generating article content" },
     { id: 2, title: "Creating article image" },
-    { id: 3, title: "Generating audio" },
+    { id: 3, title: "Generating audio narration" },
     { id: 4, title: "Saving as draft" }
   ];
 
