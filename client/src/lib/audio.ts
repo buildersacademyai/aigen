@@ -28,7 +28,6 @@ export async function generateAudio(text: string, speed: number = 1): Promise<st
     return data.url;
   } catch (error) {
     console.error('Error generating audio:', error);
-    // Return empty string instead of throwing to prevent article creation from failing
-    return '';
+    return ''; // Return empty string instead of throwing to prevent article creation from failing
   }
 }

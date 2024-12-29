@@ -8,30 +8,6 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true // Required for client-side usage
 });
 
-const saveImage = async (imageUrl: string): Promise<string> => {
-  try {
-    // Make the API call to save the image
-    const response = await fetch('/api/images/save', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ imageUrl }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to save image');
-    }
-
-    const data = await response.json();
-    return data.url;
-  } catch (error) {
-    console.error('Error saving image:', error);
-    throw new Error(`Failed to save image: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-};
-
 export async function generateArticle(topic: string) {
   try {
     console.log('Starting article generation for topic:', topic);
@@ -70,13 +46,9 @@ Summary: ${result.snippet}
     console.log('Article content generated successfully');
 
     // Generate audio for the article
-    let audioUrl = '';
-    try {
-      audioUrl = await generateAudio(result.content);
-      console.log('Audio generated successfully:', audioUrl);
-    } catch (error) {
-      console.error('Audio generation failed, continuing without audio:', error);
-    }
+    console.log('Starting audio generation...');
+    const audioUrl = await generateAudio(result.content);
+    console.log('Audio URL received:', audioUrl);
 
     // Generate image for the article with more specific prompt
     const imageResponse = await openai.images.generate({
@@ -140,3 +112,27 @@ Summary: ${result.snippet}
     throw new Error("Failed to generate article: " + errorMessage);
   }
 }
+
+const saveImage = async (imageUrl: string): Promise<string> => {
+  try {
+    // Make the API call to save the image
+    const response = await fetch('/api/images/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ imageUrl }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to save image');
+    }
+
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Error saving image:', error);
+    throw new Error(`Failed to save image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};

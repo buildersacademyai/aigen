@@ -9,7 +9,7 @@ export const articles = pgTable("articles", {
   imageurl: text("imageurl").notNull(),
   thumbnailurl: text("thumbnailurl"),
   videourl: text("videourl").notNull().default(''),
-  audiourl: text("audiourl"), // New field for storing audio content URL
+  audiourl: text("audiourl"), // Field for storing audio content URL
   videoduration: integer("videoduration").notNull().default(15),
   hasbackgroundmusic: boolean("hasbackgroundmusic").notNull().default(true),
   authoraddress: varchar("authoraddress", { length: 42 }).notNull(),
