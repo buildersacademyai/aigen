@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import { gatherRelatedContent } from './scraper';
-import { generateAudio } from './audio';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -8,30 +7,32 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true // Required for client-side usage
 });
 
-async function summarizeContent(content: string): Promise<string> {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system",
-        content: "You are a content summarizer. Create a concise 200-word summary that captures the key points while maintaining a natural, engaging flow. The summary should work well when read aloud."
+const saveImage = async (imageUrl: string): Promise<string> => {
+  try {
+    // Make the API call to save the image
+    const response = await fetch('/api/images/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      {
-        role: "user",
-        content: content
-      }
-    ],
-    temperature: 0.7,
-    max_tokens: 500,
-  });
+      body: JSON.stringify({ imageUrl }),
+    });
 
-  return response.choices[0].message.content || '';
-}
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to save image');
+    }
+
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Error saving image:', error);
+    throw new Error(`Failed to save image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
 
 export async function generateArticle(topic: string) {
   try {
-    console.log('Starting article generation for topic:', topic);
-
     // First, gather related content
     const relatedContent = await gatherRelatedContent(topic);
 
@@ -63,25 +64,6 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
 
-    console.log('Article content generated successfully');
-
-    // Generate summary for audio
-    console.log('Generating summary for audio...');
-    const summary = await summarizeContent(result.content);
-    console.log('Summary generated:', summary.substring(0, 100) + '...');
-
-    // Generate audio for the summary
-    console.log('Starting audio generation for summary...');
-    let audioUrl = '';
-    try {
-      audioUrl = await generateAudio(summary);
-      console.log('Audio URL received:', audioUrl);
-      if (!audioUrl) throw new Error("No audio URL received");
-    } catch (error) {
-      console.error('Audio generation failed:', error);
-      throw new Error("Failed to generate audio: " + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-
     // Generate image for the article with more specific prompt
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
@@ -97,7 +79,6 @@ Summary: ${result.snippet}
 
     // Save the main article image
     const persistedImageUrl = await saveImage(imageResponse.data[0].url);
-    console.log('Main image saved successfully:', persistedImageUrl);
 
     // Generate video thumbnail image with watermark
     const thumbnailResponse = await openai.images.generate({
@@ -119,53 +100,25 @@ Summary: ${result.snippet}
 
     // Save the thumbnail image
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
-    console.log('Thumbnail saved successfully:', persistedThumbnailUrl);
+
+    // Select an appropriate video based on the topic
+    let videoUrl;
+    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
+    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+    } else {
+      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    }
 
     return {
       ...result,
-      summary,
       imageUrl: persistedImageUrl,
-      thumbnailUrl: persistedThumbnailUrl,
-      audioUrl: audioUrl,
-      videoUrl: selectVideoUrl(topic)
+      videoUrl: videoUrl,
+      thumbnailUrl: persistedThumbnailUrl
     };
   } catch (error) {
-    console.error('Article generation error:', error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error("Failed to generate article: " + errorMessage);
   }
 }
-
-function selectVideoUrl(topic: string): string {
-  if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-    return "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
-  } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-    return "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
-  } else {
-    return "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-  }
-}
-
-const saveImage = async (imageUrl: string): Promise<string> => {
-  try {
-    // Make the API call to save the image
-    const response = await fetch('/api/images/save', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ imageUrl }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to save image');
-    }
-
-    const data = await response.json();
-    return data.url;
-  } catch (error) {
-    console.error('Error saving image:', error);
-    throw new Error(`Failed to save image: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-};

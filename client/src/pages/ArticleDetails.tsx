@@ -3,14 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type { SelectArticle } from "@db/schema";
-import { WaveformPlayer } from "@/components/WaveformPlayer";
 
 interface ArticleProps {
   params: { id: string };
 }
 
 export function ArticleDetails({ params }: ArticleProps) {
-  const { data: article, isLoading } = useQuery<SelectArticle>({
+  const { data: article, isLoading } = useQuery<SelectArticle>({ 
     queryKey: [`/api/articles/${params.id}`],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -51,13 +50,13 @@ export function ArticleDetails({ params }: ArticleProps) {
             transition={{ duration: 0.5 }}
           >
             {/* Title Section */}
-            <motion.h1
+            <motion.h1 
               className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              transition={{
+              transition={{ 
                 delay: 0.2,
                 type: "spring",
                 stiffness: 200,
@@ -67,42 +66,20 @@ export function ArticleDetails({ params }: ArticleProps) {
               {article.title}
             </motion.h1>
 
-            {/* Author Section */}
-            <motion.div
-              className="mb-6"
+            <motion.div 
+              className="text-sm text-muted-foreground mb-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>By</span>
-                <code className="bg-accent/10 px-2 py-1 rounded">
-                  {article.authoraddress}
-                </code>
-              </div>
+              By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
             </motion.div>
-
-            {/* Audio Player Section - Moved before main image */}
-            {article.audiourl && article.audiourl !== '' && (
-              <motion.div
-                className="mb-6 bg-accent/5 p-4 rounded-lg border border-accent/10"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                <h3 className="text-lg font-semibold mb-4">Listen to Article</h3>
-                <WaveformPlayer
-                  audioUrl={article.audiourl}
-                  className="w-full"
-                />
-              </motion.div>
-            )}
 
             {/* Main Image */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.4 }}
             >
               <img
                 src={article.imageurl}
@@ -111,21 +88,22 @@ export function ArticleDetails({ params }: ArticleProps) {
               />
             </motion.div>
 
+
             {/* Article Content */}
-            <motion.div
+            <motion.div 
               className="prose prose-invert max-w-none"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {article.content.split("\n\n").map((paragraph, index) => (
-                <motion.p
-                  key={index}
+              {article.content.split('\n\n').map((paragraph, index) => (
+                <motion.p 
+                  key={index} 
                   className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   whileHover={{ scale: 1.01, x: 4 }}
-                  transition={{
+                  transition={{ 
                     delay: 0.7 + index * 0.1,
                     type: "spring",
                     stiffness: 400,
@@ -138,8 +116,8 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Video Section */}
-            {article.videourl && article.videourl !== "" && (
-              <motion.div
+            {article.videourl && (
+              <motion.div 
                 className="mt-6 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -153,15 +131,15 @@ export function ArticleDetails({ params }: ArticleProps) {
                     muted
                     playsInline
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                    poster={article.thumbnailurl || article.imageurl}
+                    poster={article.imageurl}
                   >
-                    <source
-                      src={article.videourl}
+                    <source 
+                      src={article.videourl} 
                       type="video/mp4"
                     />
                     Your browser does not support the video tag.
                   </video>
-                  <div
+                  <div 
                     className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
                   >
                     BuildersAcademy
@@ -171,7 +149,7 @@ export function ArticleDetails({ params }: ArticleProps) {
             )}
 
             {/* Share Section */}
-            <motion.div
+            <motion.div 
               className="border-t pt-6 mt-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
