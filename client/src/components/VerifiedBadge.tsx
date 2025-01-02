@@ -21,7 +21,7 @@ export function VerifiedBadge({ className }: VerifiedBadgeProps) {
         animate={{ rotate: 0 }}
         transition={{ duration: 0.5, type: "spring" }}
       >
-        <CheckCircle className="w-4 h-4" />
+        <CheckCircle className="w-4 h-4 text-green-500" />
       </motion.div>
       <span>Verified Content</span>
     </motion.div>

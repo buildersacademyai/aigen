@@ -404,11 +404,27 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Signature is required for publishing" });
       }
 
+      // First get the current article
+      const [currentArticle] = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.id, parseInt(req.params.id)))
+        .limit(1);
+
+      if (!currentArticle) {
+        return res.status(404).json({ message: "Article not found" });
+      }
+
+      // Clean the content by removing '#' signs
+      const cleanContent = currentArticle.content.replace(/#/g, '');
+
       const result = await db
         .update(articles)
         .set({
           isdraft: false,
-          signature: req.body.signature
+          signature: req.body.signature,
+          content: cleanContent,
+          updatedat: new Date(),
         })
         .where(eq(articles.id, parseInt(req.params.id)))
         .returning();
@@ -417,6 +433,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Article not found" });
       }
 
+      console.log('Article published successfully:', result[0].id);
       res.json(result[0]);
     } catch (error) {
       console.error('Publish error:', error);
