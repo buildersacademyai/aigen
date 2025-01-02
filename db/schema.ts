@@ -18,6 +18,7 @@ export const articles = pgTable("articles", {
   authoraddress: varchar("authoraddress", { length: 42 }).notNull(),
   signature: text("signature").notNull(),
   isdraft: boolean("isdraft").notNull().default(true),
+  sourcelinks: text("sourcelinks"),  // New field for storing source links as JSON string
   createdat: timestamp("createdat").defaultNow().notNull(),
   updatedat: timestamp("updatedat").defaultNow().notNull(),
 }, (table) => ({
