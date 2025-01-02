@@ -364,6 +364,8 @@ export function registerRoutes(app: Express): Server {
           title: req.body.title,
           content: req.body.content,
           description: req.body.description,
+          audiourl: req.body.audiourl,
+          audioduration: req.body.audioduration,
         })
         .where(eq(articles.id, parseInt(req.params.id)))
         .returning();
@@ -374,7 +376,11 @@ export function registerRoutes(app: Express): Server {
 
       res.json(result[0]);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update article" });
+      console.error('Update article error:', error);
+      res.status(500).json({ 
+        message: "Failed to update article",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

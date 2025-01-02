@@ -172,7 +172,7 @@ Summary: ${result.snippet}
     // Extract source links from the related content
     const sourceLinks = relatedContent.map(result => result.link);
 
-    // Create the article first
+    // Create the article first to get the ID
     const articleResponse = await fetch("/api/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -201,6 +201,20 @@ Summary: ${result.snippet}
     // Now save the audio with the correct article ID
     const audio = await saveAudio(audioBlob, article.id);
 
+    // Update the article with the audio information
+    const updateResponse = await fetch(`/api/articles/${article.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        audiourl: audio.url,
+        audioduration: audio.duration
+      })
+    });
+
+    if (!updateResponse.ok) {
+      throw new Error("Failed to update article with audio information");
+    }
+
     return {
       ...result,
       imageUrl: persistedImageUrl,
@@ -211,6 +225,7 @@ Summary: ${result.snippet}
       sourceLinks
     };
   } catch (error) {
+    console.error('Article generation error:', error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error("Failed to generate article: " + errorMessage);
   }
