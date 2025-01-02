@@ -33,7 +33,7 @@ export function Footer() {
             <p className="text-muted-foreground mb-4">
               Get in touch with us for any questions or concerns.
             </p>
-            <Button className="w-full">Join Community</Button>
+            <Button className="w-full"><a href="https://discord.gg/HNhfAugqjb" className="text-black">Join Community</a></Button>
           </div>
         </div>
       </div>

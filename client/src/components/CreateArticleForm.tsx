@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { generateArticle } from "@/lib/openai";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
@@ -21,6 +21,7 @@ interface FormData {
 export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps) {
   const form = useForm<FormData>();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const createArticle = useMutation({
     mutationFn: async (data: FormData) => {
@@ -38,10 +39,10 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           imageurl: article.imageUrl,
           thumbnailurl: article.thumbnailUrl,
           videourl: article.videoUrl || '',
-          audiourl: article.audioUrl || '',  // Add audio URL
-          audioduration: article.audioDuration || 0,  // Add audio duration
-          authoraddress: address,  // Send address directly without manipulation
-          signature: "", // Empty signature for drafts
+          audiourl: article.audioUrl || '',  
+          audioduration: article.audioDuration || 0,  
+          authoraddress: address,  
+          signature: "", 
           isdraft: true,
           videoduration: 15,
           hasbackgroundmusic: true
@@ -55,7 +56,11 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate both drafts and published articles queries
+      queryClient.invalidateQueries({ queryKey: [`/api/articles/drafts/${address}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
+
       toast({
         title: "Success",
         description: "Article created and saved as draft"
