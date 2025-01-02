@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useLocation } from "wouter";
 import type { SelectArticle } from "@db/schema";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface ArticleCardProps {
   article: SelectArticle;
@@ -31,13 +30,8 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
         </AspectRatio>
       </CardHeader>
       <CardContent className="p-4">
-        <div className="flex flex-col gap-2">
-          <h3 className="text-xl font-bold">{article.title}</h3>
-          {!article.isdraft && (
-            <VerifiedBadge className="w-fit" />
-          )}
-          <p className="text-muted-foreground line-clamp-3">{article.description}</p>
-        </div>
+        <h3 className="text-xl font-bold mb-2">{article.title}</h3>
+        <p className="text-muted-foreground line-clamp-3">{article.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <div className="text-sm text-muted-foreground flex items-center justify-between w-full">
