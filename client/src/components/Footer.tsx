@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-
+//
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background mt-auto">

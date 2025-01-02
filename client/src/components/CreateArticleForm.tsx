@@ -40,7 +40,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           videourl: article.videoUrl || '',
           audiourl: article.audioUrl || '',  // Add audio URL
           audioduration: article.audioDuration || 0,  // Add audio duration
-          authoraddress: address,  // Send address directly without manipulation
+          authoraddress: address,  // Send address directly without manipulation.
           signature: "", // Empty signature for drafts
           isdraft: true,
           videoduration: 15,

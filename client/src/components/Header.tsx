@@ -11,7 +11,7 @@ export function Header() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const { toast } = useToast();
 
-  // Track wallet connection and changes
+  // Track wallet connection and changes.
   useEffect(() => {
     // Initial connection check
     const checkInitialConnection = async () => {
