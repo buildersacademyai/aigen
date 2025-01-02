@@ -24,41 +24,55 @@ export function Header() {
           const lastChainId = localStorage.getItem('lastChainId');
 
           if (accounts[0]) {
-            // Only update if the address or chain has changed
             if (accounts[0] !== lastAddress || currentChainId !== lastChainId) {
+              console.log('Initial connection: Address or chain changed');
               setAddress(accounts[0]);
               setChainId(currentChainId);
               localStorage.setItem('lastAddress', accounts[0]);
               localStorage.setItem('lastChainId', currentChainId);
             } else {
-              // Use stored values if no change
               setAddress(lastAddress);
               setChainId(lastChainId);
             }
+          } else if (lastAddress) {
+            console.log('Initial connection: No accounts found, clearing stored data');
+            handleDisconnect();
           }
         } catch (error) {
           console.error('Failed to get initial account:', error);
+          handleDisconnect();
         }
       }
     };
 
-    checkInitialConnection();
+    const handleDisconnect = () => {
+      setAddress(null);
+      setChainId(null);
+      localStorage.removeItem('lastAddress');
+      localStorage.removeItem('lastChainId');
+      window.location.href = '/';
+      toast({
+        title: "Wallet Disconnected",
+        description: "Please reconnect your wallet",
+        variant: "destructive",
+      });
+    };
 
     // Listen for account changes
     const handleAccountsChanged = async (accounts: string[]) => {
+      console.log('Accounts changed:', accounts);
       const newAddress = accounts[0] || null;
       const lastAddress = localStorage.getItem('lastAddress');
 
+      if (!newAddress) {
+        console.log('No new address found, disconnecting');
+        handleDisconnect();
+        return;
+      }
+
       if (lastAddress && newAddress !== lastAddress) {
-        setAddress(null);
-        localStorage.removeItem('lastAddress');
-        localStorage.removeItem('lastChainId');
-        window.location.href = '/';
-        toast({
-          title: "Wallet Changed",
-          description: "Please reconnect your wallet",
-          variant: "destructive",
-        });
+        console.log('Address changed, disconnecting');
+        handleDisconnect();
       } else if (newAddress) {
         setAddress(newAddress);
         localStorage.setItem('lastAddress', newAddress);
@@ -66,55 +80,64 @@ export function Header() {
     };
 
     // Listen for network changes
-    const handleNetworkChanged = async (newChainId: string) => {
+    const handleChainChanged = async (newChainId: string) => {
+      console.log('Chain changed:', newChainId);
       const lastChainId = localStorage.getItem('lastChainId');
 
       if (lastChainId && newChainId !== lastChainId) {
-        setAddress(null);
-        setChainId(null);
-        localStorage.removeItem('lastAddress');
-        localStorage.removeItem('lastChainId');
-        window.location.href = '/';
-        toast({
-          title: "Network Changed",
-          description: "Please reconnect your wallet",
-          variant: "destructive",
-        });
+        console.log('Chain ID changed, disconnecting');
+        handleDisconnect();
       } else if (newChainId) {
         setChainId(newChainId);
         localStorage.setItem('lastChainId', newChainId);
       }
     };
 
-    // Check for disconnection
-    const interval = setInterval(async () => {
-      if (address) {
-        try {
-          const accounts = await window.ethereum?.request({ method: 'eth_accounts' });
-          const currentChainId = await window.ethereum?.request({ method: 'eth_chainId' });
-
-          if (!accounts?.[0] || currentChainId !== chainId) {
-            setAddress(null);
-            setChainId(null);
-            localStorage.removeItem('lastAddress');
-            localStorage.removeItem('lastChainId');
-            window.location.href = '/';
-          }
-        } catch (error) {
-          console.error('Failed to check connection:', error);
-        }
+    // Check for disconnection or changes
+    const checkConnection = async () => {
+      if (!window.ethereum) {
+        console.log('No ethereum provider found');
+        handleDisconnect();
+        return;
       }
-    }, 5000);
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const lastAddress = localStorage.getItem('lastAddress');
+        const lastChainId = localStorage.getItem('lastChainId');
+
+        if (!accounts[0] || !currentChainId) {
+          console.log('No accounts or chain ID found during check');
+          if (lastAddress || lastChainId) {
+            handleDisconnect();
+          }
+          return;
+        }
+
+        if (accounts[0] !== lastAddress || currentChainId !== lastChainId) {
+          console.log('Address or chain changed during check');
+          handleDisconnect();
+        }
+      } catch (error) {
+        console.error('Error checking connection:', error);
+        handleDisconnect();
+      }
+    };
+
+    checkInitialConnection();
+
+    const interval = setInterval(checkConnection, 5000);
 
     window.ethereum?.on('accountsChanged', handleAccountsChanged);
-    window.ethereum?.on('chainChanged', handleNetworkChanged);
+    window.ethereum?.on('chainChanged', handleChainChanged);
 
     return () => {
       window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
-      window.ethereum?.removeListener('chainChanged', handleNetworkChanged);
+      window.ethereum?.removeListener('chainChanged', handleChainChanged);
       clearInterval(interval);
     };
-  }, [toast, address, chainId]);
+  }, [toast]);
 
   const handleConnect = async () => {
     try {

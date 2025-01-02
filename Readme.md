@@ -6,7 +6,7 @@ AIgen is an innovative web-based application designed to help users leverage the
 
 - **Repository**: [GitHub Repository](https://github.com/buildersacademyai/aigen)
 - **Live Application**: [AIgen Website](https://aigen2o.replit.app/)
-- **Tech Stack**: React.js, TailwindCSS, and OpenAI API, Ethereum
+- **Tech Stack**: React.js, TailwindCSS, and OpenAI API, Blockchain
 
 ## Features
 
