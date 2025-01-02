@@ -311,8 +311,14 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Article not found" });
       }
 
+      console.log('Article fetched with source links:', {
+        id: result[0].id,
+        sourcelinks: result[0].sourcelinks
+      });
+
       res.json(result[0]);
     } catch (error) {
+      console.error('Error fetching article:', error);
       res.status(500).json({ message: "Failed to fetch article" });
     }
   });
@@ -342,6 +348,7 @@ export function registerRoutes(app: Express): Server {
         isdraft: req.body.isdraft ?? true,
         videoduration: req.body.videoduration ?? 15,
         hasbackgroundmusic: req.body.hasbackgroundmusic ?? true,
+        sourcelinks: req.body.sourcelinks
       }).returning();
 
       console.log('Article created successfully:', JSON.stringify(result[0], null, 2));
@@ -377,7 +384,7 @@ export function registerRoutes(app: Express): Server {
       res.json(result[0]);
     } catch (error) {
       console.error('Update article error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to update article",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
