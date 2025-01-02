@@ -415,6 +415,8 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Article not found" });
       }
 
+      console.log('Publishing article:', currentArticle.id, 'with source links:', req.body.sourceLinks);
+
       // Clean the content by removing '#' and '*' signs
       const cleanContent = currentArticle.content
         .replace(/[#*]/g, '')
@@ -441,6 +443,8 @@ export function registerRoutes(app: Express): Server {
           finalContent = `${cleanContent}\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}`;
         }
       }
+
+      console.log('Final content preview:', finalContent.substring(0, 200) + '...');
 
       const result = await db
         .update(articles)
