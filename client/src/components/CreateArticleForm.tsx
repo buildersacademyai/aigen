@@ -46,7 +46,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           isdraft: true,
           videoduration: 15,
           hasbackgroundmusic: true,
-          sourcelinks: article.sourceLinks ? JSON.stringify(article.sourceLinks) : null // Add source links
+          sourcelinks: article.sourceLinks ? JSON.stringify(article.sourceLinks) : null // Ensure sourceLinks are included
         })
       });
 
@@ -96,10 +96,11 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
   });
 
   const steps = [
-    { id: 1, title: "Generating article content" },
-    { id: 2, title: "Creating article image" },
-    { id: 3, title: "Generating audio narration" },
-    { id: 4, title: "Saving as draft" }
+    { id: 1, title: "Gathering relevant content" },
+    { id: 2, title: "Generating article content" },
+    { id: 3, title: "Creating article image" },
+    { id: 4, title: "Generating audio narration" },
+    { id: 5, title: "Saving as draft" }
   ];
 
   return (
