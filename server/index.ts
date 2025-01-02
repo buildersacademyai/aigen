@@ -6,14 +6,41 @@ import path from "path";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
+import helmet from "helmet";
+import timeout from "express-timeout-handler";
 
 const app = express();
 
 // Trust proxy - required for rate limiting behind reverse proxies
 app.set('trust proxy', 1);
 
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      mediaSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false,
+}));
+
 // Enable compression for all responses
 app.use(compression());
+
+// Configure timeout handling
+app.use(timeout.handler({
+  timeout: 30000,
+  onTimeout: function(req: Request, res: Response) {
+    res.status(503).json({ message: "Request timeout" });
+  },
+}));
 
 // Configure rate limiting with proxy support
 const limiter = rateLimit({

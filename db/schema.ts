@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, varchar, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, varchar, integer, boolean, index } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const articles = pgTable("articles", {
@@ -19,7 +19,12 @@ export const articles = pgTable("articles", {
   isdraft: boolean("isdraft").notNull().default(true),
   createdat: timestamp("createdat").defaultNow().notNull(),
   updatedat: timestamp("updatedat").defaultNow().notNull(),
-});
+}, (table) => ({
+  authorIndex: index("author_idx").on(table.authoraddress),
+  draftIndex: index("draft_idx").on(table.isdraft),
+  createdAtIndex: index("created_at_idx").on(table.createdat),
+  titleIndex: index("title_idx").on(table.title),
+}));
 
 // Create stored images table
 export const storedImages = pgTable("storedimages", {
@@ -28,7 +33,9 @@ export const storedImages = pgTable("storedimages", {
   originalurl: text("originalurl").notNull(),
   localpath: text("localpath").notNull(),
   createdat: timestamp("createdat").defaultNow().notNull(),
-});
+}, (table) => ({
+  filenameIndex: index("filename_idx").on(table.filename),
+}));
 
 // Create stored audio table
 export const storedAudio = pgTable("storedaudio", {
@@ -38,7 +45,10 @@ export const storedAudio = pgTable("storedaudio", {
   localpath: text("localpath").notNull(),
   articleid: integer("articleid").notNull(),
   createdat: timestamp("createdat").defaultNow().notNull(),
-});
+}, (table) => ({
+  articleIdIndex: index("article_id_idx").on(table.articleid),
+  filenameIndex: index("audio_filename_idx").on(table.filename),
+}));
 
 export const insertArticleSchema = createInsertSchema(articles);
 export const selectArticleSchema = createSelectSchema(articles);
