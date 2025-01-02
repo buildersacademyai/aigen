@@ -45,7 +45,8 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           signature: "", 
           isdraft: true,
           videoduration: 15,
-          hasbackgroundmusic: true
+          hasbackgroundmusic: true,
+          sourcelinks: article.sourceLinks ? JSON.stringify(article.sourceLinks) : null // Add source links
         })
       });
 

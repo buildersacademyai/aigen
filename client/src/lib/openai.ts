@@ -153,13 +153,17 @@ Summary: ${result.snippet}
       videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
     }
 
+    // Extract source links from the related content
+    const sourceLinks = relatedContent.map(result => result.link);
+
     return {
       ...result,
       imageUrl: persistedImageUrl,
       videoUrl: videoUrl,
       thumbnailUrl: persistedThumbnailUrl,
       audioUrl: audio.url,
-      audioDuration: audio.duration
+      audioDuration: audio.duration,
+      sourceLinks // Add the source links to the returned data
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
