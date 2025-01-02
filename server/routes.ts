@@ -89,7 +89,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ status: "healthy" });
     } catch (error) {
       console.error("Image storage health check failed:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         status: "unhealthy",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -106,7 +106,7 @@ export function registerRoutes(app: Express): Server {
       try {
         await fs.access(filePath);
         const stats = await fs.stat(filePath);
-        res.json({ 
+        res.json({
           exists: true,
           size: stats.size,
           path: `/images/${filename}`
@@ -140,7 +140,7 @@ export function registerRoutes(app: Express): Server {
           throw new Error("Downloaded image is empty");
         }
 
-        res.json({ 
+        res.json({
           exists: true,
           recovered: true,
           path: `/images/${filename}`
@@ -148,7 +148,7 @@ export function registerRoutes(app: Express): Server {
       }
     } catch (error) {
       console.error("Image verification failed:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to verify image",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -165,7 +165,7 @@ export function registerRoutes(app: Express): Server {
       try {
         await fs.access(filePath);
         const stats = await fs.stat(filePath);
-        res.json({ 
+        res.json({
           exists: true,
           size: stats.size,
           url: `/audio/${filename}`
@@ -188,7 +188,7 @@ export function registerRoutes(app: Express): Server {
       }
     } catch (error) {
       console.error("Audio verification failed:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to verify audio file",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -242,7 +242,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ url: storedImage.localpath });
     } catch (error) {
       console.error("Error saving image:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to save image",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -348,7 +348,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(result[0]);
     } catch (error) {
       console.error('Article creation error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to create article",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -415,15 +415,29 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Article not found" });
       }
 
-      // Clean the content by removing '#' signs
-      const cleanContent = currentArticle.content.replace(/#/g, '');
+      // Clean the content by removing '#' and '*' signs
+      const cleanContent = currentArticle.content
+        .replace(/[#*]/g, '')
+        .trim();
+
+      // Add source links if they exist
+      let finalContent = cleanContent;
+      if (req.body.sourceLinks && Array.isArray(req.body.sourceLinks) && req.body.sourceLinks.length > 0) {
+        const sourceLinksSection = `
+
+## Resources Used
+${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}
+`;
+        finalContent = `${cleanContent}${sourceLinksSection}`;
+      }
 
       const result = await db
         .update(articles)
         .set({
           isdraft: false,
           signature: req.body.signature,
-          content: cleanContent,
+          content: finalContent,
+          sourcelinks: req.body.sourceLinks ? JSON.stringify(req.body.sourceLinks) : null,
           updatedat: new Date(),
         })
         .where(eq(articles.id, parseInt(req.params.id)))
@@ -440,6 +454,7 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ message: "Failed to publish article" });
     }
   });
+
   // Get analytics data
   app.get("/api/analytics", async (req, res) => {
     try {
@@ -562,7 +577,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error saving audio:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to save audio file",
         error: error instanceof Error ? error.message : 'Unknown error'
       });

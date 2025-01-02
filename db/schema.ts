@@ -17,6 +17,7 @@ export const articles = pgTable("articles", {
   audioduration: integer("audioduration"),  // New field for audio duration
   authoraddress: varchar("authoraddress", { length: 42 }).notNull(),
   signature: text("signature").notNull(),
+  sourcelinks: text("sourcelinks"),  // New field for storing source links
   isdraft: boolean("isdraft").notNull().default(true),
   createdat: timestamp("createdat").defaultNow().notNull(),
   updatedat: timestamp("updatedat").defaultNow().notNull(),
