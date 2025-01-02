@@ -25,9 +25,115 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 export function registerRoutes(app: Express): Server {
-  // Serve static files from public directories
-  app.use('/images', express.static(path.join(process.cwd(), 'public', 'images')));
-  app.use('/audio', express.static(path.join(process.cwd(), 'public', 'audio')));
+  // Serve static files from public directories with proper caching and headers
+  app.use('/images', express.static(path.join(process.cwd(), 'public', 'images'), {
+    maxAge: '1d', // Cache images for 1 day
+    etag: true,
+    setHeaders: (res, filePath) => {
+      // Set proper content type based on file extension
+      const ext = path.extname(filePath).toLowerCase();
+      switch (ext) {
+        case '.jpg':
+        case '.jpeg':
+          res.setHeader('Content-Type', 'image/jpeg');
+          break;
+        case '.png':
+          res.setHeader('Content-Type', 'image/png');
+          break;
+        case '.gif':
+          res.setHeader('Content-Type', 'image/gif');
+          break;
+        case '.webp':
+          res.setHeader('Content-Type', 'image/webp');
+          break;
+      }
+      // Add cache control headers
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+      res.setHeader('Vary', 'Accept-Encoding');
+    }
+  }));
+
+  app.use('/audio', express.static(path.join(process.cwd(), 'public', 'audio'), {
+    maxAge: '1d',
+    etag: true,
+  }));
+
+  // Add health check endpoint for stored images
+  app.get("/api/images/health", async (req, res) => {
+    try {
+      const imagesDir = path.join(process.cwd(), "public", "images");
+      await fs.access(imagesDir);
+
+      // Check if at least one image exists and is accessible
+      const images = await db.select().from(storedImages).limit(1);
+      if (images.length > 0) {
+        const testImage = images[0];
+        await fs.access(path.join(imagesDir, testImage.filename));
+      }
+
+      res.json({ status: "healthy" });
+    } catch (error) {
+      console.error("Image storage health check failed:", error);
+      res.status(500).json({ 
+        status: "unhealthy",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Add route to verify specific image
+  app.get("/api/images/verify/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const imagesDir = path.join(process.cwd(), "public", "images");
+      const filePath = path.join(imagesDir, filename);
+
+      try {
+        await fs.access(filePath);
+        const stats = await fs.stat(filePath);
+        res.json({ 
+          exists: true,
+          size: stats.size,
+          path: `/images/${filename}`
+        });
+      } catch {
+        // If file doesn't exist, try to recover it from original URL
+        const image = await db
+          .select()
+          .from(storedImages)
+          .where(eq(storedImages.filename, filename))
+          .limit(1);
+
+        if (image.length === 0) {
+          return res.status(404).json({ message: "Image not found in database" });
+        }
+
+        // Try to re-download the image
+        const imageResponse = await fetch(image[0].originalurl, {
+          timeout: 10000
+        });
+
+        if (!imageResponse.ok) {
+          return res.status(404).json({ message: "Failed to recover image" });
+        }
+
+        const buffer = await imageResponse.arrayBuffer();
+        await fs.writeFile(filePath, Buffer.from(buffer));
+
+        res.json({ 
+          exists: true,
+          recovered: true,
+          path: `/images/${filename}`
+        });
+      }
+    } catch (error) {
+      console.error("Image verification failed:", error);
+      res.status(500).json({ 
+        message: "Failed to verify image",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   // Get all published articles
   app.get("/api/articles", async (req, res) => {
@@ -286,10 +392,25 @@ export function registerRoutes(app: Express): Server {
       const imagesDir = path.join(process.cwd(), "public", "images");
       await fs.mkdir(imagesDir, { recursive: true });
 
-      // Download the image
-      const imageResponse = await fetch(imageUrl);
-      if (!imageResponse.ok) {
-        throw new Error("Failed to download image");
+      // Download the image with retry logic
+      let imageResponse;
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          imageResponse = await fetch(imageUrl, {
+            timeout: 10000, // 10 second timeout
+          });
+          if (imageResponse.ok) break;
+        } catch (error) {
+          console.error(`Retry ${4 - retries}/3 failed:`, error);
+          retries--;
+          if (retries === 0) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
+
+      if (!imageResponse?.ok) {
+        throw new Error("Failed to download image after retries");
       }
 
       // Generate a unique filename
@@ -300,6 +421,13 @@ export function registerRoutes(app: Express): Server {
       // Save the image
       const buffer = await imageResponse.arrayBuffer();
       await fs.writeFile(filePath, Buffer.from(buffer));
+
+      // Verify the file exists and has content
+      const stats = await fs.stat(filePath);
+      if (stats.size === 0) {
+        await fs.unlink(filePath); // Delete empty file
+        throw new Error("Downloaded image is empty");
+      }
 
       // Store image information in database
       const [storedImage] = await db.insert(storedImages).values({
