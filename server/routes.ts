@@ -327,9 +327,6 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Author address is required" });
       }
 
-      // Convert sourcelinks array to JSON string if present
-      const sourceLinks = req.body.sourcelinks ? JSON.stringify(req.body.sourcelinks) : null;
-
       const result = await db.insert(articles).values({
         title: req.body.title,
         content: req.body.content,
@@ -345,7 +342,6 @@ export function registerRoutes(app: Express): Server {
         isdraft: req.body.isdraft ?? true,
         videoduration: req.body.videoduration ?? 15,
         hasbackgroundmusic: req.body.hasbackgroundmusic ?? true,
-        sourcelinks: sourceLinks,
       }).returning();
 
       console.log('Article created successfully:', JSON.stringify(result[0], null, 2));
@@ -362,16 +358,12 @@ export function registerRoutes(app: Express): Server {
   // Update article
   app.put("/api/articles/:id", async (req, res) => {
     try {
-      // Convert sourcelinks array to JSON string if present
-      const sourceLinks = req.body.sourcelinks ? JSON.stringify(req.body.sourcelinks) : null;
-
       const result = await db
         .update(articles)
         .set({
           title: req.body.title,
           content: req.body.content,
           description: req.body.description,
-          sourcelinks: sourceLinks,
         })
         .where(eq(articles.id, parseInt(req.params.id)))
         .returning();
@@ -426,16 +418,12 @@ export function registerRoutes(app: Express): Server {
       // Clean the content by removing '#' signs
       const cleanContent = currentArticle.content.replace(/#/g, '');
 
-      // Convert sourcelinks array to JSON string if present
-      const sourceLinks = req.body.sourcelinks ? JSON.stringify(req.body.sourcelinks) : currentArticle.sourcelinks;
-
       const result = await db
         .update(articles)
         .set({
           isdraft: false,
           signature: req.body.signature,
           content: cleanContent,
-          sourcelinks: sourceLinks,
           updatedat: new Date(),
         })
         .where(eq(articles.id, parseInt(req.params.id)))

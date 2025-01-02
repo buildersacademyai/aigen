@@ -13,7 +13,7 @@ interface ArticleProps {
 }
 
 export function ArticleDetails({ params }: ArticleProps) {
-  const { data: article, isLoading } = useQuery<SelectArticle>({
+  const { data: article, isLoading } = useQuery<SelectArticle>({ 
     queryKey: [`/api/articles/${params.id}`],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -119,17 +119,6 @@ export function ArticleDetails({ params }: ArticleProps) {
     );
   }
 
-  // Function to parse and validate source links
-  const getSourceLinks = (sourceLinksStr: string | null): string[] => {
-    if (!sourceLinksStr) return [];
-    try {
-      const links = JSON.parse(sourceLinksStr);
-      return Array.isArray(links) ? links : [];
-    } catch {
-      return [];
-    }
-  };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Card className="mx-auto overflow-hidden">
@@ -141,13 +130,13 @@ export function ArticleDetails({ params }: ArticleProps) {
           >
             {/* Title Section with Verified Badge */}
             <div className="flex flex-col gap-2 mb-4">
-              <motion.h1
+              <motion.h1 
                 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                transition={{
+                transition={{ 
                   delay: 0.2,
                   type: "spring",
                   stiffness: 200,
@@ -168,7 +157,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               )}
             </div>
 
-            <motion.div
+            <motion.div 
               className="text-sm text-muted-foreground mb-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -189,8 +178,8 @@ export function ArticleDetails({ params }: ArticleProps) {
                   <Volume2 className="h-5 w-5 text-primary" />
                   <span className="text-sm font-medium">Listen to Article</span>
                 </div>
-                <audio
-                  controls
+                <audio 
+                  controls 
                   className="w-full"
                   src={audioUrl}
                   onError={handleAudioError}
@@ -215,20 +204,20 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Article Content */}
-            <motion.div
+            <motion.div 
               className="prose prose-invert max-w-none"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
               {article.content.split('\n\n').map((paragraph, index) => (
-                <motion.p
-                  key={index}
+                <motion.p 
+                  key={index} 
                   className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   whileHover={{ scale: 1.01, x: 4 }}
-                  transition={{
+                  transition={{ 
                     delay: 0.7 + index * 0.1,
                     type: "spring",
                     stiffness: 400,
@@ -242,7 +231,7 @@ export function ArticleDetails({ params }: ArticleProps) {
 
             {/* Video Section */}
             {article.videourl && (
-              <motion.div
+              <motion.div 
                 className="mt-6 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -258,13 +247,13 @@ export function ArticleDetails({ params }: ArticleProps) {
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
                     poster={imageUrl}
                   >
-                    <source
-                      src={article.videourl}
+                    <source 
+                      src={article.videourl} 
                       type="video/mp4"
                     />
                     Your browser does not support the video tag.
                   </video>
-                  <div
+                  <div 
                     className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
                   >
                     AIGen
@@ -273,45 +262,17 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-            {/* Source Links Section */}
-            {article && article.sourcelinks && (
-              <motion.div
-                className="border-t pt-6 mt-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9 }}
-              >
-                <h3 className="text-lg font-semibold mb-4">Sources & References</h3>
-                <div className="space-y-2">
-                  {getSourceLinks(article.sourcelinks).map((link, index) => (
-                    <motion.a
-                      key={index}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-primary hover:text-primary/80 transition-colors duration-200"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.9 + (index * 0.1) }}
-                    >
-                      {link}
-                    </motion.a>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
             {/* Share Section */}
-            <motion.div
+            <motion.div 
               className="border-t pt-6 mt-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.0 }}
+              transition={{ delay: 0.8 }}
             >
               <h3 className="text-lg font-semibold mb-4">Share this article</h3>
               <SocialShare
                 url={window.location.href}
-                title={article?.title || ''}
+                title={article.title}
               />
             </motion.div>
           </motion.div>
