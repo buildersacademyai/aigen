@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useLocation } from "wouter";
 import type { SelectArticle } from "@db/schema";
-//
+
 interface ArticleCardProps {
   article: SelectArticle;
   showActions?: boolean;

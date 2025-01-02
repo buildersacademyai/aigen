@@ -21,7 +21,7 @@ export const articles = pgTable("articles", {
   updatedat: timestamp("updatedat").defaultNow().notNull(),
 });
 
-// Create stored images table.
+// Create stored images table
 export const storedImages = pgTable("storedimages", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull().unique(),

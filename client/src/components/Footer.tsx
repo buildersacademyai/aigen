@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-//
+
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background mt-auto">
@@ -33,7 +33,7 @@ export function Footer() {
             <p className="text-muted-foreground mb-4">
               Get in touch with us for any questions or concerns.
             </p>
-            <Button className="w-full"><a href="https://discord.gg/HNhfAugqjb" >Join Community</a></Button>
+            <Button className="w-full">Join Community</Button>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import cors from "cors";
 
 const app = express();
 
-// Trust proxy - required for rate limiting behind reverse proxies.
+// Trust proxy - required for rate limiting behind reverse proxies
 app.set('trust proxy', 1);
 
 // Enable compression for all responses

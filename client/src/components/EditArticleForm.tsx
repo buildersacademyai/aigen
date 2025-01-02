@@ -8,7 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { signMessage } from "@/lib/web3";
 import type { SelectArticle } from "@db/schema";
 import { Loader2 } from "lucide-react";
-//
+
 interface EditArticleFormProps {
   article: SelectArticle;
   onSuccess?: () => void;

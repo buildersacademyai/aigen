@@ -11,7 +11,7 @@ import express from 'express';
 import multer from 'multer';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 
-// Configure multer for audio file uploads.
+// Configure multer for audio file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(process.cwd(), 'public', 'audio'));
