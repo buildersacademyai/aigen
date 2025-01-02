@@ -13,7 +13,7 @@ interface ArticleProps {
 }
 
 export function ArticleDetails({ params }: ArticleProps) {
-  const { data: article, isLoading } = useQuery<SelectArticle>({ 
+  const { data: article, isLoading } = useQuery<SelectArticle>({
     queryKey: [`/api/articles/${params.id}`],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -140,13 +140,13 @@ export function ArticleDetails({ params }: ArticleProps) {
           >
             {/* Title Section with Verified Badge */}
             <div className="flex flex-col gap-2 mb-4">
-              <motion.h1 
+              <motion.h1
                 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                transition={{ 
+                transition={{
                   delay: 0.2,
                   type: "spring",
                   stiffness: 200,
@@ -167,7 +167,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               )}
             </div>
 
-            <motion.div 
+            <motion.div
               className="text-sm text-muted-foreground mb-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -188,8 +188,8 @@ export function ArticleDetails({ params }: ArticleProps) {
                   <Volume2 className="h-5 w-5 text-primary" />
                   <span className="text-sm font-medium">Listen to Article</span>
                 </div>
-                <audio 
-                  controls 
+                <audio
+                  controls
                   className="w-full"
                   src={audioUrl}
                   onError={handleAudioError}
@@ -199,11 +199,42 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
+            {/* Source Links Section - Moved before article content for better visibility */}
+            {sourceLinks.length > 0 && (
+              <motion.div
+                className="mt-2 mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.45 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <LinkIcon className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Reference Sources</h2>
+                </div>
+                <div className="space-y-2">
+                  {sourceLinks.map((link, index) => (
+                    <motion.a
+                      key={index}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm text-primary hover:text-primary/80 transition-colors duration-200 hover:underline"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.1 }}
+                    >
+                      {link}
+                    </motion.a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {/* Main Image */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.55 }}
             >
               <img
                 src={imageUrl}
@@ -214,21 +245,21 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Article Content */}
-            <motion.div 
+            <motion.div
               className="prose prose-invert max-w-none"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.7 }}
             >
               {article.content.split('\n\n').map((paragraph, index) => (
-                <motion.p 
-                  key={index} 
+                <motion.p
+                  key={index}
                   className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   whileHover={{ scale: 1.01, x: 4 }}
-                  transition={{ 
-                    delay: 0.7 + index * 0.1,
+                  transition={{
+                    delay: 0.8 + index * 0.1,
                     type: "spring",
                     stiffness: 400,
                     damping: 30
@@ -239,44 +270,13 @@ export function ArticleDetails({ params }: ArticleProps) {
               ))}
             </motion.div>
 
-            {/* Source Links Section */}
-            {sourceLinks.length > 0 && (
-              <motion.div 
-                className="mt-8 mb-6 bg-muted/30 rounded-lg p-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.65 }}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <LinkIcon className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Resources</h2>
-                </div>
-                <div className="space-y-2">
-                  {sourceLinks.map((link, index) => (
-                    <motion.a
-                      key={index}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-sm text-primary/80 hover:text-primary transition-colors duration-200 hover:underline"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.7 + index * 0.1 }}
-                    >
-                      {link}
-                    </motion.a>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
             {/* Video Section */}
             {article.videourl && (
-              <motion.div 
+              <motion.div
                 className="mt-6 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.85 }}
               >
                 <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
                 <div className="relative group">
@@ -288,13 +288,13 @@ export function ArticleDetails({ params }: ArticleProps) {
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
                     poster={imageUrl}
                   >
-                    <source 
-                      src={article.videourl} 
+                    <source
+                      src={article.videourl}
                       type="video/mp4"
                     />
                     Your browser does not support the video tag.
                   </video>
-                  <div 
+                  <div
                     className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
                   >
                     buildersacademy.ai
@@ -304,11 +304,11 @@ export function ArticleDetails({ params }: ArticleProps) {
             )}
 
             {/* Share Section */}
-            <motion.div 
+            <motion.div
               className="border-t pt-6 mt-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.95 }}
             >
               <h3 className="text-lg font-semibold mb-4">Share this article</h3>
               <SocialShare
