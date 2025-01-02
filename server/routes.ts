@@ -409,7 +409,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Publish article
+  // Update the publish article endpoint
   app.post("/api/articles/:id/publish", async (req, res) => {
     try {
       // Require signature for publishing

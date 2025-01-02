@@ -171,6 +171,7 @@ Summary: ${result.snippet}
 
     // Extract source links from the related content
     const sourceLinks = relatedContent.map(result => result.link);
+    console.log('Source links extracted:', sourceLinks);
 
     // Create the article first to get the ID
     const articleResponse = await fetch("/api/articles", {
@@ -180,6 +181,7 @@ Summary: ${result.snippet}
         title: result.title,
         content: result.content,
         description: result.description,
+        summary: result.summary,
         imageurl: persistedImageUrl,
         thumbnailurl: persistedThumbnailUrl,
         videourl: videoUrl,
@@ -197,6 +199,7 @@ Summary: ${result.snippet}
     }
 
     const article = await articleResponse.json();
+    console.log('Article created with source links:', article.sourcelinks);
 
     // Now save the audio with the correct article ID
     const audio = await saveAudio(audioBlob, article.id);
