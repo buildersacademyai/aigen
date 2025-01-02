@@ -77,9 +77,6 @@ We welcome contributions from the community. Follow these steps to contribute:
    ```
 5. Create a Pull Request.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/buildersacademyai/aigen/blob/main/LICENSE) file for details.
 
 ## Support
 
