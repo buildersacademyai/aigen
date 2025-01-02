@@ -2,7 +2,7 @@ import { SocialShare } from "@/components/SocialShare";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Volume2 } from "lucide-react";
+import { Volume2, Link as LinkIcon } from "lucide-react";
 import type { SelectArticle } from "@db/schema";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ArticleDetailsSkeleton } from "@/components/ArticleDetailsSkeleton";
@@ -22,6 +22,7 @@ export function ArticleDetails({ params }: ArticleProps) {
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [imageError, setImageError] = useState(false);
   const [audioError, setAudioError] = useState(false);
+  const [sourceLinks, setSourceLinks] = useState<string[]>([]);
 
   useEffect(() => {
     if (article) {
@@ -29,6 +30,15 @@ export function ArticleDetails({ params }: ArticleProps) {
       setAudioUrl(article.audiourl || '');
       setImageError(false);
       setAudioError(false);
+      // Parse source links from article data
+      if (article.sourcelinks) {
+        try {
+          setSourceLinks(JSON.parse(article.sourcelinks));
+        } catch (e) {
+          console.error('Error parsing source links:', e);
+          setSourceLinks([]);
+        }
+      }
     }
   }, [article]);
 
@@ -228,6 +238,37 @@ export function ArticleDetails({ params }: ArticleProps) {
                 </motion.p>
               ))}
             </motion.div>
+
+            {/* Source Links Section */}
+            {sourceLinks.length > 0 && (
+              <motion.div 
+                className="mt-8 mb-6 bg-muted/30 rounded-lg p-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.65 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <LinkIcon className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Resources</h2>
+                </div>
+                <div className="space-y-2">
+                  {sourceLinks.map((link, index) => (
+                    <motion.a
+                      key={index}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm text-primary/80 hover:text-primary transition-colors duration-200 hover:underline"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + index * 0.1 }}
+                    >
+                      {link}
+                    </motion.a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
             {/* Video Section */}
             {article.videourl && (
