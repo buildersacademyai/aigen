@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { SelectArticle } from "@db/schema";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 
@@ -17,15 +17,23 @@ interface ArticleCardProps {
 export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish }: ArticleCardProps) {
   const [, setLocation] = useLocation();
   const [imageUrl, setImageUrl] = useState(article.imageurl);
+  const [thumbnailUrl, setThumbnailUrl] = useState(article.thumbnailurl);
   const [imageError, setImageError] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
+
+  useEffect(() => {
+    // Reset state when article changes
+    setImageUrl(article.imageurl);
+    setThumbnailUrl(article.thumbnailurl);
+    setImageError(false);
+    setThumbnailError(false);
+  }, [article]);
 
   // Function to verify and potentially recover image
-  const verifyImage = async () => {
-    if (!imageError) return;
-
+  const verifyImage = async (url: string, isThumbnail: boolean) => {
     try {
       // Extract filename from imageUrl
-      const filename = imageUrl.split('/').pop();
+      const filename = url.split('/').pop();
       if (!filename) return;
 
       const response = await fetch(`/api/images/verify/${filename}`);
@@ -36,18 +44,37 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
       const data = await response.json();
       if (data.path) {
         // Add timestamp to bypass cache
-        setImageUrl(`${data.path}?t=${Date.now()}`);
-        setImageError(false);
+        const newUrl = `${data.path}?t=${Date.now()}`;
+        if (isThumbnail) {
+          setThumbnailUrl(newUrl);
+          setThumbnailError(false);
+        } else {
+          setImageUrl(newUrl);
+          setImageError(false);
+        }
       }
     } catch (error) {
       console.error('Error verifying image:', error);
+      // If verification fails, try again after a delay
+      setTimeout(() => {
+        if ((isThumbnail && thumbnailError) || (!isThumbnail && imageError)) {
+          verifyImage(url, isThumbnail);
+        }
+      }, 5000);
     }
   };
 
   // Handle image load error
-  const handleImageError = () => {
-    setImageError(true);
-    verifyImage();
+  const handleImageError = (isThumbnail: boolean = false) => {
+    if (isThumbnail) {
+      setThumbnailError(true);
+      if (article.thumbnailurl) {
+        verifyImage(article.thumbnailurl, true);
+      }
+    } else {
+      setImageError(true);
+      verifyImage(article.imageurl, false);
+    }
   };
 
   return (
@@ -61,13 +88,14 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
           <VerifiedBadge className="!bg-background/95 shadow-md backdrop-blur-sm" />
         </div>
       )}
+
       <CardHeader className="p-0">
         <AspectRatio ratio={16 / 9}>
           <img
-            src={imageUrl}
+            src={thumbnailUrl || imageUrl}
             alt={article.title}
             className="object-cover w-full h-full"
-            onError={handleImageError}
+            onError={() => handleImageError(!!thumbnailUrl)}
           />
         </AspectRatio>
       </CardHeader>

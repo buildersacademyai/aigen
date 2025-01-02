@@ -1,4 +1,5 @@
 import { pgTable, text, serial, timestamp, varchar, integer, boolean, index } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const articles = pgTable("articles", {
@@ -26,28 +27,50 @@ export const articles = pgTable("articles", {
   titleIndex: index("title_idx").on(table.title),
 }));
 
-// Create stored images table
+// Create stored images table with relations
 export const storedImages = pgTable("storedimages", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull().unique(),
   originalurl: text("originalurl").notNull(),
   localpath: text("localpath").notNull(),
+  articleId: integer("article_id").references(() => articles.id, { onDelete: 'cascade' }),
   createdat: timestamp("createdat").defaultNow().notNull(),
 }, (table) => ({
   filenameIndex: index("filename_idx").on(table.filename),
+  articleIndex: index("article_image_idx").on(table.articleId),
 }));
 
-// Create stored audio table
+// Create stored audio table with relations
 export const storedAudio = pgTable("storedaudio", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull().unique(),
   duration: integer("duration").notNull(),
   localpath: text("localpath").notNull(),
-  articleid: integer("articleid").notNull(),
+  articleId: integer("article_id").references(() => articles.id, { onDelete: 'cascade' }),
   createdat: timestamp("createdat").defaultNow().notNull(),
 }, (table) => ({
-  articleIdIndex: index("article_id_idx").on(table.articleid),
+  articleIdIndex: index("article_audio_idx").on(table.articleId),
   filenameIndex: index("audio_filename_idx").on(table.filename),
+}));
+
+// Define relations
+export const articlesRelations = relations(articles, ({ many }) => ({
+  images: many(storedImages),
+  audio: many(storedAudio),
+}));
+
+export const storedImagesRelations = relations(storedImages, ({ one }) => ({
+  article: one(articles, {
+    fields: [storedImages.articleId],
+    references: [articles.id],
+  }),
+}));
+
+export const storedAudioRelations = relations(storedAudio, ({ one }) => ({
+  article: one(articles, {
+    fields: [storedAudio.articleId],
+    references: [articles.id],
+  }),
 }));
 
 export const insertArticleSchema = createInsertSchema(articles);

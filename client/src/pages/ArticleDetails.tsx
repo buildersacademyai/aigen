@@ -6,6 +6,7 @@ import { Volume2 } from "lucide-react";
 import type { SelectArticle } from "@db/schema";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ArticleDetailsSkeleton } from "@/components/ArticleDetailsSkeleton";
+import { useState, useEffect } from "react";
 
 interface ArticleProps {
   params: { id: string };
@@ -16,6 +17,87 @@ export function ArticleDetails({ params }: ArticleProps) {
     queryKey: [`/api/articles/${params.id}`],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [audioUrl, setAudioUrl] = useState<string>('');
+  const [imageError, setImageError] = useState(false);
+  const [audioError, setAudioError] = useState(false);
+
+  useEffect(() => {
+    if (article) {
+      setImageUrl(article.imageurl);
+      setAudioUrl(article.audiourl || '');
+      setImageError(false);
+      setAudioError(false);
+    }
+  }, [article]);
+
+  // Function to verify and potentially recover image
+  const verifyImage = async () => {
+    if (!imageUrl) return;
+
+    try {
+      const filename = imageUrl.split('/').pop();
+      if (!filename) return;
+
+      const response = await fetch(`/api/images/verify/${filename}`);
+      if (!response.ok) {
+        throw new Error('Failed to verify image');
+      }
+
+      const data = await response.json();
+      if (data.path) {
+        setImageUrl(`${data.path}?t=${Date.now()}`);
+        setImageError(false);
+      }
+    } catch (error) {
+      console.error('Error verifying image:', error);
+      setTimeout(() => {
+        if (imageError) {
+          verifyImage();
+        }
+      }, 5000);
+    }
+  };
+
+  // Function to verify and potentially recover audio
+  const verifyAudio = async () => {
+    if (!audioUrl) return;
+
+    try {
+      const filename = audioUrl.split('/').pop();
+      if (!filename) return;
+
+      const response = await fetch(`/api/audio/verify/${filename}`);
+      if (!response.ok) {
+        throw new Error('Failed to verify audio');
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        setAudioUrl(`${data.url}?t=${Date.now()}`);
+        setAudioError(false);
+      }
+    } catch (error) {
+      console.error('Error verifying audio:', error);
+      setTimeout(() => {
+        if (audioError) {
+          verifyAudio();
+        }
+      }, 5000);
+    }
+  };
+
+  // Handle media errors
+  const handleImageError = () => {
+    setImageError(true);
+    verifyImage();
+  };
+
+  const handleAudioError = () => {
+    setAudioError(true);
+    verifyAudio();
+  };
 
   if (isLoading) {
     return (
@@ -85,7 +167,7 @@ export function ArticleDetails({ params }: ArticleProps) {
             </motion.div>
 
             {/* Audio Player Section */}
-            {article.audiourl && (
+            {audioUrl && (
               <motion.div
                 className="mb-6 bg-muted/30 rounded-lg p-4"
                 initial={{ opacity: 0 }}
@@ -99,7 +181,8 @@ export function ArticleDetails({ params }: ArticleProps) {
                 <audio 
                   controls 
                   className="w-full"
-                  src={article.audiourl}
+                  src={audioUrl}
+                  onError={handleAudioError}
                 >
                   Your browser does not support the audio element.
                 </audio>
@@ -113,12 +196,12 @@ export function ArticleDetails({ params }: ArticleProps) {
               transition={{ delay: 0.4 }}
             >
               <img
-                src={article.imageurl}
+                src={imageUrl}
                 alt={article.title}
                 className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
+                onError={handleImageError}
               />
             </motion.div>
-
 
             {/* Article Content */}
             <motion.div 
@@ -162,7 +245,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                     muted
                     playsInline
                     className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                    poster={article.imageurl}
+                    poster={imageUrl}
                   >
                     <source 
                       src={article.videourl} 
@@ -173,7 +256,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                   <div 
                     className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
                   >
-                    BuildersAcademy
+                    AIGen
                   </div>
                 </div>
               </motion.div>

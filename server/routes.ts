@@ -98,27 +98,38 @@ export function registerRoutes(app: Express): Server {
         });
       } catch {
         // If file doesn't exist, try to recover it from original URL
-        const image = await db
+        const [image] = await db
           .select()
           .from(storedImages)
           .where(eq(storedImages.filename, filename))
           .limit(1);
 
-        if (image.length === 0) {
+        if (!image) {
           return res.status(404).json({ message: "Image not found in database" });
         }
 
         // Try to re-download the image
-        const imageResponse = await fetch(image[0].originalurl, {
+        const imageResponse = await fetch(image.originalurl, {
           timeout: 10000
         });
 
         if (!imageResponse.ok) {
-          return res.status(404).json({ message: "Failed to recover image" });
+          throw new Error(`Failed to download image: ${imageResponse.statusText}`);
         }
 
+        // Ensure directory exists
+        await fs.mkdir(imagesDir, { recursive: true });
+
+        // Save the image
         const buffer = await imageResponse.arrayBuffer();
         await fs.writeFile(filePath, Buffer.from(buffer));
+
+        // Verify the file exists and has content
+        const stats = await fs.stat(filePath);
+        if (stats.size === 0) {
+          await fs.unlink(filePath); // Delete empty file
+          throw new Error("Downloaded image is empty");
+        }
 
         res.json({ 
           exists: true,
@@ -130,6 +141,49 @@ export function registerRoutes(app: Express): Server {
       console.error("Image verification failed:", error);
       res.status(500).json({ 
         message: "Failed to verify image",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Add route to verify audio file
+  app.get("/api/audio/verify/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const audioDir = path.join(process.cwd(), "public", "audio");
+      const filePath = path.join(audioDir, filename);
+
+      try {
+        await fs.access(filePath);
+        const stats = await fs.stat(filePath);
+        res.json({ 
+          exists: true,
+          size: stats.size,
+          url: `/audio/${filename}`
+        });
+      } catch {
+        // If file doesn't exist, try to recover it
+        const audio = await db
+          .select()
+          .from(storedAudio)
+          .where(eq(storedAudio.filename, filename))
+          .limit(1);
+
+        if (audio.length === 0) {
+          return res.status(404).json({ message: "Audio file not found in database" });
+        }
+
+        // Try to re-create the audio file
+        await fs.mkdir(audioDir, { recursive: true });
+
+        // Since we can't re-download the audio file (it's stored locally),
+        // we should ensure proper backup procedures are in place
+        res.status(404).json({ message: "Audio file is missing and cannot be recovered automatically" });
+      }
+    } catch (error) {
+      console.error("Audio verification failed:", error);
+      res.status(500).json({ 
+        message: "Failed to verify audio file",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
