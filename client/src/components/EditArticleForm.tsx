@@ -58,12 +58,25 @@ export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
   const publishArticle = useMutation({
     mutationFn: async () => {
       // Sign the message before publishing
-      const signature = await signMessage(article.authorAddress, "Verified content");
-      
+      const signature = await signMessage(article.authoraddress, "Verified content");
+
+      // Get the source links from the article data
+      let sourceLinks: string[] = [];
+      try {
+        if (article.sourcelinks) {
+          sourceLinks = JSON.parse(article.sourcelinks);
+        }
+      } catch (error) {
+        console.error('Error parsing source links:', error);
+      }
+
       const response = await fetch(`/api/articles/${article.id}/publish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signature })
+        body: JSON.stringify({ 
+          signature,
+          sourceLinks 
+        })
       });
 
       if (!response.ok) {
