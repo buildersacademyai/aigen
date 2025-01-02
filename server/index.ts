@@ -7,6 +7,23 @@ import compression from "compression";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import helmet from "helmet";
+
+// Create custom type declaration for express-timeout-handler
+declare module 'express-timeout-handler' {
+  interface TimeoutOptions {
+    timeout?: number;
+    onTimeout?: (req: Request, res: Response) => void;
+    disable?: string[];
+  }
+
+  interface TimeoutHandler {
+    handler(options: TimeoutOptions): express.RequestHandler;
+  }
+
+  const handler: TimeoutHandler;
+  export = handler;
+}
+
 import timeout from "express-timeout-handler";
 
 const app = express();
@@ -21,10 +38,10 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "blob:"],
-      mediaSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:", "*"],
+      mediaSrc: ["'self'", "data:", "blob:", "*"],
+      connectSrc: ["'self'", "*"],
+      fontSrc: ["'self'", "data:", "*"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -48,7 +65,6 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  trustProxy: true,
   skip: (req) => {
     // Skip rate limiting for static assets
     return req.path.match(/\.(css|js|jpg|png|gif|ico|woff|woff2|ttf|eot|svg)$/i) !== null;
