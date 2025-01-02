@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Volume2 } from "lucide-react";
 import type { SelectArticle } from "@db/schema";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface ArticleProps {
   params: { id: string };
@@ -50,22 +51,34 @@ export function ArticleDetails({ params }: ArticleProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Title Section */}
-            <motion.h1 
-              className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ 
-                delay: 0.2,
-                type: "spring",
-                stiffness: 200,
-                damping: 10
-              }}
-            >
-              {article.title}
-            </motion.h1>
+            {/* Title Section with Verified Badge */}
+            <div className="flex flex-col gap-2 mb-4">
+              <motion.h1 
+                className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ 
+                  delay: 0.2,
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 10
+                }}
+              >
+                {article.title}
+              </motion.h1>
+
+              {!article.isdraft && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <VerifiedBadge />
+                </motion.div>
+              )}
+            </div>
 
             <motion.div 
               className="text-sm text-muted-foreground mb-6"
