@@ -25,6 +25,21 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 export function registerRoutes(app: Express): Server {
+  // Ensure public directories exist
+  const setupDirectories = async () => {
+    const dirs = [
+      path.join(process.cwd(), 'public', 'images'),
+      path.join(process.cwd(), 'public', 'audio')
+    ];
+
+    for (const dir of dirs) {
+      await fs.mkdir(dir, { recursive: true });
+    }
+    console.log('Ensured directories exist:', dirs.join(', '));
+  };
+
+  setupDirectories().catch(console.error);
+
   // Serve static files from public directories with proper caching and headers
   app.use('/images', express.static(path.join(process.cwd(), 'public', 'images'), {
     maxAge: '1d', // Cache images for 1 day
@@ -109,16 +124,10 @@ export function registerRoutes(app: Express): Server {
         }
 
         // Try to re-download the image
-        const imageResponse = await fetch(image.originalurl, {
-          timeout: 10000
-        });
-
+        const imageResponse = await fetch(image.originalurl);
         if (!imageResponse.ok) {
           throw new Error(`Failed to download image: ${imageResponse.statusText}`);
         }
-
-        // Ensure directory exists
-        await fs.mkdir(imagesDir, { recursive: true });
 
         // Save the image
         const buffer = await imageResponse.arrayBuffer();
@@ -127,7 +136,7 @@ export function registerRoutes(app: Express): Server {
         // Verify the file exists and has content
         const stats = await fs.stat(filePath);
         if (stats.size === 0) {
-          await fs.unlink(filePath); // Delete empty file
+          await fs.unlink(filePath);
           throw new Error("Downloaded image is empty");
         }
 
@@ -163,18 +172,15 @@ export function registerRoutes(app: Express): Server {
         });
       } catch {
         // If file doesn't exist, try to recover it
-        const audio = await db
+        const [audio] = await db
           .select()
           .from(storedAudio)
           .where(eq(storedAudio.filename, filename))
           .limit(1);
 
-        if (audio.length === 0) {
+        if (!audio) {
           return res.status(404).json({ message: "Audio file not found in database" });
         }
-
-        // Try to re-create the audio file
-        await fs.mkdir(audioDir, { recursive: true });
 
         // Since we can't re-download the audio file (it's stored locally),
         // we should ensure proper backup procedures are in place
@@ -184,6 +190,60 @@ export function registerRoutes(app: Express): Server {
       console.error("Audio verification failed:", error);
       res.status(500).json({ 
         message: "Failed to verify audio file",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Add new route for saving images
+  app.post("/api/images/save", async (req, res) => {
+    try {
+      console.log('Saving image with URL:', req.body.imageUrl);
+      const { imageUrl, articleId } = req.body;
+      if (!imageUrl) {
+        return res.status(400).json({ message: "Image URL is required" });
+      }
+
+      // Create images directory if it doesn't exist
+      const imagesDir = path.join(process.cwd(), "public", "images");
+      await fs.mkdir(imagesDir, { recursive: true });
+
+      // Download the image
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error("Failed to download image");
+      }
+
+      // Generate a unique filename
+      const fileExt = "png";
+      const filename = `${randomUUID()}.${fileExt}`;
+      const filePath = path.join(imagesDir, filename);
+
+      // Save the image
+      const buffer = await imageResponse.arrayBuffer();
+      await fs.writeFile(filePath, Buffer.from(buffer));
+
+      // Verify the file exists and has content
+      const stats = await fs.stat(filePath);
+      if (stats.size === 0) {
+        await fs.unlink(filePath);
+        throw new Error("Downloaded image is empty");
+      }
+
+      // Store image information in database
+      const [storedImage] = await db.insert(storedImages).values({
+        filename,
+        originalurl: imageUrl,
+        localpath: `/images/${filename}`,
+        articleid: articleId,
+      }).returning();
+
+      console.log('Image saved successfully:', storedImage.localpath);
+      res.json({ url: storedImage.localpath });
+    } catch (error) {
+      console.error("Error saving image:", error);
+      res.status(500).json({ 
+        message: "Failed to save image",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -430,74 +490,6 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch analytics data" });
-    }
-  });
-
-  // Add new route for saving images
-  app.post("/api/images/save", async (req, res) => {
-    try {
-      console.log('Saving image with URL:', req.body.imageUrl);
-      const { imageUrl } = req.body;
-      if (!imageUrl) {
-        return res.status(400).json({ message: "Image URL is required" });
-      }
-
-      // Create images directory if it doesn't exist
-      const imagesDir = path.join(process.cwd(), "public", "images");
-      await fs.mkdir(imagesDir, { recursive: true });
-
-      // Download the image with retry logic
-      let imageResponse;
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          imageResponse = await fetch(imageUrl, {
-            timeout: 10000, // 10 second timeout
-          });
-          if (imageResponse.ok) break;
-        } catch (error) {
-          console.error(`Retry ${4 - retries}/3 failed:`, error);
-          retries--;
-          if (retries === 0) throw error;
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-        }
-      }
-
-      if (!imageResponse?.ok) {
-        throw new Error("Failed to download image after retries");
-      }
-
-      // Generate a unique filename
-      const fileExt = "png";
-      const filename = `${randomUUID()}.${fileExt}`;
-      const filePath = path.join(imagesDir, filename);
-
-      // Save the image
-      const buffer = await imageResponse.arrayBuffer();
-      await fs.writeFile(filePath, Buffer.from(buffer));
-
-      // Verify the file exists and has content
-      const stats = await fs.stat(filePath);
-      if (stats.size === 0) {
-        await fs.unlink(filePath); // Delete empty file
-        throw new Error("Downloaded image is empty");
-      }
-
-      // Store image information in database
-      const [storedImage] = await db.insert(storedImages).values({
-        filename,
-        originalurl: imageUrl,
-        localpath: `/images/${filename}`,
-      }).returning();
-
-      console.log('Image saved successfully:', storedImage.localpath);
-      res.json({ url: storedImage.localpath });
-    } catch (error) {
-      console.error("Error saving image:", error);
-      res.status(500).json({ 
-        message: "Failed to save image",
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
     }
   });
 

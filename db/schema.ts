@@ -33,11 +33,11 @@ export const storedImages = pgTable("storedimages", {
   filename: text("filename").notNull().unique(),
   originalurl: text("originalurl").notNull(),
   localpath: text("localpath").notNull(),
-  articleId: integer("article_id").references(() => articles.id, { onDelete: 'cascade' }),
+  articleid: integer("articleid").references(() => articles.id, { onDelete: 'cascade' }),
   createdat: timestamp("createdat").defaultNow().notNull(),
 }, (table) => ({
   filenameIndex: index("filename_idx").on(table.filename),
-  articleIndex: index("article_image_idx").on(table.articleId),
+  articleIndex: index("article_idx").on(table.articleid),
 }));
 
 // Create stored audio table with relations
@@ -46,10 +46,10 @@ export const storedAudio = pgTable("storedaudio", {
   filename: text("filename").notNull().unique(),
   duration: integer("duration").notNull(),
   localpath: text("localpath").notNull(),
-  articleId: integer("article_id").references(() => articles.id, { onDelete: 'cascade' }),
+  articleid: integer("articleid").references(() => articles.id, { onDelete: 'cascade' }),
   createdat: timestamp("createdat").defaultNow().notNull(),
 }, (table) => ({
-  articleIdIndex: index("article_audio_idx").on(table.articleId),
+  articleIdIndex: index("article_id_idx").on(table.articleid),
   filenameIndex: index("audio_filename_idx").on(table.filename),
 }));
 
@@ -61,14 +61,14 @@ export const articlesRelations = relations(articles, ({ many }) => ({
 
 export const storedImagesRelations = relations(storedImages, ({ one }) => ({
   article: one(articles, {
-    fields: [storedImages.articleId],
+    fields: [storedImages.articleid],
     references: [articles.id],
   }),
 }));
 
 export const storedAudioRelations = relations(storedAudio, ({ one }) => ({
   article: one(articles, {
-    fields: [storedAudio.articleId],
+    fields: [storedAudio.articleid],
     references: [articles.id],
   }),
 }));
