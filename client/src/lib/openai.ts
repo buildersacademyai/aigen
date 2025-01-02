@@ -31,7 +31,7 @@ const saveImage = async (imageUrl: string): Promise<string> => {
   }
 };
 
-const generateAudio = async (text: string, articleId: number): Promise<{ url: string, duration: number }> => {
+const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration: number }> => {
   try {
     // Generate speech using OpenAI
     const response = await openai.audio.speech.create({
@@ -43,6 +43,22 @@ const generateAudio = async (text: string, articleId: number): Promise<{ url: st
     // Convert the response to a blob
     const audioBlob = new Blob([await response.arrayBuffer()], { type: 'audio/mpeg' });
 
+    // For now, estimate duration based on word count (rough estimate)
+    const wordCount = text.split(/\s+/).length;
+    const estimatedDuration = Math.ceil(wordCount * 0.4); // Average speaking rate
+
+    return {
+      audioBlob,
+      duration: estimatedDuration
+    };
+  } catch (error) {
+    console.error('Error generating audio:', error);
+    throw new Error(`Failed to generate audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+const saveAudio = async (audioBlob: Blob, articleId: number): Promise<{ url: string, duration: number }> => {
+  try {
     // Create form data to send the audio file
     const formData = new FormData();
     formData.append('audio', audioBlob, 'speech.mp3');
@@ -65,8 +81,8 @@ const generateAudio = async (text: string, articleId: number): Promise<{ url: st
       duration: data.duration,
     };
   } catch (error) {
-    console.error('Error generating audio:', error);
-    throw new Error(`Failed to generate audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Error saving audio:', error);
+    throw new Error(`Failed to save audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -140,8 +156,8 @@ Summary: ${result.snippet}
     // Save the thumbnail image
     const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
 
-    // Generate audio for the article
-    const audio = await generateAudio(result.content, 1); // Assuming articleId is 1 for now. This should be replaced with a dynamic article ID.
+    // Generate audio for the article content
+    const { audioBlob, duration } = await generateAudio(result.content);
 
     // Select an appropriate video based on the topic
     let videoUrl;
@@ -156,6 +172,35 @@ Summary: ${result.snippet}
     // Extract source links from the related content
     const sourceLinks = relatedContent.map(result => result.link);
 
+    // Create the article first
+    const articleResponse = await fetch("/api/articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: result.title,
+        content: result.content,
+        description: result.description,
+        imageurl: persistedImageUrl,
+        thumbnailurl: persistedThumbnailUrl,
+        videourl: videoUrl,
+        authoraddress: "0x0000000000000000000000000000000000000000",  // Will be replaced by actual address
+        signature: "",
+        isdraft: true,
+        videoduration: 15,
+        hasbackgroundmusic: true,
+        sourcelinks: JSON.stringify(sourceLinks)
+      })
+    });
+
+    if (!articleResponse.ok) {
+      throw new Error("Failed to create article");
+    }
+
+    const article = await articleResponse.json();
+
+    // Now save the audio with the correct article ID
+    const audio = await saveAudio(audioBlob, article.id);
+
     return {
       ...result,
       imageUrl: persistedImageUrl,
@@ -163,7 +208,7 @@ Summary: ${result.snippet}
       thumbnailUrl: persistedThumbnailUrl,
       audioUrl: audio.url,
       audioDuration: audio.duration,
-      sourceLinks // Add the source links to the returned data
+      sourceLinks
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
