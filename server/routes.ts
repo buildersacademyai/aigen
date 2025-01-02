@@ -420,15 +420,26 @@ export function registerRoutes(app: Express): Server {
         .replace(/[#*]/g, '')
         .trim();
 
-      // Add source links if they exist
+      // Add source links if they exist, placing them before the video section
       let finalContent = cleanContent;
       if (req.body.sourceLinks && Array.isArray(req.body.sourceLinks) && req.body.sourceLinks.length > 0) {
-        const sourceLinksSection = `
-
-## Resources Used
-${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}
-`;
-        finalContent = `${cleanContent}${sourceLinksSection}`;
+        // Find the position for video section (if it exists)
+        const videoSectionIndex = finalContent.indexOf("Featured Video");
+        if (videoSectionIndex !== -1) {
+          // Find the start of the paragraph containing "Featured Video"
+          const paragraphStart = finalContent.lastIndexOf('\n\n', videoSectionIndex);
+          if (paragraphStart !== -1) {
+            // Insert source links before the video section
+            const sourceLinksSection = `\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}\n`;
+            finalContent = finalContent.slice(0, paragraphStart) + sourceLinksSection + finalContent.slice(paragraphStart);
+          } else {
+            // If we can't find paragraph start, just append at the end
+            finalContent = `${cleanContent}\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}`;
+          }
+        } else {
+          // If no video section, append at the end
+          finalContent = `${cleanContent}\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}`;
+        }
       }
 
       const result = await db

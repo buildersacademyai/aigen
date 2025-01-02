@@ -256,7 +256,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                   <div 
                     className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
                   >
-                    AIGen
+                    buildersacademy.ai
                   </div>
                 </div>
               </motion.div>
