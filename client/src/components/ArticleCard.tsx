@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useLocation } from "wouter";
 import type { SelectArticle } from "@db/schema";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface ArticleCardProps {
   article: SelectArticle;
@@ -17,9 +18,15 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
 
   return (
     <Card 
-      className="overflow-hidden transition-transform hover:scale-[1.02]"
+      className="overflow-hidden transition-transform hover:scale-[1.02] relative"
       onClick={() => !showActions && setLocation(`/article/${article.id}`)}
     >
+      {/* Verified Badge */}
+      {!article.isdraft && (
+        <div className="absolute top-2 right-2 z-10">
+          <VerifiedBadge className="!bg-background/95 shadow-md backdrop-blur-sm" />
+        </div>
+      )}
       <CardHeader className="p-0">
         <AspectRatio ratio={16 / 9}>
           <img
