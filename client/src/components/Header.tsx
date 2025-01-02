@@ -8,6 +8,7 @@ import { CreateArticleForm } from "@/components/CreateArticleForm";
 
 export function Header() {
   const [address, setAddress] = useState<string | null>(null);
+  const [chainId, setChainId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const { toast } = useToast();
 
@@ -18,62 +19,85 @@ export function Header() {
       if (window.ethereum?.selectedAddress) {
         try {
           const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+          const lastAddress = localStorage.getItem('lastAddress');
+          const lastChainId = localStorage.getItem('lastChainId');
+
           if (accounts[0]) {
-            setAddress(accounts[0]);
+            // Only update if the address or chain has changed
+            if (accounts[0] !== lastAddress || currentChainId !== lastChainId) {
+              setAddress(accounts[0]);
+              setChainId(currentChainId);
+              localStorage.setItem('lastAddress', accounts[0]);
+              localStorage.setItem('lastChainId', currentChainId);
+            } else {
+              // Use stored values if no change
+              setAddress(lastAddress);
+              setChainId(lastChainId);
+            }
           }
         } catch (error) {
           console.error('Failed to get initial account:', error);
         }
       }
     };
-    
+
     checkInitialConnection();
 
     // Listen for account changes
     const handleAccountsChanged = async (accounts: string[]) => {
       const newAddress = accounts[0] || null;
-      if (address !== newAddress) {
+      const lastAddress = localStorage.getItem('lastAddress');
+
+      if (lastAddress && newAddress !== lastAddress) {
         setAddress(null);
-        // Clear any stored data
         localStorage.removeItem('lastAddress');
+        localStorage.removeItem('lastChainId');
         window.location.href = '/';
         toast({
           title: "Wallet Changed",
           description: "Please reconnect your wallet",
           variant: "destructive",
         });
+      } else if (newAddress) {
+        setAddress(newAddress);
+        localStorage.setItem('lastAddress', newAddress);
       }
     };
 
     // Listen for network changes
-    const handleNetworkChanged = () => {
-      setAddress(null);
-      // Clear any stored data
-      localStorage.removeItem('lastAddress');
-      window.location.href = '/';
-      toast({
-        title: "Network Changed",
-        description: "Please reconnect your wallet",
-        variant: "destructive",
-      });
+    const handleNetworkChanged = async (newChainId: string) => {
+      const lastChainId = localStorage.getItem('lastChainId');
+
+      if (lastChainId && newChainId !== lastChainId) {
+        setAddress(null);
+        setChainId(null);
+        localStorage.removeItem('lastAddress');
+        localStorage.removeItem('lastChainId');
+        window.location.href = '/';
+        toast({
+          title: "Network Changed",
+          description: "Please reconnect your wallet",
+          variant: "destructive",
+        });
+      } else if (newChainId) {
+        setChainId(newChainId);
+        localStorage.setItem('lastChainId', newChainId);
+      }
     };
-
-    // Store last known address
-    if (address) {
-      localStorage.setItem('lastAddress', address);
-    }
-
-    window.ethereum?.on('accountsChanged', handleAccountsChanged);
-    window.ethereum?.on('chainChanged', handleNetworkChanged);
 
     // Check for disconnection
     const interval = setInterval(async () => {
       if (address) {
         try {
           const accounts = await window.ethereum?.request({ method: 'eth_accounts' });
-          if (!accounts?.[0]) {
+          const currentChainId = await window.ethereum?.request({ method: 'eth_chainId' });
+
+          if (!accounts?.[0] || currentChainId !== chainId) {
             setAddress(null);
+            setChainId(null);
             localStorage.removeItem('lastAddress');
+            localStorage.removeItem('lastChainId');
             window.location.href = '/';
           }
         } catch (error) {
@@ -82,17 +106,26 @@ export function Header() {
       }
     }, 5000);
 
+    window.ethereum?.on('accountsChanged', handleAccountsChanged);
+    window.ethereum?.on('chainChanged', handleNetworkChanged);
+
     return () => {
       window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
       window.ethereum?.removeListener('chainChanged', handleNetworkChanged);
       clearInterval(interval);
     };
-  }, [toast, address]);
+  }, [toast, address, chainId]);
 
   const handleConnect = async () => {
     try {
       const addr = await connectWallet();
+      const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+
       setAddress(addr);
+      setChainId(currentChainId);
+      localStorage.setItem('lastAddress', addr);
+      localStorage.setItem('lastChainId', currentChainId);
+
       toast({
         title: "Connected",
         description: "Wallet connected successfully",
@@ -121,7 +154,7 @@ export function Header() {
           <Link href="/mission" className="text-foreground hover:text-primary">
             Mission/Vision
           </Link>
-          
+
           {address ? (
             <div className="flex items-center gap-4">
               <Button onClick={() => setIsCreateOpen(true)} variant="outline">

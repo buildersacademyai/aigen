@@ -12,9 +12,18 @@ export async function connectWallet(): Promise<string> {
   }
 
   try {
+    // Request account access
     const accounts = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
+
+    // Get the chain ID to ensure we're on the correct network
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+
+    // Store both address and chain ID
+    localStorage.setItem('lastAddress', accounts[0]);
+    localStorage.setItem('lastChainId', chainId);
+
     return accounts[0];
   } catch (error) {
     throw new Error("Failed to connect wallet");
