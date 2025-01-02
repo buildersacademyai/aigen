@@ -1,4 +1,5 @@
 import { ArticleCard } from "@/components/ArticleCard";
+import { CardSkeleton } from "@/components/CardSkeleton";
 import { useQuery } from "@tanstack/react-query";
 import type { SelectArticle } from "@db/schema";
 
@@ -10,17 +11,18 @@ export function Home() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {isLoading ? (
-        <div className="flex justify-center items-center min-h-[200px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
-          {articles?.map((article) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
+        {isLoading ? (
+          // Show 6 skeleton cards while loading
+          Array.from({ length: 6 }).map((_, index) => (
+            <CardSkeleton key={index} />
+          ))
+        ) : (
+          articles?.map((article) => (
             <ArticleCard key={article.id} article={article} />
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }

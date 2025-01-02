@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Volume2 } from "lucide-react";
 import type { SelectArticle } from "@db/schema";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ArticleDetailsSkeleton } from "@/components/ArticleDetailsSkeleton";
 
 interface ArticleProps {
   params: { id: string };
@@ -19,13 +20,7 @@ export function ArticleDetails({ params }: ArticleProps) {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card className="mx-auto">
-          <CardContent className="p-6">
-            <div className="flex justify-center items-center min-h-[200px]">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-            </div>
-          </CardContent>
-        </Card>
+        <ArticleDetailsSkeleton />
       </div>
     );
   }
