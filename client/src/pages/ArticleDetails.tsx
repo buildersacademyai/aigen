@@ -173,46 +173,61 @@ export function ArticleDetails({ params }: ArticleProps) {
               )}
             </div>
 
-            {/* Source Links Section - Moved up for better visibility */}
+            {/* Source Links Section - Maintained position */}
             {sourceLinks.length > 0 && (
               <motion.div
-                className="mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20 hover:border-primary/40 transition-colors duration-300"
+                className="mb-6 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-lg p-4 border border-primary/20 hover:border-primary/40 transition-all duration-300 shadow-lg hover:shadow-xl"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.35 }}
               >
                 <div className="flex items-center gap-2 mb-3">
                   <LinkIcon className="h-5 w-5 text-primary animate-pulse" />
-                  <h2 className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Reference Sources</h2>
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                    Reference Sources
+                  </h2>
                 </div>
                 <div className="space-y-2">
                   {sourceLinks.map((link, index) => (
                     <motion.div
                       key={index}
-                      className="group relative"
+                      className="group relative overflow-hidden rounded-md"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + index * 0.1 }}
+                      whileHover={{ scale: 1.02 }}
                     >
                       <a
                         href={link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-sm text-primary hover:text-primary/80 transition-colors duration-200 p-2 rounded-md hover:bg-primary/10 group-hover:pl-6"
+                        className="block text-sm text-primary hover:text-primary/80 transition-all duration-300 p-3 rounded-md hover:bg-primary/10 group-hover:pl-8"
                         onClick={(e) => {
                           e.currentTarget.classList.add('visited:text-primary/60');
                         }}
                       >
-                        <div className="flex items-center gap-2">
-                          <LinkIcon className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all duration-300 absolute left-1" />
-                          <span className="truncate">{link}</span>
+                        <div className="flex items-center gap-2 relative">
+                          <motion.div
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            className="absolute left-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                          >
+                            <LinkIcon className="h-4 w-4" />
+                          </motion.div>
+                          <span className="truncate relative">
+                            {link}
+                            <motion.div
+                              className="absolute bottom-0 left-0 h-0.5 bg-primary/30 w-0 group-hover:w-full transition-all duration-300"
+                              initial={{ width: "0%" }}
+                              whileHover={{ width: "100%" }}
+                            />
+                          </span>
                         </div>
                       </a>
                       <motion.div
-                        className="absolute left-0 bottom-0 h-0.5 bg-primary/30"
-                        initial={{ width: "0%" }}
-                        whileHover={{ width: "100%" }}
-                        transition={{ duration: 0.3 }}
+                        className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
                       />
                     </motion.div>
                   ))}
@@ -220,7 +235,6 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-            
 
             {article && (
               <>
