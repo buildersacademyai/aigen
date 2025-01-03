@@ -199,7 +199,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-            {/* Source Links Section - Moved before article content for better visibility */}
+            {/* Add source links display section */}
             {sourceLinks.length > 0 && (
               <motion.div
                 className="mt-2 mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
