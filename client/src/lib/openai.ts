@@ -111,7 +111,7 @@ export async function generateArticle(topic: string) {
 
     // Extract source links and prepare context
     const sourceLinks = relatedContent.map(result => result.link);
-    console.log('Source links found:', sourceLinks); //This line was changed
+    console.log('Source links found:', sourceLinks);
     emitProgress(GENERATION_EVENTS.SOURCES_FOUND);
 
     const context = relatedContent
@@ -121,6 +121,9 @@ Title: ${result.title}
 Summary: ${result.snippet}
       `)
       .join('\n\n');
+
+    // Add source links section to be included in the content
+    const sourceLinksSection = `\n\n## Reference Sources\n${sourceLinks.map(link => `- ${link}`).join('\n')}`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -140,6 +143,10 @@ Summary: ${result.snippet}
     const content = response.choices[0].message.content;
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
+
+    // Append source links section to the generated content
+    result.content = `${result.content}${sourceLinksSection}`;
+
     emitProgress(GENERATION_EVENTS.CONTENT_GENERATED);
 
     // Generate image for the article
