@@ -125,6 +125,9 @@ Summary: ${result.snippet}
     // Add source links section to be included in the content
     const sourceLinksSection = `\n\n## Reference Sources\n${sourceLinks.map(link => `- ${link}`).join('\n')}`;
 
+    // Add video section to the content
+    const videoSection = "\n\n## Featured Video\nThis article includes a video demonstration to help visualize the concepts discussed.";
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -144,8 +147,8 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
 
-    // Append source links section to the generated content
-    result.content = `${result.content}${sourceLinksSection}`;
+    // Append source links and video sections to the generated content
+    result.content = `${result.content}${sourceLinksSection}${videoSection}`;
 
     emitProgress(GENERATION_EVENTS.CONTENT_GENERATED);
 
@@ -166,10 +169,14 @@ Summary: ${result.snippet}
     const persistedImageUrl = await saveImage(imageResponse.data[0].url);
     emitProgress(GENERATION_EVENTS.IMAGE_CREATED);
 
+    // Generate video URL (for demonstration, using a placeholder)
+    const videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    const videoDuration = 15; // Default duration in seconds
+
     // Generate audio for the article content
     const { audioBlob, duration } = await generateAudio(result.content);
 
-    // Create the article with source links
+    // Create the article with all media content
     const articleResponse = await fetch("/api/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -179,6 +186,8 @@ Summary: ${result.snippet}
         description: result.description,
         summary: result.summary,
         imageurl: persistedImageUrl,
+        videourl: videoUrl,
+        videoduration: videoDuration,
         authoraddress: "0x0000000000000000000000000000000000000000",
         signature: "",
         isdraft: true,
@@ -215,6 +224,8 @@ Summary: ${result.snippet}
     return {
       ...result,
       imageUrl: persistedImageUrl,
+      videoUrl: videoUrl,
+      videoDuration: videoDuration,
       audioUrl: audio.url,
       audioDuration: audio.duration,
       sourceLinks

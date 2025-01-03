@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, varchar, integer, boolean, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
@@ -9,6 +9,8 @@ export const articles = pgTable("articles", {
   description: text("description").notNull(),
   summary: text("summary"),
   imageurl: text("imageurl"),
+  videourl: text("videourl"),
+  videoduration: integer("videoduration"),
   audiourl: text("audiourl"),
   audioduration: integer("audioduration"),
   authoraddress: text("authoraddress").notNull(),
