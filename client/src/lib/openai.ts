@@ -90,8 +90,11 @@ export async function generateArticle(topic: string) {
   try {
     // First, gather related content
     const relatedContent = await gatherRelatedContent(topic);
+    if (!relatedContent.length) {
+      throw new Error("Could not find relevant source material for the topic");
+    }
 
-    // Prepare context from search results and extract source links
+    // Extract source links and prepare context
     const sourceLinks = relatedContent.map(result => result.link);
     console.log('Source links extracted:', sourceLinks);
 
@@ -108,7 +111,7 @@ Summary: ${result.snippet}
       messages: [
         {
           role: "system",
-          content: "You are an expert content writer. Using the provided research context, generate a comprehensive article. The article should be original, engaging, and well-structured. Respond with JSON in this format: { title: string, content: string, description: string, summary: string }"
+          content: "You are an expert content writer. Using the provided research context, generate a comprehensive article. The article should be original, engaging, and well-structured. Include proper attribution to sources. Respond with JSON in this format: { title: string, content: string, description: string, summary: string }"
         },
         {
           role: "user",
@@ -122,7 +125,7 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
 
-    // Generate image for the article with more specific prompt
+    // Generate image for the article
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
       prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
@@ -135,42 +138,11 @@ Summary: ${result.snippet}
       throw new Error("No image URL received from OpenAI");
     }
 
-    // Save the main article image
+    // Save the image
     const persistedImageUrl = await saveImage(imageResponse.data[0].url);
-
-    // Generate video thumbnail image with watermark
-    const thumbnailResponse = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Create a cinematic thumbnail for "${topic}". Requirements:
-1. Professional tech-focused composition
-2. Include "BuildersAcademy" watermark in bottom right (80% opacity)
-3. High contrast and modern design style
-4. Visual elements representing ${topic}
-5. Suitable for a video cover image`,
-      n: 1,
-      size: "1024x1024",
-      quality: "hd",
-    });
-
-    if (!thumbnailResponse.data[0]?.url) {
-      throw new Error("No thumbnail URL received from OpenAI");
-    }
-
-    // Save the thumbnail image
-    const persistedThumbnailUrl = await saveImage(thumbnailResponse.data[0].url);
 
     // Generate audio for the article content
     const { audioBlob, duration } = await generateAudio(result.content);
-
-    // Select an appropriate video based on the topic
-    let videoUrl;
-    if (topic.toLowerCase().includes('web3') || topic.toLowerCase().includes('blockchain')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
-    } else if (topic.toLowerCase().includes('ai') || topic.toLowerCase().includes('machine learning')) {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
-    } else {
-      videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-    }
 
     // Create the article with source links
     const articleResponse = await fetch("/api/articles", {
@@ -182,13 +154,9 @@ Summary: ${result.snippet}
         description: result.description,
         summary: result.summary,
         imageurl: persistedImageUrl,
-        thumbnailurl: persistedThumbnailUrl,
-        videourl: videoUrl,
-        authoraddress: "0x0000000000000000000000000000000000000000",  // Will be replaced by actual address
+        authoraddress: "0x0000000000000000000000000000000000000000",
         signature: "",
         isdraft: true,
-        videoduration: 15,
-        hasbackgroundmusic: true,
         sourcelinks: sourceLinks // Store source links directly
       })
     });
@@ -198,12 +166,11 @@ Summary: ${result.snippet}
     }
 
     const article = await articleResponse.json();
-    console.log('Article created with source links:', article.sourcelinks);
 
-    // Now save the audio with the correct article ID
+    // Save the audio with the article ID
     const audio = await saveAudio(audioBlob, article.id);
 
-    // Update the article with the audio information
+    // Update the article with audio information
     const updateResponse = await fetch(`/api/articles/${article.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -221,15 +188,12 @@ Summary: ${result.snippet}
     return {
       ...result,
       imageUrl: persistedImageUrl,
-      videoUrl: videoUrl,
-      thumbnailUrl: persistedThumbnailUrl,
       audioUrl: audio.url,
       audioDuration: audio.duration,
       sourceLinks
     };
   } catch (error) {
     console.error('Article generation error:', error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    throw new Error("Failed to generate article: " + errorMessage);
+    throw new Error(`Failed to generate article: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
