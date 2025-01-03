@@ -30,10 +30,13 @@ export function ArticleDetails({ params }: ArticleProps) {
       setAudioUrl(article.audiourl || '');
       setImageError(false);
       setAudioError(false);
+
       // Parse source links from article data
       try {
         if (article.sourcelinks) {
+          console.log('Raw sourcelinks:', article.sourcelinks); // Debug log
           const links = JSON.parse(article.sourcelinks);
+          console.log('Parsed sourcelinks:', links); // Debug log
           setSourceLinks(Array.isArray(links) ? links : []);
         } else {
           setSourceLinks([]);
@@ -156,10 +159,10 @@ export function ArticleDetails({ params }: ArticleProps) {
                   damping: 10
                 }}
               >
-                {article.title}
+                {article?.title}
               </motion.h1>
 
-              {!article.isdraft && (
+              {article && !article.isdraft && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -170,87 +173,13 @@ export function ArticleDetails({ params }: ArticleProps) {
               )}
             </div>
 
-            <motion.div
-              className="text-sm text-muted-foreground mb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              By {article.authoraddress}
-            </motion.div>
-
-            {/* Audio Player Section */}
-            {audioUrl && (
+            {/* Source Links Section - Moved up for better visibility */}
+            {sourceLinks.length > 0 && (
               <motion.div
-                className="mb-6 bg-muted/30 rounded-lg p-4"
+                className="mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.35 }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Volume2 className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium">Listen to Article</span>
-                </div>
-                <audio
-                  controls
-                  className="w-full"
-                  src={audioUrl}
-                  onError={handleAudioError}
-                >
-                  Your browser does not support the audio element.
-                </audio>
-              </motion.div>
-            )}
-
-            {/* Main Image */}
-            {imageUrl && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.55 }}
-              >
-                <img
-                  src={imageUrl}
-                  alt={article.title}
-                  className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
-                  onError={handleImageError}
-                />
-              </motion.div>
-            )}
-
-            {/* Article Content */}
-            <motion.div
-              className="prose prose-invert max-w-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-            >
-              {article.content.split('\n\n').map((paragraph, index) => (
-                <motion.p
-                  key={index}
-                  className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  whileHover={{ scale: 1.01, x: 4 }}
-                  transition={{
-                    delay: 0.8 + index * 0.1,
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 30
-                  }}
-                >
-                  {paragraph.trim()}
-                </motion.p>
-              ))}
-            </motion.div>
-
-            {/* Source Links Section */}
-            {sourceLinks.length > 0 && (
-              <motion.div
-                className="mt-8 mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.45 }}
               >
                 <div className="flex items-center gap-2 mb-3">
                   <LinkIcon className="h-5 w-5 text-primary" />
@@ -266,7 +195,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                       className="block text-sm text-primary hover:text-primary/80 transition-colors duration-200 hover:underline"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 + index * 0.1 }}
+                      transition={{ delay: 0.4 + index * 0.1 }}
                     >
                       {link}
                     </motion.a>
@@ -275,52 +204,96 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-            {/* Video Section */}
-            {article.videourl && (
-              <motion.div
-                className="mt-6 mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.85 }}
-              >
-                <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
-                <div className="relative group">
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                    poster={imageUrl}
-                  >
-                    <source
-                      src={article.videourl}
-                      type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                  </video>
-                  <div
-                    className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm"
-                  >
-                    buildersacademy.ai
-                  </div>
-                </div>
-              </motion.div>
-            )}
+            {article && (
+              <>
+                <motion.div
+                  className="text-sm text-muted-foreground mb-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  By {article.authoraddress}
+                </motion.div>
 
-            {/* Share Section */}
-            <motion.div
-              className="border-t pt-6 mt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.95 }}
-            >
-              <h3 className="text-lg font-semibold mb-4">Share this article</h3>
-              <SocialShare
-                url={window.location.href}
-                title={article.title}
-              />
-            </motion.div>
+                {/* Audio Player Section */}
+                {audioUrl && (
+                  <motion.div
+                    className="mb-6 bg-muted/30 rounded-lg p-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.35 }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Volume2 className="h-5 w-5 text-primary" />
+                      <span className="text-sm font-medium">Listen to Article</span>
+                    </div>
+                    <audio
+                      controls
+                      className="w-full"
+                      src={audioUrl}
+                      onError={handleAudioError}
+                    >
+                      Your browser does not support the audio element.
+                    </audio>
+                  </motion.div>
+                )}
+
+                {/* Main Image */}
+                {imageUrl && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.55 }}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={article.title}
+                      className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
+                      onError={handleImageError}
+                    />
+                  </motion.div>
+                )}
+
+                {/* Article Content */}
+                <motion.div
+                  className="prose prose-invert max-w-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  {article.content.split('\n\n').map((paragraph, index) => (
+                    <motion.p
+                      key={index}
+                      className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        delay: 0.8 + index * 0.1,
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 30
+                      }}
+                    >
+                      {paragraph.trim()}
+                    </motion.p>
+                  ))}
+                </motion.div>
+
+                {/* Share Section */}
+                <motion.div
+                  className="border-t pt-6 mt-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.95 }}
+                >
+                  <h3 className="text-lg font-semibold mb-4">Share this article</h3>
+                  <SocialShare
+                    url={window.location.href}
+                    title={article.title}
+                  />
+                </motion.div>
+              </>
+            )}
           </motion.div>
         </CardContent>
       </Card>
