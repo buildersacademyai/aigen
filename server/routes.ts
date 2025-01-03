@@ -323,14 +323,14 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Create article
+  // Create article - requires wallet address
   app.post("/api/articles", async (req, res) => {
     try {
       console.log('Creating article with data:', JSON.stringify(req.body, null, 2));
 
       // Validate required fields
       if (!req.body.authoraddress) {
-        return res.status(400).json({ message: "Author address is required" });
+        return res.status(401).json({ message: "Wallet address is required to create articles" });
       }
 
       const result = await db.insert(articles).values({
@@ -362,9 +362,25 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Update article
+  // Update article - requires wallet address match
   app.put("/api/articles/:id", async (req, res) => {
     try {
+      // First get the current article to check ownership
+      const [currentArticle] = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.id, parseInt(req.params.id)))
+        .limit(1);
+
+      if (!currentArticle) {
+        return res.status(404).json({ message: "Article not found" });
+      }
+
+      // Check if the wallet address matches
+      if (currentArticle.authoraddress.toLowerCase() !== req.body.authoraddress?.toLowerCase()) {
+        return res.status(403).json({ message: "You don't have permission to edit this article" });
+      }
+
       const result = await db
         .update(articles)
         .set({
@@ -392,30 +408,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Delete article
-  app.delete("/api/articles/:id", async (req, res) => {
-    try {
-      const result = await db
-        .delete(articles)
-        .where(eq(articles.id, parseInt(req.params.id)))
-        .returning();
-
-      if (result.length === 0) {
-        return res.status(404).json({ message: "Article not found" });
-      }
-
-      res.json({ message: "Article deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete article" });
-    }
-  });
-
-  // Update the publish article endpoint
+  // Update the publish article endpoint - requires wallet address and signature
   app.post("/api/articles/:id/publish", async (req, res) => {
     try {
       // Require signature for publishing
       if (!req.body.signature) {
-        return res.status(400).json({ message: "Signature is required for publishing" });
+        return res.status(401).json({ message: "Signature is required for publishing" });
       }
 
       // First get the current article
@@ -436,26 +434,10 @@ export function registerRoutes(app: Express): Server {
         .replace(/[#*]/g, '')
         .trim();
 
-      // Add source links if they exist, placing them before the video section
+      // Add source links if they exist
       let finalContent = cleanContent;
       if (req.body.sourceLinks && Array.isArray(req.body.sourceLinks) && req.body.sourceLinks.length > 0) {
-        // Find the position for video section (if it exists)
-        const videoSectionIndex = finalContent.indexOf("Featured Video");
-        if (videoSectionIndex !== -1) {
-          // Find the start of the paragraph containing "Featured Video"
-          const paragraphStart = finalContent.lastIndexOf('\n\n', videoSectionIndex);
-          if (paragraphStart !== -1) {
-            // Insert source links before the video section
-            const sourceLinksSection = `\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}\n`;
-            finalContent = finalContent.slice(0, paragraphStart) + sourceLinksSection + finalContent.slice(paragraphStart);
-          } else {
-            // If we can't find paragraph start, just append at the end
-            finalContent = `${cleanContent}\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}`;
-          }
-        } else {
-          // If no video section, append at the end
-          finalContent = `${cleanContent}\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}`;
-        }
+        finalContent = `${cleanContent}\n\n## Resources Used\n${req.body.sourceLinks.map((link: string) => `- ${link}`).join('\n')}`;
       }
 
       console.log('Final content preview:', finalContent.substring(0, 200) + '...');

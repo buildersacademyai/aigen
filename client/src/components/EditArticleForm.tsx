@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { signMessage } from "@/lib/web3";
 import type { SelectArticle } from "@db/schema";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
+import { useWeb3 } from "@/hooks/use-web3"; // Add this import
 
 interface EditArticleFormProps {
   article: SelectArticle;
@@ -15,6 +16,7 @@ interface EditArticleFormProps {
 }
 
 export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
+  const { address, connect } = useWeb3(); // Add this hook
   const form = useForm({
     defaultValues: {
       title: article.title,
@@ -27,6 +29,10 @@ export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
 
   const updateArticle = useMutation({
     mutationFn: async (data: any) => {
+      if (!address) {
+        throw new Error("Please connect your wallet to edit articles");
+      }
+
       const response = await fetch(`/api/articles/${article.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -57,8 +63,12 @@ export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
 
   const publishArticle = useMutation({
     mutationFn: async () => {
+      if (!address) {
+        throw new Error("Please connect your wallet to publish articles");
+      }
+
       // Sign the message before publishing
-      const signature = await signMessage(article.authoraddress, "Verified content");
+      const signature = await signMessage(address, "Verified content");
 
       // Get the source links from the article data
       let sourceLinks: string[] = [];
@@ -104,6 +114,21 @@ export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
   const onSubmit = form.handleSubmit((data) => {
     updateArticle.mutate(data);
   });
+
+  if (!address) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 p-8">
+        <Wallet className="h-12 w-12 text-primary" />
+        <h2 className="text-xl font-semibold">Connect Wallet to Edit</h2>
+        <p className="text-sm text-muted-foreground text-center mb-4">
+          You need to connect your wallet to edit or publish articles
+        </p>
+        <Button onClick={connect}>
+          Connect Wallet
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
