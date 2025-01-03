@@ -86,6 +86,22 @@ const saveAudio = async (audioBlob: Blob, articleId: number): Promise<{ url: str
   }
 };
 
+// Progress event emitter for generation steps
+const generationProgress = new EventTarget();
+export const GENERATION_EVENTS = {
+  SOURCES_FOUND: 'sources_found',
+  CONTENT_GENERATED: 'content_generated',
+  IMAGE_CREATED: 'image_created',
+  AUDIO_CREATED: 'audio_created',
+  ARTICLE_SAVED: 'article_saved',
+};
+
+const emitProgress = (event: string) => {
+  generationProgress.dispatchEvent(new CustomEvent(event));
+};
+
+export { generationProgress };
+
 export async function generateArticle(topic: string) {
   try {
     // First, gather related content
@@ -97,6 +113,7 @@ export async function generateArticle(topic: string) {
     // Extract source links and prepare context
     const sourceLinks = relatedContent.map(result => result.link);
     console.log('Source links extracted:', sourceLinks);
+    emitProgress(GENERATION_EVENTS.SOURCES_FOUND);
 
     const context = relatedContent
       .map(result => `
@@ -124,6 +141,7 @@ Summary: ${result.snippet}
     const content = response.choices[0].message.content;
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
+    emitProgress(GENERATION_EVENTS.CONTENT_GENERATED);
 
     // Generate image for the article
     const imageResponse = await openai.images.generate({
@@ -140,6 +158,7 @@ Summary: ${result.snippet}
 
     // Save the image
     const persistedImageUrl = await saveImage(imageResponse.data[0].url);
+    emitProgress(GENERATION_EVENTS.IMAGE_CREATED);
 
     // Generate audio for the article content
     const { audioBlob, duration } = await generateAudio(result.content);
@@ -157,7 +176,7 @@ Summary: ${result.snippet}
         authoraddress: "0x0000000000000000000000000000000000000000",
         signature: "",
         isdraft: true,
-        sourcelinks: sourceLinks // Store source links directly
+        sourcelinks: JSON.stringify(sourceLinks) // Ensure sourcelinks is stringified
       })
     });
 
@@ -166,9 +185,11 @@ Summary: ${result.snippet}
     }
 
     const article = await articleResponse.json();
+    emitProgress(GENERATION_EVENTS.ARTICLE_SAVED);
 
     // Save the audio with the article ID
     const audio = await saveAudio(audioBlob, article.id);
+    emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
 
     // Update the article with audio information
     const updateResponse = await fetch(`/api/articles/${article.id}`, {
@@ -177,7 +198,7 @@ Summary: ${result.snippet}
       body: JSON.stringify({
         audiourl: audio.url,
         audioduration: audio.duration,
-        sourcelinks: sourceLinks // Ensure source links are preserved in updates
+        sourcelinks: JSON.stringify(sourceLinks) // Ensure sourcelinks is preserved in updates
       })
     });
 
