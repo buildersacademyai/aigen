@@ -26,16 +26,14 @@ export function ArticleDetails({ params }: ArticleProps) {
 
   useEffect(() => {
     if (article) {
-      setImageUrl(article.imageurl);
+      setImageUrl(article.imageurl || '');
       setAudioUrl(article.audiourl || '');
       setImageError(false);
       setAudioError(false);
       // Parse source links from article data
       try {
         if (article.sourcelinks) {
-          const links = typeof article.sourcelinks === 'string' 
-            ? JSON.parse(article.sourcelinks) 
-            : article.sourcelinks;
+          const links = JSON.parse(article.sourcelinks);
           setSourceLinks(Array.isArray(links) ? links : []);
         } else {
           setSourceLinks([]);
@@ -178,7 +176,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              By {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
+              By {article.authoraddress}
             </motion.div>
 
             {/* Audio Player Section */}
@@ -204,20 +202,21 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-
             {/* Main Image */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.55 }}
-            >
-              <img
-                src={imageUrl}
-                alt={article.title}
-                className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
-                onError={handleImageError}
-              />
-            </motion.div>
+            {imageUrl && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.55 }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={article.title}
+                  className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
+                  onError={handleImageError}
+                />
+              </motion.div>
+            )}
 
             {/* Article Content */}
             <motion.div
@@ -245,10 +244,10 @@ export function ArticleDetails({ params }: ArticleProps) {
               ))}
             </motion.div>
 
-            {/* Add source links display section */}
+            {/* Source Links Section */}
             {sourceLinks.length > 0 && (
               <motion.div
-                className="mt-2 mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
+                className="mt-8 mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.45 }}
