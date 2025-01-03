@@ -234,7 +234,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                   {article.content.split('\n\n').map((paragraph, index) => (
                     <motion.p
                       key={index}
-                      className="mb-4 leading-relaxed hover:text-primary/90 transition-colors duration-200 p-2 rounded-md hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary"
+                      className="mb-6 leading-relaxed hover:text-primary/90 transition-colors duration-300 p-4 rounded-lg hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary text-lg"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
@@ -242,6 +242,10 @@ export function ArticleDetails({ params }: ArticleProps) {
                         type: "spring",
                         stiffness: 400,
                         damping: 30
+                      }}
+                      whileHover={{
+                        scale: 1.01,
+                        transition: { duration: 0.2 }
                       }}
                     >
                       {paragraph.trim()}
@@ -252,20 +256,23 @@ export function ArticleDetails({ params }: ArticleProps) {
                 {/* Source Links Section */}
                 {sourceLinks.length > 0 && (
                   <motion.div
-                    className="mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
+                    className="my-8 bg-primary/5 rounded-xl p-6 border border-primary/20 hover:border-primary/40 transition-all duration-300 shadow-lg hover:shadow-xl"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 }}
+                    whileHover={{ scale: 1.02 }}
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <LinkIcon className="h-5 w-5 text-primary" />
-                      <h2 className="text-lg font-semibold">Reference Sources</h2>
+                    <div className="flex items-center gap-3 mb-4">
+                      <LinkIcon className="h-6 w-6 text-primary animate-pulse" />
+                      <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                        Reference Sources
+                      </h2>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {sourceLinks.map((link, index) => (
                         <motion.div
                           key={index}
-                          className="group"
+                          className="group relative overflow-hidden"
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.4 + index * 0.1 }}
@@ -274,10 +281,24 @@ export function ArticleDetails({ params }: ArticleProps) {
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block text-sm text-primary hover:text-primary/80 transition-colors duration-200 p-2 rounded-md hover:bg-primary/10"
+                            className="block text-base text-primary/90 hover:text-primary transition-colors duration-300 p-3 rounded-lg hover:bg-primary/10 group-hover:pl-10"
+                            onClick={(e) => {
+                              e.currentTarget.classList.add('visited:text-primary/60');
+                            }}
                           >
-                            {link}
+                            <div className="flex items-center gap-2 relative">
+                              <LinkIcon 
+                                className="h-4 w-4 absolute -left-6 opacity-0 group-hover:opacity-100 group-hover:left-0 transition-all duration-300" 
+                              />
+                              <span className="truncate font-medium">{link}</span>
+                            </div>
                           </a>
+                          <motion.div
+                            className="absolute left-0 bottom-0 h-0.5 bg-primary/30"
+                            initial={{ width: "0%" }}
+                            whileHover={{ width: "100%" }}
+                            transition={{ duration: 0.3 }}
+                          />
                         </motion.div>
                       ))}
                     </div>
@@ -287,19 +308,22 @@ export function ArticleDetails({ params }: ArticleProps) {
                 {/* Video Section */}
                 {article?.videourl && (
                   <motion.div
-                    className="mb-6"
+                    className="my-12 rounded-xl overflow-hidden shadow-2xl"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
+                    whileHover={{ scale: 1.02 }}
                   >
-                    <h2 className="text-xl font-semibold mb-3">Featured Video</h2>
-                    <div className="relative group">
+                    <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                      Video Demonstration
+                    </h2>
+                    <div className="relative group rounded-xl overflow-hidden">
                       <video
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
+                        className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
                         poster={imageUrl}
                       >
                         <source
@@ -308,7 +332,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                         />
                         Your browser does not support the video tag.
                       </video>
-                      <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm">
+                      <div className="absolute bottom-4 right-4 text-white/90 font-semibold px-4 py-2 bg-black/70 rounded-lg backdrop-blur-sm">
                         buildersacademy.ai
                       </div>
                     </div>
