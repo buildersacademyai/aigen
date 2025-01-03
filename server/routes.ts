@@ -362,10 +362,10 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Update article - requires wallet address match
+  // Update article endpoint with separate handling for media updates
   app.put("/api/articles/:id", async (req, res) => {
     try {
-      // First get the current article to check ownership
+      // First get the current article
       const [currentArticle] = await db
         .select()
         .from(articles)
@@ -376,21 +376,37 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Article not found" });
       }
 
-      // Check if the wallet address matches
-      if (currentArticle.authoraddress.toLowerCase() !== req.body.authoraddress?.toLowerCase()) {
-        return res.status(403).json({ message: "You don't have permission to edit this article" });
+      // Check if this is a media update (audio/image)
+      const isMediaUpdate = req.body.audiourl !== undefined ||
+                          req.body.audioduration !== undefined ||
+                          req.body.imageurl !== undefined;
+
+      // For content updates, require wallet address match
+      if (!isMediaUpdate) {
+        if (currentArticle.authoraddress.toLowerCase() !== req.body.authoraddress?.toLowerCase()) {
+          return res.status(403).json({ message: "You don't have permission to edit this article" });
+        }
       }
 
+      // Prepare update data
+      const updateData: any = {};
+
+      // Handle media updates
+      if (isMediaUpdate) {
+        if (req.body.audiourl !== undefined) updateData.audiourl = req.body.audiourl;
+        if (req.body.audioduration !== undefined) updateData.audioduration = req.body.audioduration;
+        if (req.body.imageurl !== undefined) updateData.imageurl = req.body.imageurl;
+      } else {
+        // Handle content updates
+        updateData.title = req.body.title;
+        updateData.content = req.body.content;
+        updateData.description = req.body.description;
+      }
+
+      // Update the article
       const result = await db
         .update(articles)
-        .set({
-          title: req.body.title,
-          content: req.body.content,
-          description: req.body.description,
-          audiourl: req.body.audiourl,
-          audioduration: req.body.audioduration,
-          sourcelinks: req.body.sourcelinks ? JSON.stringify(req.body.sourcelinks) : null,
-        })
+        .set(updateData)
         .where(eq(articles.id, parseInt(req.params.id)))
         .returning();
 
