@@ -199,36 +199,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-            {/* Add source links display section */}
-            {sourceLinks.length > 0 && (
-              <motion.div
-                className="mt-2 mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.45 }}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <LinkIcon className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Reference Sources</h2>
-                </div>
-                <div className="space-y-2">
-                  {sourceLinks.map((link, index) => (
-                    <motion.a
-                      key={index}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-sm text-primary hover:text-primary/80 transition-colors duration-200 hover:underline"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 + index * 0.1 }}
-                    >
-                      {link}
-                    </motion.a>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            
 
             {/* Main Image */}
             <motion.div
@@ -269,6 +240,37 @@ export function ArticleDetails({ params }: ArticleProps) {
                 </motion.p>
               ))}
             </motion.div>
+
+            {/* Add source links display section */}
+            {sourceLinks.length > 0 && (
+              <motion.div
+                className="mt-2 mb-6 bg-primary/5 rounded-lg p-4 border border-primary/20"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.45 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <LinkIcon className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Reference Sources</h2>
+                </div>
+                <div className="space-y-2">
+                  {sourceLinks.map((link, index) => (
+                    <motion.a
+                      key={index}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm text-primary hover:text-primary/80 transition-colors duration-200 hover:underline"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.1 }}
+                    >
+                      {link}
+                    </motion.a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
             {/* Video Section */}
             {article.videourl && (

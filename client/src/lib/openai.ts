@@ -91,7 +91,10 @@ export async function generateArticle(topic: string) {
     // First, gather related content
     const relatedContent = await gatherRelatedContent(topic);
 
-    // Prepare context from search results
+    // Prepare context from search results and extract source links
+    const sourceLinks = relatedContent.map(result => result.link);
+    console.log('Source links extracted:', sourceLinks);
+
     const context = relatedContent
       .map(result => `
 Source: ${result.link}
@@ -169,11 +172,7 @@ Summary: ${result.snippet}
       videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
     }
 
-    // Extract source links from the related content
-    const sourceLinks = relatedContent.map(result => result.link);
-    console.log('Source links extracted:', sourceLinks);
-
-    // Create the article first to get the ID
+    // Create the article with source links
     const articleResponse = await fetch("/api/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -190,7 +189,7 @@ Summary: ${result.snippet}
         isdraft: true,
         videoduration: 15,
         hasbackgroundmusic: true,
-        sourcelinks: JSON.stringify(sourceLinks)
+        sourcelinks: sourceLinks // Store source links directly
       })
     });
 
@@ -210,7 +209,8 @@ Summary: ${result.snippet}
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         audiourl: audio.url,
-        audioduration: audio.duration
+        audioduration: audio.duration,
+        sourcelinks: sourceLinks // Ensure source links are preserved in updates
       })
     });
 
