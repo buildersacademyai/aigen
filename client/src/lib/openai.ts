@@ -125,9 +125,6 @@ Summary: ${result.snippet}
     // Add source links section to be included in the content
     const sourceLinksSection = `\n\n## Reference Sources\n${sourceLinks.map(link => `- ${link}`).join('\n')}`;
 
-    // Add video section to the content
-    const videoSection = "\n\n## Featured Video\nThis article includes a video demonstration to help visualize the concepts discussed.";
-
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -147,8 +144,8 @@ Summary: ${result.snippet}
     if (!content) throw new Error("No content received from OpenAI");
     const result = JSON.parse(content);
 
-    // Append source links and video sections to the generated content
-    result.content = `${result.content}${sourceLinksSection}${videoSection}`;
+    // Append source links section to the generated content
+    result.content = `${result.content}${sourceLinksSection}`;
 
     emitProgress(GENERATION_EVENTS.CONTENT_GENERATED);
 

@@ -220,36 +220,7 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-            {/* Video Section */}
-            {article?.videourl && (
-              <motion.div
-                className="mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45 }}
-              >
-                <h2 className="text-xl font-semibold mb-3 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Featured Video</h2>
-                <div className="relative group">
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
-                    poster={imageUrl}
-                  >
-                    <source
-                      src={article.videourl}
-                      type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                  </video>
-                  <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm">
-                    buildersacademy.ai
-                  </div>
-                </div>
-              </motion.div>
-            )}
+            
 
             {article && (
               <>
@@ -325,6 +296,36 @@ export function ArticleDetails({ params }: ArticleProps) {
                     </motion.p>
                   ))}
                 </motion.div>
+                {/* Video Section */}
+                {article?.videourl && (
+                  <motion.div
+                    className="mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                  >
+                    <h2 className="text-xl font-semibold mb-3 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Featured Video</h2>
+                    <div className="relative group">
+                      <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-[400px] object-cover rounded-lg hover:scale-[1.02] transition-transform duration-300 shadow-lg"
+                        poster={imageUrl}
+                      >
+                        <source
+                          src={article.videourl}
+                          type="video/mp4"
+                        />
+                        Your browser does not support the video tag.
+                      </video>
+                      <div className="absolute bottom-4 right-4 text-white/80 font-semibold px-3 py-2 bg-black/60 rounded backdrop-blur-sm">
+                        buildersacademy.ai
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Share Section */}
                 <motion.div
