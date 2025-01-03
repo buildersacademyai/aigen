@@ -87,7 +87,6 @@ const saveAudio = async (audioBlob: Blob, articleId: number): Promise<{ url: str
 };
 
 // Progress event emitter for generation steps
-const generationProgress = new EventTarget();
 export const GENERATION_EVENTS = {
   SOURCES_FOUND: 'sources_found',
   CONTENT_GENERATED: 'content_generated',
@@ -96,11 +95,11 @@ export const GENERATION_EVENTS = {
   ARTICLE_SAVED: 'article_saved',
 };
 
+export const generationProgress = new EventTarget();
+
 const emitProgress = (event: string) => {
   generationProgress.dispatchEvent(new CustomEvent(event));
 };
-
-export { generationProgress };
 
 export async function generateArticle(topic: string) {
   try {

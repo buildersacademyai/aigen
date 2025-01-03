@@ -46,13 +46,13 @@ export function GenerationProgress() {
               isCompleted
                 ? 'text-green-500 bg-green-500/10'
                 : isInProgress
-                ? 'text-blue-500 bg-blue-500/10'
+                ? 'text-primary bg-primary/10'
                 : 'text-muted-foreground'
             }`}
           >
             <div className="w-5 h-5 flex items-center justify-center">
               {isCompleted ? (
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4 animate-in zoom-in-50 duration-300" />
               ) : isInProgress ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
