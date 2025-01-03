@@ -73,9 +73,9 @@ export function EditArticleForm({ article, onSuccess }: EditArticleFormProps) {
       const response = await fetch(`/api/articles/${article.id}/publish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           signature,
-          sourceLinks 
+          sourceLinks
         })
       });
 
