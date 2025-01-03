@@ -7,26 +7,17 @@ export const articles = pgTable("articles", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   description: text("description").notNull(),
-  summary: text("summary"),  // Made optional
-  imageurl: text("imageurl").notNull(),
-  thumbnailurl: text("thumbnailurl"),
-  videourl: text("videourl").notNull().default(''),
-  videoduration: integer("videoduration").notNull().default(15),
-  hasbackgroundmusic: boolean("hasbackgroundmusic").notNull().default(true),
-  audiourl: text("audiourl"),  // New field for storing audio URL
-  audioduration: integer("audioduration"),  // New field for audio duration
-  authoraddress: varchar("authoraddress", { length: 42 }).notNull(),
-  signature: text("signature").notNull(),
-  sourcelinks: text("sourcelinks"),  // New field for storing source links
-  isdraft: boolean("isdraft").notNull().default(true),
-  createdat: timestamp("createdat").defaultNow().notNull(),
-  updatedat: timestamp("updatedat").defaultNow().notNull(),
-}, (table) => ({
-  authorIndex: index("author_idx").on(table.authoraddress),
-  draftIndex: index("draft_idx").on(table.isdraft),
-  createdAtIndex: index("created_at_idx").on(table.createdat),
-  titleIndex: index("title_idx").on(table.title),
-}));
+  summary: text("summary"),
+  imageurl: text("imageurl"),
+  audiourl: text("audiourl"),
+  audioduration: integer("audioduration"),
+  authoraddress: text("authoraddress").notNull(),
+  signature: text("signature").default(''),
+  isdraft: boolean("isdraft").default(true),
+  sourcelinks: text("sourcelinks"),
+  createdat: timestamp("created_at").defaultNow().notNull(),
+  updatedat: timestamp("updated_at").defaultNow().notNull(),
+});
 
 // Create stored images table with relations
 export const storedImages = pgTable("storedimages", {
@@ -36,10 +27,7 @@ export const storedImages = pgTable("storedimages", {
   localpath: text("localpath").notNull(),
   articleid: integer("articleid").references(() => articles.id, { onDelete: 'cascade' }),
   createdat: timestamp("createdat").defaultNow().notNull(),
-}, (table) => ({
-  filenameIndex: index("filename_idx").on(table.filename),
-  articleIndex: index("article_idx").on(table.articleid),
-}));
+});
 
 // Create stored audio table with relations
 export const storedAudio = pgTable("storedaudio", {
@@ -49,10 +37,7 @@ export const storedAudio = pgTable("storedaudio", {
   localpath: text("localpath").notNull(),
   articleid: integer("articleid").references(() => articles.id, { onDelete: 'cascade' }),
   createdat: timestamp("createdat").defaultNow().notNull(),
-}, (table) => ({
-  articleIdIndex: index("article_id_idx").on(table.articleid),
-  filenameIndex: index("audio_filename_idx").on(table.filename),
-}));
+});
 
 // Define relations
 export const articlesRelations = relations(articles, ({ many }) => ({
