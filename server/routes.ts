@@ -348,7 +348,7 @@ export function registerRoutes(app: Express): Server {
         isdraft: req.body.isdraft ?? true,
         videoduration: req.body.videoduration ?? 15,
         hasbackgroundmusic: req.body.hasbackgroundmusic ?? true,
-        sourcelinks: req.body.sourcelinks
+        sourcelinks: req.body.sourcelinks ? JSON.stringify(req.body.sourcelinks) : null,
       }).returning();
 
       console.log('Article created successfully:', JSON.stringify(result[0], null, 2));
@@ -373,6 +373,7 @@ export function registerRoutes(app: Express): Server {
           description: req.body.description,
           audiourl: req.body.audiourl,
           audioduration: req.body.audioduration,
+          sourcelinks: req.body.sourcelinks ? JSON.stringify(req.body.sourcelinks) : null,
         })
         .where(eq(articles.id, parseInt(req.params.id)))
         .returning();
