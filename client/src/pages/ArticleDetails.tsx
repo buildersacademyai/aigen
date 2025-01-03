@@ -31,13 +31,18 @@ export function ArticleDetails({ params }: ArticleProps) {
       setImageError(false);
       setAudioError(false);
       // Parse source links from article data
-      if (article.sourcelinks) {
-        try {
-          setSourceLinks(JSON.parse(article.sourcelinks));
-        } catch (e) {
-          console.error('Error parsing source links:', e);
+      try {
+        if (article.sourcelinks) {
+          const links = typeof article.sourcelinks === 'string' 
+            ? JSON.parse(article.sourcelinks) 
+            : article.sourcelinks;
+          setSourceLinks(Array.isArray(links) ? links : []);
+        } else {
           setSourceLinks([]);
         }
+      } catch (e) {
+        console.error('Error parsing source links:', e);
+        setSourceLinks([]);
       }
     }
   }, [article]);
@@ -199,7 +204,6 @@ export function ArticleDetails({ params }: ArticleProps) {
               </motion.div>
             )}
 
-            
 
             {/* Main Image */}
             <motion.div
