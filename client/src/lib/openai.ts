@@ -111,7 +111,7 @@ export async function generateArticle(topic: string) {
 
     // Extract source links and prepare context
     const sourceLinks = relatedContent.map(result => result.link);
-    console.log('Source links extracted:', sourceLinks);
+    console.log('Source links found:', sourceLinks); //This line was changed
     emitProgress(GENERATION_EVENTS.SOURCES_FOUND);
 
     const context = relatedContent
@@ -175,7 +175,7 @@ Summary: ${result.snippet}
         authoraddress: "0x0000000000000000000000000000000000000000",
         signature: "",
         isdraft: true,
-        sourcelinks: JSON.stringify(sourceLinks) // Ensure sourcelinks is stringified
+        sourcelinks: JSON.stringify(sourceLinks)
       })
     });
 
@@ -197,7 +197,7 @@ Summary: ${result.snippet}
       body: JSON.stringify({
         audiourl: audio.url,
         audioduration: audio.duration,
-        sourcelinks: JSON.stringify(sourceLinks) // Ensure sourcelinks is preserved in updates
+        sourcelinks: JSON.stringify(sourceLinks)
       })
     });
 
