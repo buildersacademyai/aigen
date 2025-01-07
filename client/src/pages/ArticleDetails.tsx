@@ -272,29 +272,32 @@ export function ArticleDetails({ params }: ArticleProps) {
                       {sourceLinks.map((link, index) => (
                         <motion.div
                           key={index}
-                          className="group relative overflow-hidden"
+                          className="group relative overflow-hidden bg-white/5 rounded-lg"
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.4 + index * 0.1 }}
+                          whileHover={{ scale: 1.01 }}
                         >
                           <a
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block text-base text-primary/90 hover:text-primary transition-colors duration-300 p-3 rounded-lg hover:bg-primary/10 group-hover:pl-10"
-                            onClick={(e) => {
-                              e.currentTarget.classList.add('visited:text-primary/60');
-                            }}
+                            className="block text-base text-primary/90 hover:text-primary transition-colors duration-300 p-4 rounded-lg hover:bg-primary/10 group-hover:pl-12 visited:text-primary/60"
                           >
-                            <div className="flex items-center gap-2 relative">
+                            <div className="flex items-center gap-3 relative">
                               <LinkIcon 
-                                className="h-4 w-4 absolute -left-6 opacity-0 group-hover:opacity-100 group-hover:left-0 transition-all duration-300" 
+                                className="h-5 w-5 absolute -left-6 opacity-0 group-hover:opacity-100 group-hover:left-0 transition-all duration-300" 
                               />
-                              <span className="truncate font-medium">{link}</span>
+                              <span className="truncate font-medium flex-1">
+                                {new URL(link).hostname.replace('www.', '')}
+                              </span>
+                              <span className="text-sm text-primary/50 group-hover:text-primary/70 transition-colors duration-300">
+                                Open in new tab
+                              </span>
                             </div>
                           </a>
                           <motion.div
-                            className="absolute left-0 bottom-0 h-0.5 bg-primary/30"
+                            className="absolute bottom-0 left-0 h-[2px] bg-primary/40"
                             initial={{ width: "0%" }}
                             whileHover={{ width: "100%" }}
                             transition={{ duration: 0.3 }}
