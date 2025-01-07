@@ -269,41 +269,42 @@ export function ArticleDetails({ params }: ArticleProps) {
                       </h2>
                     </div>
                     <div className="space-y-3">
-                      {sourceLinks.map((link, index) => (
-                        <motion.div
-                          key={index}
-                          className="group relative overflow-hidden bg-white/5 rounded-lg"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4 + index * 0.1 }}
-                          whileHover={{ scale: 1.01 }}
-                        >
-                          <a
+                      {sourceLinks.map((link, index) => {
+                        const url = new URL(link);
+                        const domain = url.hostname.replace('www.', '');
+
+                        return (
+                          <motion.a
+                            key={index}
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block text-base text-primary/90 hover:text-primary transition-colors duration-300 p-4 rounded-lg hover:bg-primary/10 group-hover:pl-12 visited:text-primary/60"
+                            className="block group relative overflow-hidden bg-white/5 rounded-lg cursor-pointer"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4 + index * 0.1 }}
+                            whileHover={{ scale: 1.01 }}
                           >
-                            <div className="flex items-center gap-3 relative">
+                            <div className="p-4 flex items-center gap-3 relative group-hover:bg-primary/10 transition-all duration-300">
                               <LinkIcon 
-                                className="h-5 w-5 absolute -left-6 opacity-0 group-hover:opacity-100 group-hover:left-0 transition-all duration-300" 
+                                className="h-5 w-5 text-primary/70 group-hover:text-primary transition-colors duration-300"
                               />
-                              <span className="truncate font-medium flex-1">
-                                {new URL(link).hostname.replace('www.', '')}
+                              <span className="truncate font-medium flex-1 text-primary/90 group-hover:text-primary transition-colors duration-300">
+                                {domain}
                               </span>
-                              <span className="text-sm text-primary/50 group-hover:text-primary/70 transition-colors duration-300">
-                                Open in new tab
+                              <span className="text-sm text-primary/50 group-hover:text-primary/70 transition-colors duration-300 whitespace-nowrap">
+                                Open in new tab ↗
                               </span>
                             </div>
-                          </a>
-                          <motion.div
-                            className="absolute bottom-0 left-0 h-[2px] bg-primary/40"
-                            initial={{ width: "0%" }}
-                            whileHover={{ width: "100%" }}
-                            transition={{ duration: 0.3 }}
-                          />
-                        </motion.div>
-                      ))}
+                            <motion.div
+                              className="absolute bottom-0 left-0 h-[2px] bg-primary/40"
+                              initial={{ width: "0%" }}
+                              whileHover={{ width: "100%" }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </motion.a>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 )}
