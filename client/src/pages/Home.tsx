@@ -13,7 +13,17 @@ import {
   Globe, 
   Lock, 
   LineChart,
-  BookOpen
+  BookOpen,
+  Blocks,
+  Database,
+  Eye,
+  Layers,
+  Rocket,
+  BarChart3,
+  Network,
+  Bot,
+  Fingerprint,
+  Verified
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -134,38 +144,90 @@ export function Home() {
           >
             {[
               { 
-                icon: <Brain className="h-6 w-6 text-primary" />, 
+                icon: <Brain className="h-8 w-8 text-primary" />, 
+                secondaryIcon: <Bot className="h-4 w-4 text-primary/80 absolute -top-1 -right-1" />,
                 title: "AI-Powered", 
-                description: "Advanced algorithms generate high-quality content tailored to specific topics" 
+                description: "Advanced algorithms generate high-quality content tailored to specific topics",
+                glowColor: "rgba(108, 75, 255, 0.5)"
               },
               { 
-                icon: <Shield className="h-6 w-6 text-cyan-400" />, 
+                icon: <Blocks className="h-8 w-8 text-cyan-400" />, 
+                secondaryIcon: <Verified className="h-4 w-4 text-cyan-400/80 absolute -top-1 -right-1" />,
                 title: "Blockchain Verified", 
-                description: "Every article is authenticated and secured on the blockchain" 
+                description: "Every article is authenticated and secured on the blockchain",
+                glowColor: "rgba(0, 209, 193, 0.5)"
               },
               { 
-                icon: <Sparkles className="h-6 w-6 text-fuchsia-400" />, 
+                icon: <Fingerprint className="h-8 w-8 text-fuchsia-400" />, 
+                secondaryIcon: <Network className="h-4 w-4 text-fuchsia-400/80 absolute -top-1 -right-1" />,
                 title: "Web3 Integration", 
-                description: "Connect your wallet for a seamless decentralized experience" 
+                description: "Connect your wallet for a seamless decentralized experience",
+                glowColor: "rgba(217, 70, 239, 0.5)"
               }
             ].map((feature, index) => (
               <motion.div 
                 key={index}
                 variants={itemVariants}
-                className="rounded-xl p-6 backdrop-blur-lg" 
+                className="rounded-xl p-6 backdrop-blur-lg feature-card relative overflow-hidden" 
                 style={{ 
                   background: 'rgba(255, 255, 255, 0.03)', 
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
                 }}
               >
-                <div className="flex flex-col items-center text-center space-y-2">
-                  <div className="p-2 rounded-lg bg-white/5 mb-3">
-                    {feature.icon}
-                  </div>
+                {/* Corner decoration */}
+                <div 
+                  className="absolute top-0 right-0 w-16 h-16 rotate-12 overflow-hidden opacity-10"
+                  style={{ 
+                    background: `linear-gradient(135deg, transparent 50%, ${feature.glowColor})`,
+                  }}
+                />
+                
+                <div className="flex flex-col items-center text-center space-y-3 relative z-10">
+                  <motion.div 
+                    className="p-4 rounded-xl relative"
+                    initial={{ rotateY: 0 }}
+                    whileHover={{ rotateY: 180, scale: 1.05 }}
+                    transition={{ duration: 0.6 }}
+                    style={{ 
+                      background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01))',
+                      transformStyle: 'preserve-3d'
+                    }}
+                  >
+                    <div className="flex items-center justify-center relative">
+                      <div className="absolute inset-0 rounded-full" style={{ 
+                        background: feature.glowColor,
+                        filter: 'blur(20px)',
+                        opacity: 0.3
+                      }} />
+                      {feature.icon}
+                      <div className="relative">
+                        {feature.secondaryIcon}
+                      </div>
+                    </div>
+                  </motion.div>
+                  
                   <h3 className="text-xl font-semibold">{feature.title}</h3>
                   <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </div>
+                
+                {/* Animated glow line at bottom */}
+                <motion.div 
+                  className="absolute bottom-0 left-0 h-[1px] bg-gradient-to-r"
+                  style={{ 
+                    backgroundImage: `linear-gradient(to right, transparent, ${feature.glowColor}, transparent)`,
+                    width: '100%',
+                  }}
+                  animate={{
+                    opacity: [0.3, 0.7, 0.3],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: index * 0.5
+                  }}
+                />
               </motion.div>
             ))}
           </motion.div>
@@ -330,53 +392,135 @@ export function Home() {
           >
             {[
               {
-                icon: <Brain className="h-6 w-6 text-primary" />,
+                icon: <Brain className="h-8 w-8 text-primary" />,
+                overlayIcon: <Bot className="h-12 w-12 text-primary opacity-5 absolute -top-2 -right-2" />,
                 title: "Advanced AI Content Generation",
-                description: "Harness the power of cutting-edge language models to create high-quality articles on any topic."
+                description: "Harness the power of cutting-edge language models to create high-quality articles on any topic.",
+                color: "primary"
               },
               {
-                icon: <Shield className="h-6 w-6 text-cyan-400" />,
+                icon: <Blocks className="h-8 w-8 text-cyan-400" />,
+                overlayIcon: <Shield className="h-12 w-12 text-cyan-400 opacity-5 absolute -top-2 -right-2" />,
                 title: "Blockchain Authentication",
-                description: "Every piece of content is cryptographically secured and verified on the blockchain."
+                description: "Every piece of content is cryptographically secured and verified on the blockchain.",
+                color: "cyan-400"
               },
               {
-                icon: <FileText className="h-6 w-6 text-fuchsia-400" />,
+                icon: <Layers className="h-8 w-8 text-fuchsia-400" />,
+                overlayIcon: <FileText className="h-12 w-12 text-fuchsia-400 opacity-5 absolute -top-2 -right-2" />,
                 title: "Multi-Format Support",
-                description: "Generate and consume content across multiple formats including text, audio, and visuals."
+                description: "Generate and consume content across multiple formats including text, audio, and visuals.",
+                color: "fuchsia-400"
               },
               {
-                icon: <Globe className="h-6 w-6 text-cyan-400" />,
+                icon: <Globe className="h-8 w-8 text-cyan-400" />,
+                overlayIcon: <Network className="h-12 w-12 text-cyan-400 opacity-5 absolute -top-2 -right-2" />,
                 title: "Decentralized Publishing",
-                description: "Publish directly to the blockchain, ensuring your content remains immutable and uncensorable."
+                description: "Publish directly to the blockchain, ensuring your content remains immutable and uncensorable.",
+                color: "cyan-400"
               },
               {
-                icon: <LineChart className="h-6 w-6 text-primary" />,
+                icon: <BarChart3 className="h-8 w-8 text-primary" />,
+                overlayIcon: <LineChart className="h-12 w-12 text-primary opacity-5 absolute -top-2 -right-2" />,
                 title: "Analytics & Insights",
-                description: "Gain valuable insights into content performance and reader engagement."
+                description: "Gain valuable insights into content performance and reader engagement.",
+                color: "primary"
               },
               {
-                icon: <Code className="h-6 w-6 text-fuchsia-400" />,
+                icon: <Code className="h-8 w-8 text-fuchsia-400" />,
+                overlayIcon: <Database className="h-12 w-12 text-fuchsia-400 opacity-5 absolute -top-2 -right-2" />,
                 title: "Open API Ecosystem",
-                description: "Integrate with our platform using our comprehensive developer APIs and tools."
+                description: "Integrate with our platform using our comprehensive developer APIs and tools.",
+                color: "fuchsia-400"
               }
             ].map((feature, index) => (
               <motion.div 
                 key={index}
                 variants={itemVariants}
-                className="rounded-xl p-6 backdrop-blur-lg feature-card" 
+                whileHover={{ 
+                  y: -5,
+                  transition: { duration: 0.2 }
+                }}
+                className="rounded-xl p-6 backdrop-blur-lg feature-card relative" 
                 style={{ 
                   background: 'rgba(255, 255, 255, 0.03)', 
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                  overflow: 'hidden'
                 }}
               >
-                <div className="space-y-4">
-                  <div className="p-2 inline-block rounded-lg bg-white/5 mb-2">
-                    {feature.icon}
+                {/* Decorative corner */}
+                <div 
+                  className="absolute -top-10 -right-10 w-20 h-20 rotate-45 opacity-10"
+                  style={{ 
+                    background: `linear-gradient(135deg, transparent 30%, var(--color-${feature.color}))`,
+                  }}
+                />
+                
+                {/* Decorative lines */}
+                <motion.div
+                  className="absolute bottom-0 left-0 h-[1px] w-full"
+                  style={{ 
+                    background: `linear-gradient(to right, transparent, var(--color-${feature.color}), transparent)`,
+                    opacity: 0.2 
+                  }}
+                  animate={{
+                    opacity: [0.1, 0.3, 0.1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: index * 0.5
+                  }}
+                />
+                
+                <div className="space-y-4 relative z-10">
+                  <div className="relative">
+                    {feature.overlayIcon}
+                    <motion.div 
+                      className="p-3 inline-flex items-center justify-center rounded-lg relative"
+                      initial={{ background: 'rgba(255, 255, 255, 0.03)' }}
+                      whileHover={{ 
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        scale: 1.05 
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Glow effect */}
+                      <div 
+                        className="absolute inset-0 rounded-lg opacity-20" 
+                        style={{ 
+                          background: `radial-gradient(circle, var(--color-${feature.color}) 0%, transparent 70%)`,
+                          filter: 'blur(8px)' 
+                        }}
+                      />
+                      
+                      {feature.icon}
+                    </motion.div>
                   </div>
+                  
                   <h3 className="text-xl font-semibold">{feature.title}</h3>
                   <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </div>
+                
+                {/* Animated pulse effect */}
+                <motion.div
+                  className="absolute inset-0 rounded-xl z-0"
+                  animate={{
+                    boxShadow: [
+                      `0 0 0 0 rgba(var(--color-${feature.color}), 0)`,
+                      `0 0 0 10px rgba(var(--color-${feature.color}), 0.03)`,
+                      `0 0 0 20px rgba(var(--color-${feature.color}), 0)`,
+                    ],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    delay: index * 0.2
+                  }}
+                />
               </motion.div>
             ))}
           </motion.div>
@@ -390,6 +534,36 @@ export function Home() {
           style={{ background: 'linear-gradient(to bottom, transparent, rgba(108, 75, 255, 0.1))' }}
         >
           <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.7),transparent)]" />
+          
+          {/* Animated glowing orbs */}
+          <motion.div 
+            className="absolute top-1/4 right-1/4 h-64 w-64 rounded-full blur-3xl"
+            style={{ background: 'radial-gradient(circle, rgba(108, 75, 255, 0.2) 0%, transparent 70%)' }}
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.2, 0.3, 0.2],
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          <motion.div 
+            className="absolute bottom-1/3 left-1/3 h-80 w-80 rounded-full blur-3xl"
+            style={{ background: 'radial-gradient(circle, rgba(0, 209, 193, 0.15) 0%, transparent 70%)' }}
+            animate={{ 
+              scale: [1, 1.3, 1],
+              opacity: [0.15, 0.25, 0.15],
+            }}
+            transition={{ 
+              duration: 10, 
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+          />
         </div>
         
         <div className="container mx-auto px-4">
@@ -398,15 +572,49 @@ export function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
-            className="rounded-2xl mx-auto max-w-4xl overflow-hidden backdrop-blur-xl p-8 sm:p-12"
+            className="rounded-2xl mx-auto max-w-4xl overflow-hidden backdrop-blur-xl p-8 sm:p-12 relative"
             style={{ 
               background: 'linear-gradient(145deg, rgba(30, 30, 47, 0.8), rgba(30, 30, 47, 0.4))',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               boxShadow: '0 0 40px rgba(108, 75, 255, 0.2)'
             }}
           >
+            {/* 3D floating rocket */}
+            <motion.div
+              className="absolute top-0 right-0 -mt-16 mr-10 hidden md:block"
+              initial={{ y: 0 }}
+              animate={{ y: [-10, 10, -10] }}
+              transition={{ 
+                duration: 6,
+                repeat: Infinity,
+                ease: "easeInOut" 
+              }}
+            >
+              <div className="relative w-24 h-24">
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{ 
+                    background: 'radial-gradient(circle, rgba(108, 75, 255, 0.3) 0%, transparent 70%)',
+                    filter: 'blur(15px)'
+                  }}
+                  animate={{ 
+                    opacity: [0.3, 0.6, 0.3],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut" 
+                  }}
+                />
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <Rocket className="h-12 w-12 text-primary" />
+                </div>
+              </div>
+            </motion.div>
+            
             <div className="text-center mb-8">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 glow-text">
                 Ready to Experience the Future?
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -416,38 +624,63 @@ export function Home() {
             </div>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-              <Button 
-                asChild
-                size="lg" 
-                className="flex items-center gap-2 text-base px-6 py-6 w-full sm:w-auto" 
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  boxShadow: '0 0 20px rgba(108, 75, 255, 0.4)'
-                }}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <Link href="/articles">
-                  <span>Browse Articles</span>
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-              </Button>
+                <Button 
+                  asChild
+                  size="lg" 
+                  className="flex items-center gap-2 text-base px-6 py-6 w-full sm:w-auto relative group overflow-hidden" 
+                  style={{
+                    background: 'linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 0 20px rgba(108, 75, 255, 0.4)'
+                  }}
+                >
+                  <Link href="/articles">
+                    <span>Browse Articles</span>
+                    <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+              </motion.div>
               
-              <Button 
-                asChild
-                size="lg" 
-                variant="outline" 
-                className="flex items-center gap-2 text-base px-6 py-6 w-full sm:w-auto" 
-                style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <Link href="/mission">
-                  <span>Learn More</span>
-                  <BookOpen className="h-5 w-5" />
-                </Link>
-              </Button>
+                <Button 
+                  asChild
+                  size="lg" 
+                  variant="outline" 
+                  className="flex items-center gap-2 text-base px-6 py-6 w-full sm:w-auto relative group overflow-hidden" 
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  <Link href="/mission">
+                    <span>Learn More</span>
+                    <BookOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  </Link>
+                </Button>
+              </motion.div>
             </div>
+            
+            {/* Animated bottom border */}
+            <motion.div 
+              className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent"
+              style={{ width: '100%' }}
+              animate={{
+                opacity: [0.3, 0.7, 0.3],
+                backgroundPosition: ['0% 0%', '100% 0%', '0% 0%'],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
           </motion.div>
         </div>
       </section>
