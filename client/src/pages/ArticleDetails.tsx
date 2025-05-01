@@ -154,7 +154,7 @@ export function ArticleDetails({ params }: ArticleProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
       <Card 
         className="mx-auto overflow-hidden backdrop-blur-sm relative" 
         style={{
@@ -165,13 +165,13 @@ export function ArticleDetails({ params }: ArticleProps) {
           borderRadius: "0.75rem"
         }}
       >
-        {/* Card Glows */}
-        <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -top-20 -left-20 w-60 h-60 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+        {/* Card Glows - Hidden on small screens, visible on larger screens */}
+        <div className="hidden md:block absolute -bottom-20 -right-20 w-40 md:w-60 h-40 md:h-60 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="hidden md:block absolute -top-20 -left-20 w-40 md:w-60 h-40 md:h-60 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
         
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-1 bg-primary/30 rounded-full blur-sm"></div>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/20 rounded-full blur-md"></div>
-        <CardContent className="p-8">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 md:w-24 h-1 bg-primary/30 rounded-full blur-sm"></div>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-24 md:w-32 h-1 bg-primary/20 rounded-full blur-md"></div>
+        <CardContent className="p-4 sm:p-6 md:p-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,7 +180,7 @@ export function ArticleDetails({ params }: ArticleProps) {
             {/* Title Section with Verified Badge */}
             <div className="flex flex-col gap-2 mb-4">
               <motion.h1
-                className="text-4xl font-bold text-white mb-2"
+                className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -231,14 +231,17 @@ export function ArticleDetails({ params }: ArticleProps) {
                       fontWeight: 500
                     }}
                   >
-                    {article.authoraddress}
+                    <span className="hidden md:inline">{article.authoraddress}</span>
+                    <span className="md:hidden">
+                      {article.authoraddress.slice(0, 6)}...{article.authoraddress.slice(-4)}
+                    </span>
                   </span>
                 </motion.div>
 
                 {/* Audio Player Section */}
                 {audioUrl && (
                   <motion.div
-                    className="mb-8 rounded-lg p-5"
+                    className="mb-8 rounded-lg p-3 sm:p-5"
                     style={{
                       backgroundColor: "rgba(20, 20, 35, 0.7)",
                       border: "1px solid rgba(108, 75, 255, 0.2)",
@@ -249,21 +252,26 @@ export function ArticleDetails({ params }: ArticleProps) {
                     transition={{ delay: 0.35 }}
                     whileHover={{ scale: 1.005 }}
                   >
-                    <div className="flex items-center gap-3 mb-3">
-                      <Volume2 className="h-6 w-6 text-secondary" />
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <Volume2 className="h-4 w-4 sm:h-6 sm:w-6 text-secondary" />
                       <span 
-                        className="text-sm font-medium tracking-wide text-white"
+                        className="text-xs sm:text-sm font-medium tracking-wide text-white"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         AUDIO VERSION
                       </span>
                     </div>
-                    <div className="rounded-md p-3" style={{ backgroundColor: "rgba(30, 30, 47, 0.6)" }}>
+                    <div className="rounded-md p-2 sm:p-3" style={{ backgroundColor: "rgba(30, 30, 47, 0.6)" }}>
                       <audio
                         controls
                         className="w-full"
                         src={audioUrl}
                         onError={handleAudioError}
+                        style={{ 
+                          height: "30px", 
+                          maxWidth: "100%",
+                          borderRadius: "0.375rem" 
+                        }}
                       >
                         Your browser does not support the audio element.
                       </audio>
@@ -322,7 +330,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                   {article.content.split('\n\n').map((paragraph, index) => (
                     <motion.p
                       key={index}
-                      className="mb-6 leading-relaxed text-gray-300 p-4 rounded-lg hover:bg-primary/5 text-lg"
+                      className="mb-6 leading-relaxed text-gray-300 p-2 sm:p-4 rounded-lg hover:bg-primary/5 text-base sm:text-lg"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -345,7 +353,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                 {/* Source Links Section */}
                 {sourceLinks.length > 0 && (
                   <motion.div
-                    className="my-8 p-6 rounded-xl"
+                    className="my-6 sm:my-8 p-3 sm:p-6 rounded-xl"
                     style={{
                       backgroundColor: "rgba(20, 20, 35, 0.7)",
                       border: "1px solid rgba(108, 75, 255, 0.2)",
@@ -356,12 +364,12 @@ export function ArticleDetails({ params }: ArticleProps) {
                     transition={{ delay: 0.35 }}
                     whileHover={{ scale: 1.01 }}
                   >
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-6">
                       <div className="relative">
-                        <LinkIcon className="h-6 w-6 text-secondary" />
+                        <LinkIcon className="h-4 w-4 sm:h-6 sm:w-6 text-secondary" />
                       </div>
                       <h2 
-                        className="text-xl font-bold text-white"
+                        className="text-lg sm:text-xl font-bold text-white"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         Reference Sources
@@ -393,7 +401,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                               className="block group"
                             >
                               <div 
-                                className="p-3 rounded-lg flex items-center gap-3 relative transition-all duration-300"
+                                className="p-2 sm:p-3 rounded-lg flex items-center gap-2 sm:gap-3 relative transition-all duration-300"
                                 style={{ 
                                   backgroundColor: "rgba(30, 30, 47, 0.6)",
                                   border: "1px solid rgba(0, 209, 193, 0.2)"
@@ -424,13 +432,13 @@ export function ArticleDetails({ params }: ArticleProps) {
                 {/* Video Section */}
                 {article?.videourl && (
                   <motion.div
-                    className="my-12 rounded-xl overflow-hidden shadow-2xl"
+                    className="my-6 sm:my-12 rounded-xl overflow-hidden shadow-2xl"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
                     whileHover={{ scale: 1.02 }}
                   >
-                    <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                       Video Demonstration
                     </h2>
                     <div className="relative group rounded-xl overflow-hidden">
@@ -439,7 +447,7 @@ export function ArticleDetails({ params }: ArticleProps) {
                         loop
                         muted
                         playsInline
-                        className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-[200px] sm:h-[300px] md:h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
                         poster={imageUrl}
                       >
                         <source
