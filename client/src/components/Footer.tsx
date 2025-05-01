@@ -9,17 +9,17 @@ export function Footer() {
       <div className="container mx-auto px-8 py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-4">
           {/* Left Column - Logo and Description */}
-          <div className="space-y-3">
+          <div className="space-y-3 flex flex-col items-center">
             <h2 className="text-xl font-bold text-primary">
               <Link href="/">AIGen</Link>
             </h2>
             <p className="text-muted-foreground text-sm max-w-xs">
-              A cutting-edge decentralized media platform combining blockchain technology with AI-powered content generation.
+              From Prompt to Proof—on the Blockchain.
             </p>
           </div>
 
           {/* Middle Column - Links */}
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-4 text-primary">Links</h3>
             <ul className="space-y-3">
               <li>
@@ -44,7 +44,7 @@ export function Footer() {
           </div>
 
           {/* Right Column - Contact */}
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-4 text-primary">Contact</h3>
             <ul className="space-y-3 mb-6">
               <li className="flex items-center gap-2">
@@ -84,12 +84,9 @@ export function Footer() {
         </div>
 
         {/* Copyright section - centered and minimal */}
-        <div className="mt-8 pt-4 border-t border-border/20 flex flex-col md:flex-row items-center justify-center md:justify-between text-center md:text-left">
+        <div className="mt-8 pt-4 border-t border-border/20 flex flex-col items-center justify-center  text-center">
           <p className="text-xs text-white/60">
             © {new Date().getFullYear()} AIGen. All rights reserved.
-          </p>
-          <p className="text-xs text-white/60 mt-2 md:mt-0">
-            Developed by <a href="https://buildersacademy.ai" className="text-primary hover:underline">buildersacademy.ai</a>
           </p>
         </div>
       </div>

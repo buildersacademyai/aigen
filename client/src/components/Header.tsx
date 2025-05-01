@@ -213,9 +213,9 @@ export function Header() {
     >
       <div className="container mx-auto px-4 py-2">
         {/* Desktop Layout */}
-        <div className="hidden md:flex md:items-center md:justify-between">
+        <div className="hidden md:grid md:grid-cols-3 md:items-center md:justify-between">
           {/* Left: Logo */}
-          <div className="flex-shrink-0 mr-4">
+          <div className="flex items-center justify-start">
             <Link href="/home" className="flex items-center">
               <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
                 <Box className="h-5 w-5 text-white" />
@@ -229,9 +229,9 @@ export function Header() {
             </Link>
           </div>
           
-          {/* Middle: Navigation Links */}
-          <div className="flex justify-center mx-auto">
-            <div className="flex items-center gap-6">
+          {/* Middle: Navigation Links - Perfectly Centered */}
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-8">
               <Link href="/home" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
                 <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
                   <Home className="w-3 h-3 text-white" />
@@ -254,7 +254,7 @@ export function Header() {
           </div>
           
           {/* Right: Action Buttons */}
-          <div className="flex items-center gap-4 flex-shrink-0">
+          <div className="flex items-center justify-end gap-4">
             {address ? (
               <>
                 <Button 
