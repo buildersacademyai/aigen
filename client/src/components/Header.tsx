@@ -8,33 +8,6 @@ import { CreateArticleForm } from "@/components/CreateArticleForm";
 import { Brain, Braces, File, Box, Wallet, Plus, User2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const LOGO_3D = () => (
-  <div className="relative flex items-center">
-    <Box 
-      className="w-8 h-8 mr-2 float-element" 
-      style={{ 
-        color: 'var(--color-secondary)',
-        filter: 'drop-shadow(0 0 10px rgba(0, 209, 193, 0.5))'
-      }} 
-    />
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="text-2xl font-bold tracking-wider"
-      style={{ 
-        fontFamily: "'Space Grotesk', sans-serif",
-        background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        textShadow: '0 0 15px rgba(108, 75, 255, 0.5)'
-      }}
-    >
-      AIGen
-    </motion.div>
-  </div>
-);
-
 export function Header() {
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
@@ -193,41 +166,51 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md border-b border-white/10" 
+    <header 
+      className="sticky top-0 z-50 backdrop-blur-md border-b border-white/10" 
       style={{ 
         background: 'linear-gradient(90deg, rgba(74, 46, 191, 0.4) 0%, rgba(101, 71, 255, 0.4) 100%)',
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
       }}
     >
-      <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-        <Link href="/" className="flex items-center">
-          <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
-            <Box className="h-5 w-5 text-white" />
+      <div className="container mx-auto px-4 py-2 flex items-center">
+        {/* Left: Logo */}
+        <div className="flex-shrink-0 mr-8">
+          <Link href="/" className="flex items-center">
+            <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
+              <Box className="h-5 w-5 text-white" />
+            </div>
+            <span 
+              className="text-white text-xl font-bold tracking-wide"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              AIGen
+            </span>
+          </Link>
+        </div>
+        
+        {/* Middle: Navigation Links */}
+        <div className="flex justify-center mx-auto">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+              <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                <File className="w-3 h-3 text-white" />
+              </div>
+              <span style={{ fontFamily: "'Inter', sans-serif" }}>Articles</span>
+            </Link>
+            <Link href="/mission" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+              <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                <Brain className="w-3 h-3 text-white" />
+              </div>
+              <span style={{ fontFamily: "'Inter', sans-serif" }}>Mission</span>
+            </Link>
           </div>
-          <span 
-            className="text-white text-xl font-bold tracking-wide"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            AIGen
-          </span>
-        </Link>
-
-        <nav className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
-            <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
-              <File className="w-3 h-3 text-white" />
-            </div>
-            <span style={{ fontFamily: "'Inter', sans-serif" }}>Articles</span>
-          </Link>
-          <Link href="/mission" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
-            <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
-              <Brain className="w-3 h-3 text-white" />
-            </div>
-            <span style={{ fontFamily: "'Inter', sans-serif" }}>Mission</span>
-          </Link>
-
+        </div>
+        
+        {/* Right: Action Buttons */}
+        <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
           {address ? (
-            <div className="flex items-center gap-4">
+            <>
               <Button 
                 onClick={() => setIsCreateOpen(true)} 
                 className="flex items-center gap-1.5 transition-colors rounded-md"
@@ -261,7 +244,7 @@ export function Header() {
               >
                 {`${address.slice(0, 6)}...${address.slice(-4)}`}
               </div>
-            </div>
+            </>
           ) : (
             <Button onClick={handleConnect} 
               className="flex items-center gap-1.5 transition-colors rounded-md"
@@ -278,63 +261,62 @@ export function Header() {
               <span>Connect Wallet</span>
             </Button>
           )}
+        </div>
+      </div>
 
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogContent 
-              className="sm:max-w-md border rounded-lg backdrop-blur-xl"
-              style={{ 
-                backgroundColor: 'rgba(30, 30, 47, 0.95)',
-                borderColor: 'rgba(217, 70, 239, 0.3)',
-                boxShadow: '0 0 30px rgba(217, 70, 239, 0.2)'
-              }}
-            >
-              <DialogHeader className="pb-4 border-b border-white/10">
-                <DialogTitle className="flex items-center gap-2">
-                  <div className="relative float-element flex items-center justify-center bg-white/10 h-8 w-8 rounded">
-                    <Braces 
-                      className="w-4 h-4 text-fuchsia-400" 
-                    />
-                    <motion.div 
-                      className="absolute inset-0 flex items-center justify-center" 
-                      animate={{ 
-                        opacity: [0.7, 0.2, 0.7]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        repeatType: "loop"
-                      }}
-                    >
-                      <Braces className="w-4 h-4 text-fuchsia-400" />
-                    </motion.div>
-                  </div>
-                  <span 
-                    style={{ 
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      color: 'white',
-                      fontSize: '1.25rem',
-                      fontWeight: '600'
-                    }}
-                  >
-                    Create New Article
-                  </span>
-                </DialogTitle>
-                <p 
-                  style={{
-                    fontFamily: "'Inter', sans-serif",
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    marginTop: '0.5rem',
-                    fontSize: '0.875rem'
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent 
+          className="sm:max-w-md border rounded-lg backdrop-blur-xl"
+          style={{ 
+            backgroundColor: 'rgba(30, 30, 47, 0.95)',
+            borderColor: 'rgba(217, 70, 239, 0.3)',
+            boxShadow: '0 0 30px rgba(217, 70, 239, 0.2)'
+          }}
+        >
+          <DialogHeader className="pb-4 border-b border-white/10">
+            <DialogTitle className="flex items-center gap-2">
+              <div className="relative flex items-center justify-center bg-white/10 h-8 w-8 rounded">
+                <Braces className="w-4 h-4 text-fuchsia-400" />
+                <motion.div 
+                  className="absolute inset-0 flex items-center justify-center" 
+                  animate={{ 
+                    opacity: [0.7, 0.2, 0.7]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "loop"
                   }}
                 >
-                  Generate an AI article by entering a topic below
-                </p>
-              </DialogHeader>
-              <CreateArticleForm address={address || ""} onSuccess={() => setIsCreateOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </nav>
-      </div>
+                  <Braces className="w-4 h-4 text-fuchsia-400" />
+                </motion.div>
+              </div>
+              <span 
+                style={{ 
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: 'white',
+                  fontSize: '1.25rem',
+                  fontWeight: '600'
+                }}
+              >
+                Create New Article
+              </span>
+            </DialogTitle>
+            <p 
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                color: 'rgba(255, 255, 255, 0.7)',
+                marginTop: '0.5rem',
+                fontSize: '0.875rem'
+              }}
+            >
+              Generate an AI article by entering a topic below
+            </p>
+          </DialogHeader>
+          <CreateArticleForm address={address || ""} onSuccess={() => setIsCreateOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
