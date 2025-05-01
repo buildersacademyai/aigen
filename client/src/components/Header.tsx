@@ -12,7 +12,8 @@ import {
   Box, 
   Wallet, 
   Plus, 
-  User2, 
+  User2,
+  Home, 
   LogOut,
   Settings,
   ChevronDown,
@@ -231,6 +232,12 @@ export function Header() {
           {/* Middle: Navigation Links */}
           <div className="flex justify-center mx-auto">
             <div className="flex items-center gap-6">
+              <Link href="/home" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                  <Home className="w-3 h-3 text-white" />
+                </div>
+                <span style={{ fontFamily: "'Inter', sans-serif" }}>Home</span>
+              </Link>
               <Link href="/articles" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
                 <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
                   <File className="w-3 h-3 text-white" />
@@ -459,6 +466,16 @@ export function Header() {
             className="md:hidden mt-3 py-3 border-t border-white/10"
           >
             <nav className="flex flex-col space-y-4">
+              <Link 
+                href="/home" 
+                className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                  <Home className="w-3 h-3 text-white" />
+                </div>
+                <span style={{ fontFamily: "'Inter', sans-serif" }}>Home</span>
+              </Link>
               <Link 
                 href="/articles" 
                 className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"

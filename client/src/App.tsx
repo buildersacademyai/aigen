@@ -1,6 +1,7 @@
 import { Switch, Route, Redirect } from "wouter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Home } from "@/pages/Home";
 import { Articles } from "@/pages/Articles";
 import { Mission } from "@/pages/Mission";
 import { ArticleDetails } from "@/pages/ArticleDetails";
@@ -14,6 +15,7 @@ function App() {
       <main className="flex-1">
         <Switch>
           <Route path="/" component={Articles} />
+          <Route path="/home" component={Home} />
           <Route path="/articles" component={Articles} />
           <Route path="/mission" component={Mission} />
           <Route path="/analytics" component={Analytics} />
