@@ -1,12 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { connectWallet } from "@/lib/web3";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CreateArticleForm } from "@/components/CreateArticleForm";
-import { Brain, Braces, File, Box, Wallet, Plus, User2 } from "lucide-react";
+import { 
+  Brain, 
+  Braces, 
+  File, 
+  Box, 
+  Wallet, 
+  Plus, 
+  User2, 
+  LogOut,
+  Settings,
+  ChevronDown,
+  UserCircle
+} from "lucide-react";
 import { motion } from "framer-motion";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const [address, setAddress] = useState<string | null>(null);
@@ -226,24 +245,120 @@ export function Header() {
                 </div>
                 <span>Create</span>
               </Button>
-              <Link 
-                href="/profile" 
-                className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors"
-              >
-                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
-                  <User2 className="w-3 h-3 text-white" />
-                </div>
-                <span style={{ fontFamily: "'Inter', sans-serif" }}>My Content</span>
-              </Link>
-              <div className="text-sm py-1.5 px-3 rounded-md flex items-center text-white"
-                style={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  fontFamily: "'Inter', sans-serif"
-                }}
-              >
-                {`${address.slice(0, 6)}...${address.slice(-4)}`}
-              </div>
+              
+              {/* User Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="group flex items-center gap-2 p-1 rounded-lg hover:bg-white/10 transition-colors"
+                    style={{
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      background: 'rgba(255, 255, 255, 0.05)'
+                    }}
+                  >
+                    <div 
+                      className="flex-shrink-0 relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
+                      style={{ 
+                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                        boxShadow: '0 0 10px rgba(0, 209, 193, 0.5)'
+                      }}
+                    >
+                      <UserCircle className="w-7 h-7 text-white" />
+                      <div 
+                        className="absolute inset-0 rounded-full" 
+                        style={{ 
+                          background: 'linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 45%, transparent 50%)',
+                          backgroundSize: '200% 200%',
+                          animation: 'shimmer 3s infinite linear'
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-start">
+                      <div className="text-xs text-white/80" style={{ fontFamily: "'Inter', sans-serif" }}>Connected Wallet</div>
+                      <div className="text-sm text-white flex items-center" style={{ fontFamily: "'Inter', sans-serif" }}>
+                        {`${address.slice(0, 6)}...${address.slice(-4)}`}
+                        <ChevronDown className="ml-1 w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
+                      </div>
+                    </div>
+                  </button>
+                </DropdownMenuTrigger>
+                
+                <DropdownMenuContent
+                  className="w-64 border rounded-lg backdrop-blur-xl animate-in fade-in-80"
+                  style={{ 
+                    backgroundColor: 'rgba(30, 30, 47, 0.95)',
+                    borderColor: 'rgba(108, 75, 255, 0.3)',
+                    boxShadow: '0 0 20px rgba(108, 75, 255, 0.2)'
+                  }}
+                >
+                  <div className="p-3 space-y-1">
+                    <h3 
+                      className="font-medium text-sm"
+                      style={{ 
+                        fontFamily: "'Space Grotesk', sans-serif",
+                        color: 'white'
+                      }}
+                    >
+                      Your Wallet
+                    </h3>
+                    <div 
+                      className="text-xs py-1 px-2 rounded-md" 
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: "'Inter', sans-serif"
+                      }}
+                    >
+                      {address}
+                    </div>
+                  </div>
+                  
+                  <DropdownMenuSeparator style={{ background: 'rgba(255, 255, 255, 0.1)' }} />
+                  
+                  <Link href="/profile">
+                    <DropdownMenuItem 
+                      className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/10"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full text-white">
+                        <User2 className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-white">My Content</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/10"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
+                    <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full text-white">
+                      <Settings className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-white">Settings</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator style={{ background: 'rgba(255, 255, 255, 0.1)' }} />
+                  
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 p-2 cursor-pointer hover:bg-red-900/20"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    onClick={() => {
+                      setAddress(null);
+                      setChainId(null);
+                      localStorage.removeItem('lastAddress');
+                      localStorage.removeItem('lastChainId');
+                      window.location.href = '/';
+                    }}
+                  >
+                    <div className="flex items-center justify-center w-6 h-6 bg-red-500/20 rounded-full text-red-400">
+                      <LogOut className="w-3 h-3" />
+                    </div>
+                    <span className="text-red-400">Disconnect</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button onClick={handleConnect} 
