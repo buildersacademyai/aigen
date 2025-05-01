@@ -4,101 +4,91 @@ import { Mail, Phone, Globe } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/30 bg-background/50 backdrop-blur-md mt-auto relative overflow-hidden">
-      {/* Background grid overlay for cyberpunk effect */}
-      <div className="absolute inset-0 cyber-grid opacity-5"></div>
-      
-      <div className="container mx-auto px-4 py-8 md:py-12 relative z-10">
-        {/* Main footer content - centered on mobile, grid on larger screens */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
-          {/* Logo and description - centered on all screens */}
-          <div className="flex flex-col items-center sm:items-center lg:items-center text-center space-y-4">
-            <div className="text-2xl font-bold glow-text">
-              <Link href="/" className="hover:opacity-80 transition-opacity">AIGen</Link>
-            </div>
+    <footer className="border-t border-border/30 bg-background mt-auto relative overflow-hidden">
+      {/* Clean, minimal footer with the exact layout from the provided image */}
+      <div className="container mx-auto px-8 py-12 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-4">
+          {/* Left Column - Logo and Description */}
+          <div className="space-y-3">
+            <h2 className="text-xl font-bold text-primary">
+              <Link href="/">AIGen</Link>
+            </h2>
             <p className="text-muted-foreground text-sm max-w-xs">
               A cutting-edge decentralized media platform combining blockchain technology with AI-powered content generation.
             </p>
           </div>
 
-          {/* Links - centered on mobile, left-aligned on larger screens */}
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+          {/* Middle Column - Links */}
+          <div className="flex flex-col">
             <h3 className="font-semibold mb-4 text-primary">Links</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/mission" className="text-foreground hover:text-primary transition-colors flex items-center gap-2 web3-link">
-                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                <Link href="/mission" className="text-white/80 hover:text-primary transition-colors flex items-center gap-2">
+                  <span className="text-primary">•</span>
                   Mission/Vision
                 </Link>
               </li>
               <li>
-                <Link href="/analytics" className="text-foreground hover:text-primary transition-colors flex items-center gap-2 web3-link">
-                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                <Link href="/analytics" className="text-white/80 hover:text-primary transition-colors flex items-center gap-2">
+                  <span className="text-primary">•</span>
                   Analytics
                 </Link>
               </li>
               <li>
-                <Link href="/articles" className="text-foreground hover:text-primary transition-colors flex items-center gap-2 web3-link">
-                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                <Link href="/articles" className="text-white/80 hover:text-primary transition-colors flex items-center gap-2">
+                  <span className="text-primary">•</span>
                   Articles
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Contact - centered on mobile, left-aligned on larger screens */}
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+          {/* Right Column - Contact */}
+          <div className="flex flex-col">
             <h3 className="font-semibold mb-4 text-primary">Contact</h3>
-            <ul className="space-y-3 mb-4 flex flex-col items-center sm:items-start">
-              <li className="flex items-center gap-2 text-sm">
-                <Globe className="h-4 w-4 text-cyan-400" />
-                <a href="https://buildersacademy.ai" className="hover:text-primary transition-colors">
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-primary" />
+                <a href="https://buildersacademy.ai" className="text-white/80 hover:text-primary transition-colors">
                   buildersacademy.ai
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-cyan-400" />
-                <a href="mailto:contact@buildersacademy.ai" className="hover:text-primary transition-colors">
+              <li className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                <a href="mailto:contact@buildersacademy.ai" className="text-white/80 hover:text-primary transition-colors">
                   contact@buildersacademy.ai
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-cyan-400" />
-                <a href="tel:+9779869245461" className="hover:text-primary transition-colors">
+              <li className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                <a href="tel:+9779869245461" className="text-white/80 hover:text-primary transition-colors">
                   +977 9869245461
                 </a>
               </li>
             </ul>
-            <div className="w-full max-w-xs">
-              <Button 
-                className="w-full relative overflow-hidden group"
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, rgba(108, 75, 255, 0.8) 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: '0 0 10px rgba(108, 75, 255, 0.3)'
-                }}
+            <Button 
+              className="w-full rounded-full py-2"
+              style={{
+                backgroundColor: 'var(--color-primary)',
+                border: 'none'
+              }}
+            >
+              <a 
+                href="https://discord.gg/HNhfAugqjb" 
+                className="text-white flex items-center justify-center w-full"
               >
-                <a 
-                  href="https://discord.gg/HNhfAugqjb" 
-                  className="text-white relative z-10 flex items-center justify-center w-full"
-                >
-                  Join Community
-                </a>
-                <div 
-                  className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-                  style={{ opacity: 0.2 }}
-                ></div>
-              </Button>
-            </div>
+                Join Community
+              </a>
+            </Button>
           </div>
         </div>
 
-        {/* Copyright section - always centered */}
-        <div className="mt-8 pt-6 border-t border-border/20 flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-muted-foreground">
+        {/* Copyright section - centered and minimal */}
+        <div className="mt-8 pt-4 border-t border-border/20 flex flex-col md:flex-row items-center justify-center md:justify-between text-center md:text-left">
+          <p className="text-xs text-white/60">
             © {new Date().getFullYear()} AIGen. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className="text-xs text-white/60 mt-2 md:mt-0">
             Developed by <a href="https://buildersacademy.ai" className="text-primary hover:underline">buildersacademy.ai</a>
           </p>
         </div>
