@@ -1,82 +1,47 @@
-import { ArticleCard } from "@/components/ArticleCard";
-import { CardSkeleton } from "@/components/CardSkeleton";
-import { useQuery } from "@tanstack/react-query";
-import type { SelectArticle } from "@db/schema";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Bot, Sparkles, Scale3D } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ArrowRight, Brain, Sparkles, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
+/**
+ * Home page component - Landing page
+ * This is a placeholder for the future home page
+ * Will be developed later with proper content
+ */
 export function Home() {
-  const isMobile = useIsMobile();
-  const { data: articles, isLoading } = useQuery<SelectArticle[]>({ 
-    queryKey: ["/api/articles"],
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
   return (
     <div className="min-h-screen cyber-grid">
-      {/* Hero section with 3D elements */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="container mx-auto px-4 py-8 sm:py-12 text-center relative"
+        className="container mx-auto px-4 py-16 sm:py-32 text-center"
       >
-        <div className="absolute top-10 left-1/4 opacity-20 float-element hidden sm:block">
-          <Scale3D className="w-12 sm:w-16 h-12 sm:h-16 text-primary" />
-        </div>
-        <div className="absolute bottom-0 right-1/4 opacity-20 float-element hidden sm:block" style={{ animationDelay: "1s" }}>
-          <Sparkles className="w-10 sm:w-14 h-10 sm:h-14 text-primary" />
-        </div>
-        
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 glow-text">
-          Web3 Content Revolution
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 glow-text">
+          Future Home Page
         </h1>
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-12">
-          AI-powered content generation with blockchain verification for the next generation of digital creators
+        <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12">
+          This page will be developed later as a landing page
         </p>
         
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-8 sm:mb-16">
-          <div className="flex items-center gap-2 bg-primary/10 p-2 sm:p-3 rounded-lg border border-primary/30 w-full sm:w-auto">
-            <Bot className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
-            <span className="text-sm sm:text-base">AI Generated</span>
-          </div>
-          <div className="flex items-center gap-2 bg-primary/10 p-2 sm:p-3 rounded-lg border border-primary/30 w-full sm:w-auto">
-            <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
-            <span className="text-sm sm:text-base">Blockchain Verified</span>
-          </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button 
+            asChild
+            size="lg" 
+            className="flex items-center gap-2 text-lg" 
+            style={{
+              background: 'linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              boxShadow: '0 0 15px rgba(108, 75, 255, 0.3)'
+            }}
+          >
+            <Link href="/articles">
+              <span>View Articles</span>
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </Button>
         </div>
       </motion.div>
-
-      {/* Articles grid with 3D effect cards */}
-      <div className="container mx-auto px-4 pb-8 sm:pb-16 max-w-7xl">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-8 flex items-center">
-          <Bot className="w-5 sm:w-6 h-5 sm:h-6 mr-2 text-primary float-element" />
-          <span>Latest Articles</span>
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 justify-center">
-          {isLoading ? (
-            // Show skeleton cards while loading - fewer on mobile
-            Array.from({ length: isMobile ? 3 : 6 }).map((_, index) => (
-              <div key={index} className="card-3d">
-                <CardSkeleton />
-              </div>
-            ))
-          ) : (
-            articles?.map((article, index) => (
-              <motion.div 
-                key={article.id} 
-                className="card-3d"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: Math.min(index * 0.1, 0.5) }}
-              >
-                <ArticleCard article={article} />
-              </motion.div>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   );
 }
