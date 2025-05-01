@@ -93,23 +93,24 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
         borderRadius: "0.75rem"
       }}
     >
-      {/* Card Glows */}
-      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -top-10 -left-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+      {/* Card Glows - hidden on small screens */}
+      <div className="hidden sm:block absolute -bottom-10 -right-10 w-20 sm:w-40 h-20 sm:h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="hidden sm:block absolute -top-10 -left-10 w-20 sm:w-40 h-20 sm:h-40 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
       
       {/* Verified Badge */}
       {!article.isdraft && (
-        <div className="absolute top-3 right-3 z-20">
-          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-900/60 text-white border border-green-500/30">
-            <svg className="w-3.5 h-3.5 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-20">
+          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium bg-green-900/60 text-white border border-green-500/30">
+            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
             </svg>
-            Verified Content
+            <span className="hidden sm:inline">Verified Content</span>
+            <span className="sm:hidden">Verified</span>
           </span>
         </div>
       )}
 
-      <CardHeader className="p-4 pb-0">
+      <CardHeader className="p-3 sm:p-4 pb-0">
         <div className="overflow-hidden rounded-lg w-full mx-auto" style={{ maxHeight: "150px" }}>
           <AspectRatio ratio={16 / 10}>
             <div className="relative overflow-hidden" style={{ borderRadius: "0.5rem" }}>
@@ -133,26 +134,26 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
           </AspectRatio>
         </div>
       </CardHeader>
-      <CardContent className="p-5 pb-3">
+      <CardContent className="p-3 sm:p-5 pb-2 sm:pb-3">
         <h2 
-          className="text-2xl font-bold mb-2 text-white leading-tight"
+          className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-white leading-tight"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {article.title}
         </h2>
         
         <p 
-          className="line-clamp-3 text-gray-400 mb-4"
+          className="line-clamp-2 sm:line-clamp-3 text-sm sm:text-base text-gray-400 mb-2 sm:mb-4"
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
           {article.description}
         </p>
         
         {/* Author address */}
-        <div className="flex items-center gap-1.5 mt-4">
-          <span className="text-gray-400 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>By</span>
+        <div className="flex items-center gap-1 sm:gap-1.5 mt-2 sm:mt-4">
+          <span className="text-gray-400 text-xs sm:text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>By</span>
           <span 
-            className="py-0.5 px-2 rounded flex items-center gap-1 text-sm"
+            className="py-0.5 px-1.5 sm:px-2 rounded flex items-center gap-1 text-xs sm:text-sm"
             style={{ 
               color: "var(--color-secondary)",
               fontFamily: "'Inter', sans-serif",
@@ -163,15 +164,15 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
           </span>
         </div>
       </CardContent>
-      <CardFooter className="p-5 pt-0 pb-3">
-        <div className="text-sm flex items-center justify-between w-full">
+      <CardFooter className="p-3 sm:p-5 pt-0 sm:pt-0 pb-2 sm:pb-3">
+        <div className="text-xs sm:text-sm flex items-center justify-between w-full">
           <span></span>
           {showActions && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2 justify-end">
               <Button
                 size="sm"
                 variant="outline"
-                className="hover:border-secondary/50 transition-colors duration-300"
+                className="text-xs h-7 hover:border-secondary/50 transition-colors duration-300"
                 style={{ borderColor: "rgba(0, 209, 193, 0.3)", color: "var(--color-secondary)" }}
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
@@ -183,6 +184,7 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
               <Button
                 size="sm"
                 variant="destructive"
+                className="text-xs h-7"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onDelete?.(article.id);
@@ -193,7 +195,7 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
               </Button>
               <Button
                 size="sm"
-                className="web3-btn"
+                className="web3-btn text-xs h-7"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onPublish?.(article);
