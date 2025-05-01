@@ -82,12 +82,13 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
 
   return (
     <Card 
-      className="overflow-hidden relative card-3d backdrop-blur-sm surface cursor-pointer"
+      className="overflow-hidden relative card-3d backdrop-blur-sm cursor-pointer"
       onClick={() => !showActions && setLocation(`/article/${article.id}`)}
       style={{
-        backgroundColor: "var(--color-surface)",
+        backgroundColor: "#0e0e1a",
+        backgroundImage: "linear-gradient(to bottom right, rgba(30, 30, 47, 0.8), rgba(20, 20, 33, 0.95))",
         border: "1px solid rgba(108, 75, 255, 0.3)",
-        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(108, 75, 255, 0.2)",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(108, 75, 255, 0.2)",
         transition: "all 0.3s ease",
         borderRadius: "0.75rem"
       }}
@@ -99,7 +100,12 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
       {/* Verified Badge */}
       {!article.isdraft && (
         <div className="absolute top-3 right-3 z-20">
-          <VerifiedBadge />
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-900/60 text-white border border-green-500/30">
+            <svg className="w-3.5 h-3.5 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+            </svg>
+            Verified Content
+          </span>
         </div>
       )}
 
@@ -117,43 +123,38 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
           </div>
         </AspectRatio>
       </CardHeader>
-      <CardContent className="p-5 pt-4">
-        <h3 
-          className="text-xl font-bold mb-2 text-white"
+      <CardContent className="p-5 pb-3">
+        <h2 
+          className="text-2xl font-bold mb-2 text-white leading-tight"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {article.title}
-        </h3>
-        
-        {/* Author address */}
-        <div className="mb-3 flex items-center gap-1.5">
-          <span 
-            className="py-1 px-2 rounded-md flex items-center gap-1 text-sm"
-            style={{ 
-              backgroundColor: "rgba(0, 209, 193, 0.1)",
-              border: "1px solid rgba(0, 209, 193, 0.2)"
-            }}
-          >
-            <span 
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: "var(--color-secondary)" }}
-            ></span>
-            <span style={{ color: "var(--color-secondary)", fontFamily: "'Inter', sans-serif" }}>
-              {article.authoraddress ? `${article.authoraddress.slice(0, 6)}...${article.authoraddress.slice(-4)}` : 'Unknown'}
-            </span>
-          </span>
-        </div>
+        </h2>
         
         <p 
-          className="line-clamp-2 text-white/70"
+          className="line-clamp-3 text-gray-400 mb-4"
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
           {article.description}
         </p>
+        
+        {/* Author address */}
+        <div className="flex items-center gap-1.5 mt-4">
+          <span className="text-gray-400 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>By</span>
+          <span 
+            className="py-0.5 px-2 rounded flex items-center gap-1 text-sm"
+            style={{ 
+              color: "var(--color-secondary)",
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 500
+            }}
+          >
+            {article.authoraddress ? `${article.authoraddress.slice(0, 6)}...${article.authoraddress.slice(-4)}` : 'Unknown'}
+          </span>
+        </div>
       </CardContent>
-      <CardFooter className="p-5 pt-0">
+      <CardFooter className="p-5 pt-0 pb-3">
         <div className="text-sm flex items-center justify-between w-full">
-          {/* Empty span to keep the space - we moved the address above */}
           <span></span>
           {showActions && (
             <div className="flex gap-2">
