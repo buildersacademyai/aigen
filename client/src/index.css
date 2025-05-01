@@ -4,9 +4,10 @@
 
 /* Custom Color Variables */
 :root {
-  --color-primary: #6C4BFF;    /* Electric Indigo - Brand */
+  --color-primary: #6547FF;    /* Electric Indigo - Brand */
+  --color-primary-dark: #4a2ebf; /* Darker shade for gradient */
   --color-secondary: #00D1C1;  /* Aqua Blue/Teal - AI/technology */
-  --color-accent: #FF715B;     /* Coral/Warm Peach - Creative energy */
+  --color-accent: #d946ef;     /* Fuchsia - Creative energy (matches the Create button) */
   --color-background: #121212; /* Soft Dark Gray - Professional dark UI */
   --color-surface: #1E1E2F;    /* Cool Slate - Modern cards/panels */
   --color-text-light: #FFFFFF; /* Pure White - Contrast on dark */

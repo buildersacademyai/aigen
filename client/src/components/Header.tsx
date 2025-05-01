@@ -193,51 +193,84 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-border neon-border" style={{ backgroundColor: 'var(--color-surface)' }}>
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/">
-          <LOGO_3D />
+    <header className="sticky top-0 z-50" 
+      style={{ 
+        background: 'linear-gradient(90deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+      }}
+    >
+      <div className="container mx-auto px-4 py-2 flex items-center justify-between">
+        <Link href="/" className="flex items-center">
+          <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
+            <Box className="h-5 w-5 text-white" />
+          </div>
+          <span 
+            className="text-white text-xl font-bold tracking-wide"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            AIGen
+          </span>
         </Link>
 
         <nav className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors">
-            <File className="w-4 h-4" style={{ color: 'var(--color-secondary)' }} />
-            <span>Articles</span>
+          <Link href="/" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+            <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+              <File className="w-3 h-3 text-white" />
+            </div>
+            <span style={{ fontFamily: "'Inter', sans-serif" }}>Articles</span>
           </Link>
-          <Link href="/mission" className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors">
-            <Brain className="w-4 h-4" style={{ color: 'var(--color-secondary)' }} />
-            <span>Mission</span>
+          <Link href="/mission" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+            <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+              <Brain className="w-3 h-3 text-white" />
+            </div>
+            <span style={{ fontFamily: "'Inter', sans-serif" }}>Mission</span>
           </Link>
 
           {address ? (
             <div className="flex items-center gap-4">
               <Button 
                 onClick={() => setIsCreateOpen(true)} 
-                className="web3-btn flex items-center gap-1.5"
+                className="flex items-center gap-1.5 transition-colors rounded-md"
+                style={{ 
+                  backgroundColor: 'var(--color-accent)',
+                  fontFamily: "'Inter', sans-serif"
+                }}
               >
-                <Plus className="w-4 h-4" />
+                <div className="flex items-center justify-center h-5 w-5 bg-white/10 rounded">
+                  <Plus className="w-3 h-3" />
+                </div>
                 <span>Create</span>
               </Button>
               <Link 
                 href="/profile" 
-                className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors"
+                className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors"
               >
-                <User2 className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
-                <span>My Content</span>
+                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                  <User2 className="w-3 h-3 text-white" />
+                </div>
+                <span style={{ fontFamily: "'Inter', sans-serif" }}>My Content</span>
               </Link>
-              <div className="text-sm py-1.5 px-3 rounded-md flex items-center border" 
+              <div className="text-sm py-1.5 px-3 rounded-md flex items-center text-white"
                 style={{ 
-                  backgroundColor: 'rgba(108, 75, 255, 0.1)', 
-                  borderColor: 'rgba(108, 75, 255, 0.3)' 
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  fontFamily: "'Inter', sans-serif"
                 }}
               >
-                <Wallet className="w-4 h-4 mr-2" style={{ color: 'var(--color-primary)' }} />
                 {`${address.slice(0, 6)}...${address.slice(-4)}`}
               </div>
             </div>
           ) : (
-            <Button onClick={handleConnect} className="web3-btn flex items-center gap-1.5">
-              <Wallet className="w-4 h-4" />
+            <Button onClick={handleConnect} 
+              className="flex items-center gap-1.5 transition-colors rounded-md"
+              style={{ 
+                backgroundColor: 'var(--color-accent)',
+                fontFamily: "'Inter', sans-serif"
+              }}
+            >
+              <div className="flex items-center justify-center h-5 w-5 bg-white/10 rounded">
+                <Wallet className="w-3 h-3" />
+              </div>
               <span>Connect Wallet</span>
             </Button>
           )}
