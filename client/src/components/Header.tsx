@@ -16,7 +16,9 @@ import {
   LogOut,
   Settings,
   ChevronDown,
-  UserCircle
+  UserCircle,
+  Menu,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { 
@@ -26,11 +28,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function Header() {
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
   const { toast } = useToast();
 
   // Track wallet connection and changes
@@ -184,6 +189,19 @@ export function Header() {
     }
   };
 
+  // Close mobile menu on screen resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <header 
       className="sticky top-0 z-50 backdrop-blur-md border-b border-white/10" 
@@ -192,46 +210,177 @@ export function Header() {
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
       }}
     >
-      <div className="container mx-auto px-4 py-2 flex items-center">
-        {/* Left: Logo */}
-        <div className="flex-shrink-0 mr-8">
-          <Link href="/" className="flex items-center">
-            <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
-              <Box className="h-5 w-5 text-white" />
-            </div>
-            <span 
-              className="text-white text-xl font-bold tracking-wide"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
-              AIGen
-            </span>
-          </Link>
-        </div>
-        
-        {/* Middle: Navigation Links */}
-        <div className="flex justify-center mx-auto">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
-              <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
-                <File className="w-3 h-3 text-white" />
+      <div className="container mx-auto px-4 py-2">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex md:items-center md:justify-between">
+          {/* Left: Logo */}
+          <div className="flex-shrink-0 mr-4">
+            <Link href="/" className="flex items-center">
+              <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
+                <Box className="h-5 w-5 text-white" />
               </div>
-              <span style={{ fontFamily: "'Inter', sans-serif" }}>Articles</span>
-            </Link>
-            <Link href="/mission" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
-              <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
-                <Brain className="w-3 h-3 text-white" />
-              </div>
-              <span style={{ fontFamily: "'Inter', sans-serif" }}>Mission</span>
+              <span 
+                className="text-white text-xl font-bold tracking-wide"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                AIGen
+              </span>
             </Link>
           </div>
-        </div>
-        
-        {/* Right: Action Buttons */}
-        <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
-          {address ? (
-            <>
-              <Button 
-                onClick={() => setIsCreateOpen(true)} 
+          
+          {/* Middle: Navigation Links */}
+          <div className="flex justify-center mx-auto">
+            <div className="flex items-center gap-6">
+              <Link href="/" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                  <File className="w-3 h-3 text-white" />
+                </div>
+                <span style={{ fontFamily: "'Inter', sans-serif" }}>Articles</span>
+              </Link>
+              <Link href="/mission" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                  <Brain className="w-3 h-3 text-white" />
+                </div>
+                <span style={{ fontFamily: "'Inter', sans-serif" }}>Mission</span>
+              </Link>
+            </div>
+          </div>
+          
+          {/* Right: Action Buttons */}
+          <div className="flex items-center gap-4 flex-shrink-0">
+            {address ? (
+              <>
+                <Button 
+                  onClick={() => setIsCreateOpen(true)} 
+                  className="flex items-center gap-1.5 transition-colors rounded-md"
+                  style={{ 
+                    background: 'linear-gradient(135deg, var(--color-accent) 0%, #c026d3 100%)',
+                    fontFamily: "'Inter', sans-serif",
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 0 15px rgba(217, 70, 239, 0.3)'
+                  }}
+                >
+                  <div className="flex items-center justify-center h-5 w-5 bg-white/10 rounded">
+                    <Plus className="w-3 h-3" />
+                  </div>
+                  <span>Create</span>
+                </Button>
+                
+                {/* User Profile Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button 
+                      className="group flex items-center gap-2 p-1 rounded-lg hover:bg-white/10 transition-colors"
+                      style={{
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: 'rgba(255, 255, 255, 0.05)'
+                      }}
+                    >
+                      <div 
+                        className="flex-shrink-0 relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
+                        style={{ 
+                          background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                          boxShadow: '0 0 10px rgba(0, 209, 193, 0.5)'
+                        }}
+                      >
+                        <UserCircle className="w-7 h-7 text-white" />
+                        <div 
+                          className="absolute inset-0 rounded-full" 
+                          style={{ 
+                            background: 'linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 45%, transparent 50%)',
+                            backgroundSize: '200% 200%',
+                            animation: 'shimmer 3s infinite linear'
+                          }}
+                        />
+                      </div>
+
+                      <div className="hidden sm:flex flex-col items-start">
+                        <div className="text-sm text-white flex items-center" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          {`${address.slice(0, 6)}...${address.slice(-4)}`}
+                          <ChevronDown className="ml-1 w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
+                        </div>
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  
+                  <DropdownMenuContent
+                    className="w-64 border rounded-lg backdrop-blur-xl animate-in fade-in-80"
+                    style={{ 
+                      backgroundColor: 'rgba(30, 30, 47, 0.95)',
+                      borderColor: 'rgba(108, 75, 255, 0.3)',
+                      boxShadow: '0 0 20px rgba(108, 75, 255, 0.2)'
+                    }}
+                  >
+                    <div className="p-3 space-y-1">
+                      <h3 
+                        className="font-medium text-sm"
+                        style={{ 
+                          fontFamily: "'Space Grotesk', sans-serif",
+                          color: 'white'
+                        }}
+                      >
+                        Your Wallet
+                      </h3>
+                      <div 
+                        className="text-xs py-1 px-2 rounded-md" 
+                        style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontFamily: "'Inter', sans-serif"
+                        }}
+                      >
+                        {address}
+                      </div>
+                    </div>
+                    
+                    <DropdownMenuSeparator style={{ background: 'rgba(255, 255, 255, 0.1)' }} />
+                    
+                    <Link href="/profile">
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/10"
+                        style={{ fontFamily: "'Inter', sans-serif" }}
+                      >
+                        <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full text-white">
+                          <User2 className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-white">My Content</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    
+                    <DropdownMenuItem 
+                      className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/10"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full text-white">
+                        <Settings className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-white">Settings</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator style={{ background: 'rgba(255, 255, 255, 0.1)' }} />
+                    
+                    <DropdownMenuItem 
+                      className="flex items-center gap-2 p-2 cursor-pointer hover:bg-red-900/20"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      onClick={() => {
+                        setAddress(null);
+                        setChainId(null);
+                        localStorage.removeItem('lastAddress');
+                        localStorage.removeItem('lastChainId');
+                        window.location.href = '/';
+                      }}
+                    >
+                      <div className="flex items-center justify-center w-6 h-6 bg-red-500/20 rounded-full text-red-400">
+                        <LogOut className="w-3 h-3" />
+                      </div>
+                      <span className="text-red-400">Disconnect</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <Button onClick={handleConnect} 
                 className="flex items-center gap-1.5 transition-colors rounded-md"
                 style={{ 
                   background: 'linear-gradient(135deg, var(--color-accent) 0%, #c026d3 100%)',
@@ -241,145 +390,169 @@ export function Header() {
                 }}
               >
                 <div className="flex items-center justify-center h-5 w-5 bg-white/10 rounded">
-                  <Plus className="w-3 h-3" />
+                  <Wallet className="w-3 h-3" />
                 </div>
-                <span>Create</span>
+                <span>Connect Wallet</span>
               </Button>
-              
-              {/* User Profile Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button 
-                    className="group flex items-center gap-2 p-1 rounded-lg hover:bg-white/10 transition-colors"
-                    style={{
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      background: 'rgba(255, 255, 255, 0.05)'
-                    }}
-                  >
-                    <div 
-                      className="flex-shrink-0 relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
-                      style={{ 
-                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-                        boxShadow: '0 0 10px rgba(0, 209, 193, 0.5)'
-                      }}
-                    >
-                      <UserCircle className="w-7 h-7 text-white" />
-                      <div 
-                        className="absolute inset-0 rounded-full" 
-                        style={{ 
-                          background: 'linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 45%, transparent 50%)',
-                          backgroundSize: '200% 200%',
-                          animation: 'shimmer 3s infinite linear'
-                        }}
-                      />
-                    </div>
+            )}
+          </div>
+        </div>
 
-                    <div className="flex flex-col items-start">
-                      <div className="text-xs text-white/80" style={{ fontFamily: "'Inter', sans-serif" }}>Connected Wallet</div>
-                      <div className="text-sm text-white flex items-center" style={{ fontFamily: "'Inter', sans-serif" }}>
-                        {`${address.slice(0, 6)}...${address.slice(-4)}`}
-                        <ChevronDown className="ml-1 w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
-                      </div>
-                    </div>
-                  </button>
-                </DropdownMenuTrigger>
-                
-                <DropdownMenuContent
-                  className="w-64 border rounded-lg backdrop-blur-xl animate-in fade-in-80"
+        {/* Mobile Layout */}
+        <div className="flex md:hidden items-center justify-between">
+          {/* Logo and Mobile Menu Toggle */}
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center">
+              <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
+                <Box className="h-5 w-5 text-white" />
+              </div>
+              <span 
+                className="text-white text-xl font-bold tracking-wide"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                AIGen
+              </span>
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="flex items-center gap-2">
+            {address && (
+              <div 
+                className="flex-shrink-0 relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
+                style={{ 
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                  boxShadow: '0 0 10px rgba(0, 209, 193, 0.5)'
+                }}
+              >
+                <UserCircle className="w-7 h-7 text-white" />
+                <div 
+                  className="absolute inset-0 rounded-full" 
                   style={{ 
-                    backgroundColor: 'rgba(30, 30, 47, 0.95)',
-                    borderColor: 'rgba(108, 75, 255, 0.3)',
-                    boxShadow: '0 0 20px rgba(108, 75, 255, 0.2)'
+                    background: 'linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 45%, transparent 50%)',
+                    backgroundSize: '200% 200%',
+                    animation: 'shimmer 3s infinite linear'
                   }}
-                >
-                  <div className="p-3 space-y-1">
-                    <h3 
-                      className="font-medium text-sm"
-                      style={{ 
-                        fontFamily: "'Space Grotesk', sans-serif",
-                        color: 'white'
-                      }}
-                    >
-                      Your Wallet
-                    </h3>
-                    <div 
-                      className="text-xs py-1 px-2 rounded-md" 
-                      style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        color: 'rgba(255, 255, 255, 0.8)',
-                        fontFamily: "'Inter', sans-serif"
-                      }}
-                    >
-                      {address}
+                />
+              </div>
+            )}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-md bg-white/5 text-white"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden mt-3 py-3 border-t border-white/10"
+          >
+            <nav className="flex flex-col space-y-4">
+              <Link 
+                href="/" 
+                className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                  <File className="w-3 h-3 text-white" />
+                </div>
+                <span style={{ fontFamily: "'Inter', sans-serif" }}>Articles</span>
+              </Link>
+              
+              <Link 
+                href="/mission" 
+                className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                  <Brain className="w-3 h-3 text-white" />
+                </div>
+                <span style={{ fontFamily: "'Inter', sans-serif" }}>Mission</span>
+              </Link>
+
+              {address ? (
+                <>
+                  <hr className="border-t border-white/10" />
+                  
+                  <button 
+                    onClick={() => {
+                      setIsCreateOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }} 
+                    className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"
+                  >
+                    <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                      <Plus className="w-3 h-3 text-white" />
+                    </div>
+                    <span style={{ fontFamily: "'Inter', sans-serif" }}>Create Article</span>
+                  </button>
+                  
+                  <Link 
+                    href="/profile" 
+                    className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                      <User2 className="w-3 h-3 text-white" />
+                    </div>
+                    <span style={{ fontFamily: "'Inter', sans-serif" }}>My Content</span>
+                  </Link>
+                  
+                  <div className="flex flex-col space-y-1 p-2">
+                    <div className="text-xs text-white/60">Connected Wallet</div>
+                    <div className="text-sm text-white">
+                      {`${address.slice(0, 10)}...${address.slice(-8)}`}
                     </div>
                   </div>
                   
-                  <DropdownMenuSeparator style={{ background: 'rgba(255, 255, 255, 0.1)' }} />
-                  
-                  <Link href="/profile">
-                    <DropdownMenuItem 
-                      className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/10"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
-                    >
-                      <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full text-white">
-                        <User2 className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-white">My Content</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/10"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full text-white">
-                      <Settings className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-white">Settings</span>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuSeparator style={{ background: 'rgba(255, 255, 255, 0.1)' }} />
-                  
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 p-2 cursor-pointer hover:bg-red-900/20"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  <button 
+                    className="flex items-center gap-2 p-2 text-red-400 hover:bg-red-900/20 rounded-md"
                     onClick={() => {
                       setAddress(null);
                       setChainId(null);
                       localStorage.removeItem('lastAddress');
                       localStorage.removeItem('lastChainId');
                       window.location.href = '/';
+                      setIsMobileMenuOpen(false);
                     }}
                   >
-                    <div className="flex items-center justify-center w-6 h-6 bg-red-500/20 rounded-full text-red-400">
+                    <div className="flex items-center justify-center w-5 h-5 bg-red-500/20 rounded text-red-400">
                       <LogOut className="w-3 h-3" />
                     </div>
-                    <span className="text-red-400">Disconnect</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <Button onClick={handleConnect} 
-              className="flex items-center gap-1.5 transition-colors rounded-md"
-              style={{ 
-                background: 'linear-gradient(135deg, var(--color-accent) 0%, #c026d3 100%)',
-                fontFamily: "'Inter', sans-serif",
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                boxShadow: '0 0 15px rgba(217, 70, 239, 0.3)'
-              }}
-            >
-              <div className="flex items-center justify-center h-5 w-5 bg-white/10 rounded">
-                <Wallet className="w-3 h-3" />
-              </div>
-              <span>Connect Wallet</span>
-            </Button>
-          )}
-        </div>
+                    <span style={{ fontFamily: "'Inter', sans-serif" }}>Disconnect</span>
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => {
+                    handleConnect();
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"
+                >
+                  <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
+                    <Wallet className="w-3 h-3 text-white" />
+                  </div>
+                  <span style={{ fontFamily: "'Inter', sans-serif" }}>Connect Wallet</span>
+                </button>
+              )}
+            </nav>
+          </motion.div>
+        )}
       </div>
 
-      {/* Create Dialog */}
+      {/* Create Dialog - Shared between mobile and desktop */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent 
           className="sm:max-w-md border rounded-lg backdrop-blur-xl"
