@@ -2,10 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Color Variables */
+:root {
+  --color-primary: #6C4BFF;    /* Electric Indigo - Brand */
+  --color-secondary: #00D1C1;  /* Aqua Blue/Teal - AI/technology */
+  --color-accent: #FF715B;     /* Coral/Warm Peach - Creative energy */
+  --color-background: #121212; /* Soft Dark Gray - Professional dark UI */
+  --color-surface: #1E1E2F;    /* Cool Slate - Modern cards/panels */
+  --color-text-light: #FFFFFF; /* Pure White - Contrast on dark */
+  --color-text-dark: #333333;  /* Charcoal Gray - For light sections */
+}
+
 @keyframes glow {
-  0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.3); }
-  50% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.7), 0 0 30px rgba(139, 92, 246, 0.5); }
-  100% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.3); }
+  0% { text-shadow: 0 0 10px rgba(108, 75, 255, 0.5), 0 0 20px rgba(108, 75, 255, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(108, 75, 255, 0.7), 0 0 30px rgba(108, 75, 255, 0.5); }
+  100% { text-shadow: 0 0 10px rgba(108, 75, 255, 0.5), 0 0 20px rgba(108, 75, 255, 0.3); }
 }
 
 @keyframes floatAnim {
@@ -25,12 +36,18 @@
     @apply border-border;
   }
 
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', 'Manrope', sans-serif;
+  }
+  
   body {
-    @apply font-sans antialiased text-white;
-    background: #0f0b1e;
+    font-family: 'Inter', 'Roboto', 'Open Sans', sans-serif;
+    @apply antialiased text-white;
+    background: var(--color-background);
     background-image: 
-      radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba(76, 29, 149, 0.15) 0%, transparent 50%);
+      radial-gradient(circle at 25% 25%, rgba(108, 75, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(0, 209, 193, 0.08) 0%, transparent 50%);
   }
 
   /* Neon border effect */
@@ -50,7 +67,11 @@
     z-index: -1;
     margin: -2px;
     border-radius: inherit;
-    background: linear-gradient(45deg, rgba(139, 92, 246, 0.8), rgba(76, 29, 149, 0.5), rgba(139, 92, 246, 0.8));
+    background: linear-gradient(45deg, 
+      rgba(108, 75, 255, 0.8),
+      rgba(0, 209, 193, 0.5),
+      rgba(108, 75, 255, 0.8)
+    );
     background-size: 200% 200%;
     animation: gradientBG 6s ease infinite;
   }
@@ -63,12 +84,12 @@
 
   .card-3d:hover {
     transform: perspective(1000px) rotateY(5deg) rotateX(5deg) translateZ(10px);
-    box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(108, 75, 255, 0.2);
   }
 
   /* Web3 button glow */
   .web3-btn {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, rgba(108, 75, 255, 0.8) 100%);
     position: relative;
     z-index: 1;
     overflow: hidden;
@@ -82,7 +103,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, rgba(108, 75, 255, 0.9) 0%, rgba(0, 209, 193, 0.5) 100%);
     opacity: 0;
     z-index: -1;
     transition: opacity 0.3s ease;
@@ -93,8 +114,44 @@
   }
 
   .web3-btn:hover {
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+    box-shadow: 0 0 15px rgba(108, 75, 255, 0.6);
     transform: translateY(-2px);
+  }
+
+  /* Secondary button (teal) */
+  .secondary-btn {
+    background: linear-gradient(135deg, var(--color-secondary) 0%, rgba(0, 209, 193, 0.8) 100%);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .secondary-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 209, 193, 0.9) 0%, rgba(0, 209, 193, 0.7) 100%);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+  }
+
+  .secondary-btn:hover::before {
+    opacity: 1;
+  }
+
+  .secondary-btn:hover {
+    box-shadow: 0 0 15px rgba(0, 209, 193, 0.6);
+    transform: translateY(-2px);
+  }
+
+  /* Accent elements */
+  .accent-element {
+    color: var(--color-accent);
   }
 
   /* Floating animation for 3D icons */
@@ -123,11 +180,17 @@
     @apply text-white/90;
   }
   
+  /* Surface elements (cards, panels) */
+  .surface {
+    background-color: var(--color-surface);
+    border: 1px solid rgba(108, 75, 255, 0.2);
+  }
+  
   /* Cyber grid background */
   .cyber-grid {
     background-image: 
-      linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+      linear-gradient(rgba(108, 75, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108, 75, 255, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
   
@@ -148,7 +211,7 @@
     background: linear-gradient(
       90deg, 
       transparent, 
-      rgba(139, 92, 246, 0.2), 
+      rgba(108, 75, 255, 0.2), 
       transparent
     );
     transition: left 0.7s ease;
@@ -158,5 +221,17 @@
   
   .web3-link:hover::before {
     left: 100%;
+  }
+  
+  /* Teal highlight elements */
+  .teal-highlight {
+    color: var(--color-secondary);
+    font-weight: 500;
+  }
+  
+  /* Accent highlight elements */
+  .accent-highlight {
+    color: var(--color-accent);
+    font-weight: 500;
   }
 }

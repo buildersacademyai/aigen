@@ -13,10 +13,14 @@ export function VerifiedBadge({ className }: VerifiedBadgeProps) {
       animate={{ scale: 1, opacity: 1 }}
       whileHover={{ scale: 1.05 }}
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-primary/30 rounded-full",
-        "bg-gradient-to-r from-primary/30 to-background backdrop-blur-md neon-border",
+        "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full backdrop-blur-md",
         className
       )}
+      style={{
+        background: "linear-gradient(135deg, rgba(0, 209, 193, 0.15), rgba(108, 75, 255, 0.15))",
+        border: "1px solid rgba(0, 209, 193, 0.3)",
+        boxShadow: "0 0 10px rgba(0, 209, 193, 0.1)"
+      }}
     >
       <motion.div
         initial={{ rotate: -180 }}
@@ -24,9 +28,12 @@ export function VerifiedBadge({ className }: VerifiedBadgeProps) {
         transition={{ duration: 0.5, type: "spring" }}
         className="relative"
       >
-        <ShieldCheck className="w-4 h-4 text-primary" />
+        <ShieldCheck 
+          className="w-4 h-4" 
+          style={{ color: "var(--color-secondary)" }} 
+        />
         <motion.div
-          className="absolute top-0 left-0 w-full h-full opacity-50"
+          className="absolute top-0 left-0 w-full h-full"
           animate={{ 
             opacity: [0.3, 0.7, 0.3],
             scale: [1, 1.2, 1]
@@ -37,10 +44,21 @@ export function VerifiedBadge({ className }: VerifiedBadgeProps) {
             repeatType: "loop"
           }}
         >
-          <ShieldCheck className="w-4 h-4 text-white" />
+          <ShieldCheck 
+            className="w-4 h-4" 
+            style={{ color: "var(--color-secondary)" }} 
+          />
         </motion.div>
       </motion.div>
-      <span className="text-white text-xs font-semibold tracking-wider">BLOCKCHAIN VERIFIED</span>
+      <span 
+        className="text-xs font-semibold tracking-wider"
+        style={{ 
+          fontFamily: "'Space Grotesk', sans-serif",
+          color: "var(--color-text-light)"
+        }}
+      >
+        BLOCKCHAIN VERIFIED
+      </span>
     </motion.div>
   );
 }

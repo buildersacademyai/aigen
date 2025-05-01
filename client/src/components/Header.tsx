@@ -10,12 +10,25 @@ import { motion } from "framer-motion";
 
 const LOGO_3D = () => (
   <div className="relative flex items-center">
-    <Box className="w-8 h-8 text-primary mr-2 float-element" />
+    <Box 
+      className="w-8 h-8 mr-2 float-element" 
+      style={{ 
+        color: 'var(--color-secondary)',
+        filter: 'drop-shadow(0 0 10px rgba(0, 209, 193, 0.5))'
+      }} 
+    />
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="text-2xl font-bold glow-text tracking-wider"
+      className="text-2xl font-bold tracking-wider"
+      style={{ 
+        fontFamily: "'Space Grotesk', sans-serif",
+        background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        textShadow: '0 0 15px rgba(108, 75, 255, 0.5)'
+      }}
     >
       AIGen
     </motion.div>
@@ -180,7 +193,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-border neon-border bg-background/95 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-border neon-border" style={{ backgroundColor: 'var(--color-surface)' }}>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/">
           <LOGO_3D />
@@ -188,11 +201,11 @@ export function Header() {
 
         <nav className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors">
-            <File className="w-4 h-4" />
+            <File className="w-4 h-4" style={{ color: 'var(--color-secondary)' }} />
             <span>Articles</span>
           </Link>
           <Link href="/mission" className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors">
-            <Brain className="w-4 h-4" />
+            <Brain className="w-4 h-4" style={{ color: 'var(--color-secondary)' }} />
             <span>Mission</span>
           </Link>
 
@@ -209,11 +222,16 @@ export function Header() {
                 href="/profile" 
                 className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors"
               >
-                <User2 className="w-4 h-4" />
+                <User2 className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
                 <span>My Content</span>
               </Link>
-              <div className="text-sm bg-primary/10 py-1.5 px-3 rounded-md flex items-center border border-primary/30">
-                <Wallet className="w-4 h-4 mr-2 opacity-70" />
+              <div className="text-sm py-1.5 px-3 rounded-md flex items-center border" 
+                style={{ 
+                  backgroundColor: 'rgba(108, 75, 255, 0.1)', 
+                  borderColor: 'rgba(108, 75, 255, 0.3)' 
+                }}
+              >
+                <Wallet className="w-4 h-4 mr-2" style={{ color: 'var(--color-primary)' }} />
                 {`${address.slice(0, 6)}...${address.slice(-4)}`}
               </div>
             </div>
@@ -225,11 +243,41 @@ export function Header() {
           )}
 
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogContent className="neon-border sm:max-w-md">
+            <DialogContent 
+              className="neon-border sm:max-w-md"
+              style={{ backgroundColor: 'var(--color-surface)' }}
+            >
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <Braces className="w-5 h-5 text-primary" />
-                  <span>Create New Article</span>
+                  <div className="relative float-element">
+                    <Braces 
+                      className="w-5 h-5" 
+                      style={{ color: 'var(--color-secondary)' }}
+                    />
+                    <motion.div 
+                      className="absolute inset-0" 
+                      animate={{ 
+                        opacity: [0.5, 0.2, 0.5]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatType: "loop"
+                      }}
+                    >
+                      <Braces className="w-5 h-5" style={{ color: 'var(--color-secondary)' }} />
+                    </motion.div>
+                  </div>
+                  <span 
+                    style={{ 
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}
+                  >
+                    Create New Article
+                  </span>
                 </DialogTitle>
               </DialogHeader>
               <CreateArticleForm address={address || ""} onSuccess={() => setIsCreateOpen(false)} />
