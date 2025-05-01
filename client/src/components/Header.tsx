@@ -193,10 +193,10 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50" 
+    <header className="sticky top-0 z-50 backdrop-blur-md border-b border-white/10" 
       style={{ 
-        background: 'linear-gradient(90deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+        background: 'linear-gradient(90deg, rgba(74, 46, 191, 0.4) 0%, rgba(101, 71, 255, 0.4) 100%)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
       }}
     >
       <div className="container mx-auto px-4 py-2 flex items-center justify-between">
