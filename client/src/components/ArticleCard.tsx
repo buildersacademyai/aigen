@@ -86,42 +86,48 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
       onClick={() => !showActions && setLocation(`/article/${article.id}`)}
       style={{
         backgroundColor: "var(--color-surface)",
-        border: "1px solid rgba(108, 75, 255, 0.2)",
-        transition: "all 0.3s ease"
+        border: "1px solid rgba(108, 75, 255, 0.3)",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(108, 75, 255, 0.2)",
+        transition: "all 0.3s ease",
+        borderRadius: "0.75rem"
       }}
     >
       {/* Card Glows */}
-      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -top-10 -left-10 w-40 h-40 bg-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -top-10 -left-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
       
       {/* Verified Badge */}
       {!article.isdraft && (
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-3 right-3 z-20">
           <VerifiedBadge />
         </div>
       )}
 
       <CardHeader className="p-0">
-        <AspectRatio ratio={16 / 9}>
-          <div className="relative overflow-hidden rounded-t-md">
+        <AspectRatio ratio={16 / 10}>
+          <div className="relative overflow-hidden rounded-t-xl">
             <img
               src={thumbnailUrl || imageUrl || ''}
               alt={article.title}
               className="object-cover w-full h-full transition-transform duration-700 hover:scale-110"
               onError={() => handleImageError(!!thumbnailUrl)}
             />
-            {/* Image Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-surface/80 via-transparent to-transparent"></div>
+            {/* Image Overlay with stronger gradient for title visibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+            
+            {/* Title overlay on the image */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+              <h3 
+                className="text-xl font-bold mb-0 text-white drop-shadow-md"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {article.title}
+              </h3>
+            </div>
           </div>
         </AspectRatio>
       </CardHeader>
-      <CardContent className="p-5">
-        <h3 
-          className="text-xl font-bold mb-3 transition-colors duration-300 hover:text-primary"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          {article.title}
-        </h3>
+      <CardContent className="p-5 pt-3">
         <p 
           className="line-clamp-3 text-white/70"
           style={{ fontFamily: "'Inter', sans-serif" }}

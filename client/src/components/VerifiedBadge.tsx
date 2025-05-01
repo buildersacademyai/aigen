@@ -13,13 +13,13 @@ export function VerifiedBadge({ className }: VerifiedBadgeProps) {
       animate={{ scale: 1, opacity: 1 }}
       whileHover={{ scale: 1.05 }}
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full backdrop-blur-md",
+        "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg backdrop-blur-md",
         className
       )}
       style={{
-        background: "linear-gradient(135deg, rgba(0, 209, 193, 0.15), rgba(108, 75, 255, 0.15))",
-        border: "1px solid rgba(0, 209, 193, 0.3)",
-        boxShadow: "0 0 10px rgba(0, 209, 193, 0.1)"
+        background: "rgba(0, 209, 193, 0.3)",
+        border: "1px solid rgba(0, 209, 193, 0.6)",
+        boxShadow: "0 0 15px rgba(0, 209, 193, 0.4)"
       }}
     >
       <motion.div
@@ -29,13 +29,12 @@ export function VerifiedBadge({ className }: VerifiedBadgeProps) {
         className="relative"
       >
         <ShieldCheck 
-          className="w-4 h-4" 
-          style={{ color: "var(--color-secondary)" }} 
+          className="w-4 h-4 text-white" 
         />
         <motion.div
           className="absolute top-0 left-0 w-full h-full"
           animate={{ 
-            opacity: [0.3, 0.7, 0.3],
+            opacity: [0.4, 0.8, 0.4],
             scale: [1, 1.2, 1]
           }}
           transition={{ 
@@ -45,16 +44,15 @@ export function VerifiedBadge({ className }: VerifiedBadgeProps) {
           }}
         >
           <ShieldCheck 
-            className="w-4 h-4" 
-            style={{ color: "var(--color-secondary)" }} 
+            className="w-4 h-4 text-white" 
           />
         </motion.div>
       </motion.div>
       <span 
-        className="text-xs font-semibold tracking-wider"
+        className="text-xs font-bold tracking-wider"
         style={{ 
           fontFamily: "'Space Grotesk', sans-serif",
-          color: "var(--color-text-light)"
+          color: "white"
         }}
       >
         BLOCKCHAIN VERIFIED
