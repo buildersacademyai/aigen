@@ -109,19 +109,29 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
         </div>
       )}
 
-      <CardHeader className="p-0">
-        <AspectRatio ratio={16 / 10}>
-          <div className="relative overflow-hidden rounded-t-xl">
-            <img
-              src={thumbnailUrl || imageUrl || ''}
-              alt={article.title}
-              className="object-cover w-full h-full transition-transform duration-700 hover:scale-110"
-              onError={() => handleImageError(!!thumbnailUrl)}
-            />
-            {/* Subtle gradient overlay for depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
-          </div>
-        </AspectRatio>
+      <CardHeader className="p-4 pb-0">
+        <div className="overflow-hidden rounded-lg w-full mx-auto" style={{ maxHeight: "150px" }}>
+          <AspectRatio ratio={16 / 10}>
+            <div className="relative overflow-hidden" style={{ borderRadius: "0.5rem" }}>
+              <img
+                src={thumbnailUrl || imageUrl || ''}
+                alt={article.title}
+                className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
+                style={{ objectPosition: "center" }}
+                onError={() => handleImageError(!!thumbnailUrl)}
+              />
+              {/* Stronger grid overlay effect like the sample image */}
+              <div 
+                className="absolute inset-0" 
+                style={{
+                  backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gMjAgMCBMIDAgMCAwIDIwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMzAsIDMwLCAxMjAsIDAuMylAIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiPjwvcmVjdD48L3N2Zz4=')",
+                  backgroundSize: "cover, 40px 40px",
+                  backgroundPosition: "center, center"
+                }}
+              />
+            </div>
+          </AspectRatio>
+        </div>
       </CardHeader>
       <CardContent className="p-5 pb-3">
         <h2 
