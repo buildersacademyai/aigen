@@ -136,9 +136,11 @@ export function ArticleDetails({ params }: ArticleProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Card className="mx-auto overflow-hidden">
-        <CardContent className="p-6">
+    <div className="container mx-auto px-4 py-8 max-w-4xl cyber-grid">
+      <Card className="mx-auto overflow-hidden neon-border backdrop-blur-sm bg-background/40 relative">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-1 bg-primary/30 rounded-full blur-sm"></div>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/20 rounded-full blur-md"></div>
+        <CardContent className="p-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -188,23 +190,41 @@ export function ArticleDetails({ params }: ArticleProps) {
                 {/* Audio Player Section */}
                 {audioUrl && (
                   <motion.div
-                    className="mb-6 bg-muted/30 rounded-lg p-4"
+                    className="mb-8 neon-border bg-primary/5 rounded-lg p-5 backdrop-blur-sm"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 }}
+                    whileHover={{ scale: 1.01 }}
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Volume2 className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium">Listen to Article</span>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="relative float-element">
+                        <Volume2 className="h-6 w-6 text-primary" />
+                        <motion.div 
+                          className="absolute inset-0 text-primary" 
+                          animate={{ 
+                            opacity: [0.5, 0.2, 0.5],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            repeatType: "loop"
+                          }}
+                        >
+                          <Volume2 className="h-6 w-6" />
+                        </motion.div>
+                      </div>
+                      <span className="text-sm font-medium tracking-wide glow-text">AUDIO VERSION</span>
                     </div>
-                    <audio
-                      controls
-                      className="w-full"
-                      src={audioUrl}
-                      onError={handleAudioError}
-                    >
-                      Your browser does not support the audio element.
-                    </audio>
+                    <div className="bg-background/30 rounded-md p-3 border border-primary/20">
+                      <audio
+                        controls
+                        className="w-full"
+                        src={audioUrl}
+                        onError={handleAudioError}
+                      >
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
                   </motion.div>
                 )}
 
@@ -214,13 +234,24 @@ export function ArticleDetails({ params }: ArticleProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.55 }}
+                    className="mb-10 relative"
                   >
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5 rounded-lg opacity-60 z-10"></div>
+                    <div className="absolute inset-0 neon-border rounded-lg z-20 pointer-events-none"></div>
                     <img
                       src={imageUrl}
                       alt={article.title}
-                      className="w-full h-64 object-cover rounded-lg mb-6 hover:scale-[1.02] transition-transform duration-300"
+                      className="w-full h-72 md:h-96 object-cover rounded-lg hover:scale-[1.02] transition-transform duration-700 shadow-xl"
                       onError={handleImageError}
                     />
+                    {!article.isdraft && (
+                      <div className="absolute bottom-4 right-4 z-30">
+                        <div className="bg-background/40 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-mono border border-primary/30 flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                          <span>blockchain_verified</span>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 )}
 
@@ -256,53 +287,78 @@ export function ArticleDetails({ params }: ArticleProps) {
                 {/* Source Links Section */}
                 {sourceLinks.length > 0 && (
                   <motion.div
-                    className="my-8 bg-primary/5 rounded-xl p-6 border border-primary/20 hover:border-primary/40 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="my-8 neon-border cyber-grid rounded-xl p-6 backdrop-blur-sm"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 }}
                     whileHover={{ scale: 1.02 }}
                   >
-                    <div className="flex items-center gap-3 mb-4">
-                      <LinkIcon className="h-6 w-6 text-primary animate-pulse" />
-                      <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="relative">
+                        <LinkIcon className="h-7 w-7 text-primary" />
+                        <motion.div 
+                          className="absolute inset-0 text-primary" 
+                          animate={{ 
+                            opacity: [0.5, 0.2, 0.5],
+                            scale: [1, 1.2, 1],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            repeatType: "loop"
+                          }}
+                        >
+                          <LinkIcon className="h-7 w-7" />
+                        </motion.div>
+                      </div>
+                      <h2 className="text-xl font-bold glow-text">
                         Reference Sources
                       </h2>
                     </div>
                     <div className="space-y-3">
                       {sourceLinks.map((link, index) => {
-                        const url = new URL(link);
-                        const domain = url.hostname.replace('www.', '');
+                        let domain = '';
+                        try {
+                          const url = new URL(link);
+                          domain = url.hostname.replace('www.', '');
+                        } catch (error) {
+                          console.error('Invalid URL:', link);
+                          domain = link.replace(/(^\w+:|^)\/\//, '').split('/')[0];
+                        }
 
                         return (
-                          <motion.a
+                          <motion.div
                             key={index}
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block group relative overflow-hidden bg-white/5 rounded-lg cursor-pointer"
+                            className="relative overflow-hidden rounded-lg"
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 + index * 0.1 }}
-                            whileHover={{ scale: 1.01 }}
                           >
-                            <div className="p-4 flex items-center gap-3 relative group-hover:bg-primary/10 transition-all duration-300">
-                              <LinkIcon 
-                                className="h-5 w-5 text-primary/70 group-hover:text-primary transition-colors duration-300"
-                              />
-                              <span className="truncate font-medium flex-1 text-primary/90 group-hover:text-primary transition-colors duration-300">
-                                {domain}
-                              </span>
-                              <span className="text-sm text-primary/50 group-hover:text-primary/70 transition-colors duration-300 whitespace-nowrap">
-                                Open in new tab ↗
-                              </span>
-                            </div>
+                            <a
+                              href={link}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block group web3-link"
+                            >
+                              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-3 relative group-hover:bg-primary/20 transition-all duration-300">
+                                <div className="float-element" style={{ animationDelay: `${index * 0.1}s` }}>
+                                  <LinkIcon className="h-5 w-5 text-primary group-hover:text-white transition-colors duration-300" />
+                                </div>
+                                <span className="truncate font-medium flex-1 text-white/90 group-hover:text-white transition-colors duration-300">
+                                  {domain}
+                                </span>
+                                <span className="text-sm text-primary/70 group-hover:text-white/90 transition-colors duration-300 whitespace-nowrap font-mono">
+                                  visit_source ↗
+                                </span>
+                              </div>
+                            </a>
                             <motion.div
-                              className="absolute bottom-0 left-0 h-[2px] bg-primary/40"
+                              className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-primary via-primary/80 to-primary/40"
                               initial={{ width: "0%" }}
                               whileHover={{ width: "100%" }}
                               transition={{ duration: 0.3 }}
                             />
-                          </motion.a>
+                          </motion.div>
                         );
                       })}
                     </div>
