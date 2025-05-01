@@ -8,9 +8,11 @@ export function Footer() {
       {/* Background grid overlay for cyberpunk effect */}
       <div className="absolute inset-0 cyber-grid opacity-5"></div>
       
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="space-y-4">
+      <div className="container mx-auto px-4 py-8 md:py-12 relative z-10">
+        {/* Main footer content - centered on mobile, grid on larger screens */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+          {/* Logo and description - centered on all screens */}
+          <div className="flex flex-col items-center sm:items-center lg:items-center text-center space-y-4">
             <div className="text-2xl font-bold glow-text">
               <Link href="/" className="hover:opacity-80 transition-opacity">AIGen</Link>
             </div>
@@ -19,7 +21,8 @@ export function Footer() {
             </p>
           </div>
 
-          <div>
+          {/* Links - centered on mobile, left-aligned on larger screens */}
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
             <h3 className="font-semibold mb-4 text-primary">Links</h3>
             <ul className="space-y-3">
               <li>
@@ -43,9 +46,10 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          {/* Contact - centered on mobile, left-aligned on larger screens */}
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
             <h3 className="font-semibold mb-4 text-primary">Contact</h3>
-            <ul className="space-y-3 mb-4">
+            <ul className="space-y-3 mb-4 flex flex-col items-center sm:items-start">
               <li className="flex items-center gap-2 text-sm">
                 <Globe className="h-4 w-4 text-cyan-400" />
                 <a href="https://buildersacademy.ai" className="hover:text-primary transition-colors">
@@ -65,33 +69,36 @@ export function Footer() {
                 </a>
               </li>
             </ul>
-            <Button 
-              className="w-full relative overflow-hidden group"
-              style={{
-                background: 'linear-gradient(135deg, var(--color-primary) 0%, rgba(108, 75, 255, 0.8) 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 0 10px rgba(108, 75, 255, 0.3)'
-              }}
-            >
-              <a 
-                href="https://discord.gg/HNhfAugqjb" 
-                className="text-white relative z-10 flex items-center justify-center w-full"
+            <div className="w-full max-w-xs">
+              <Button 
+                className="w-full relative overflow-hidden group"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, rgba(108, 75, 255, 0.8) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 0 10px rgba(108, 75, 255, 0.3)'
+                }}
               >
-                Join Community
-              </a>
-              <div 
-                className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-                style={{ opacity: 0.2 }}
-              ></div>
-            </Button>
+                <a 
+                  href="https://discord.gg/HNhfAugqjb" 
+                  className="text-white relative z-10 flex items-center justify-center w-full"
+                >
+                  Join Community
+                </a>
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                  style={{ opacity: 0.2 }}
+                ></div>
+              </Button>
+            </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-4 border-t border-border/20 flex flex-col sm:flex-row justify-between items-center">
+        {/* Copyright section - always centered */}
+        <div className="mt-8 pt-6 border-t border-border/20 flex flex-col items-center justify-center text-center">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} AIGen. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground mt-2 sm:mt-0">
+          <p className="text-xs text-muted-foreground mt-2">
             Developed by <a href="https://buildersacademy.ai" className="text-primary hover:underline">buildersacademy.ai</a>
           </p>
         </div>
