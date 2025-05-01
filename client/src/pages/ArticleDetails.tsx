@@ -118,7 +118,11 @@ export function ArticleDetails({ params }: ArticleProps) {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <ArticleDetailsSkeleton />
+        <div className="relative">
+          <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -top-20 -left-20 w-60 h-60 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+          <ArticleDetailsSkeleton />
+        </div>
       </div>
     );
   }
@@ -126,9 +130,23 @@ export function ArticleDetails({ params }: ArticleProps) {
   if (!article) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card className="mx-auto">
-          <CardContent className="p-6">
-            <div className="text-center text-lg">Article not found</div>
+        <Card 
+          className="mx-auto overflow-hidden backdrop-blur-sm relative" 
+          style={{
+            backgroundColor: "#0e0e1a",
+            backgroundImage: "linear-gradient(to bottom right, rgba(30, 30, 47, 0.8), rgba(20, 20, 33, 0.95))",
+            border: "1px solid rgba(108, 75, 255, 0.3)",
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(108, 75, 255, 0.2)",
+            borderRadius: "0.75rem"
+          }}
+        >
+          <CardContent className="p-16">
+            <div 
+              className="text-center text-xl text-gray-300 py-12"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Article not found or has been removed
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -136,8 +154,21 @@ export function ArticleDetails({ params }: ArticleProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl cyber-grid">
-      <Card className="mx-auto overflow-hidden neon-border backdrop-blur-sm bg-background/40 relative">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <Card 
+        className="mx-auto overflow-hidden backdrop-blur-sm relative" 
+        style={{
+          backgroundColor: "#0e0e1a",
+          backgroundImage: "linear-gradient(to bottom right, rgba(30, 30, 47, 0.8), rgba(20, 20, 33, 0.95))",
+          border: "1px solid rgba(108, 75, 255, 0.3)",
+          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(108, 75, 255, 0.2)",
+          borderRadius: "0.75rem"
+        }}
+      >
+        {/* Card Glows */}
+        <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -top-20 -left-20 w-60 h-60 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+        
         <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-1 bg-primary/30 rounded-full blur-sm"></div>
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/20 rounded-full blur-md"></div>
         <CardContent className="p-8">
@@ -149,11 +180,12 @@ export function ArticleDetails({ params }: ArticleProps) {
             {/* Title Section with Verified Badge */}
             <div className="flex flex-col gap-2 mb-4">
               <motion.h1
-                className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 hover:to-primary transition-all duration-300 cursor-pointer select-none"
+                className="text-4xl font-bold text-white mb-2"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 transition={{
                   delay: 0.2,
                   type: "spring",
@@ -169,8 +201,14 @@ export function ArticleDetails({ params }: ArticleProps) {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
+                  className="mb-2"
                 >
-                  <VerifiedBadge />
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-900/60 text-white border border-green-500/30">
+                    <svg className="w-3.5 h-3.5 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                    </svg>
+                    Verified Content
+                  </span>
                 </motion.div>
               )}
             </div>
@@ -179,43 +217,48 @@ export function ArticleDetails({ params }: ArticleProps) {
             {article && (
               <>
                 <motion.div
-                  className="text-sm text-muted-foreground mb-6"
+                  className="mb-6 flex items-center gap-1.5"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  By {article.authoraddress}
+                  <span className="text-gray-400 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>By</span>
+                  <span 
+                    className="py-0.5 px-2 rounded flex items-center gap-1 text-sm"
+                    style={{ 
+                      color: "var(--color-secondary)",
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 500
+                    }}
+                  >
+                    {article.authoraddress}
+                  </span>
                 </motion.div>
 
                 {/* Audio Player Section */}
                 {audioUrl && (
                   <motion.div
-                    className="mb-8 neon-border bg-primary/5 rounded-lg p-5 backdrop-blur-sm"
+                    className="mb-8 rounded-lg p-5"
+                    style={{
+                      backgroundColor: "rgba(20, 20, 35, 0.7)",
+                      border: "1px solid rgba(108, 75, 255, 0.2)",
+                      boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)"
+                    }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 }}
-                    whileHover={{ scale: 1.01 }}
+                    whileHover={{ scale: 1.005 }}
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="relative float-element">
-                        <Volume2 className="h-6 w-6 text-primary" />
-                        <motion.div 
-                          className="absolute inset-0 text-primary" 
-                          animate={{ 
-                            opacity: [0.5, 0.2, 0.5],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatType: "loop"
-                          }}
-                        >
-                          <Volume2 className="h-6 w-6" />
-                        </motion.div>
-                      </div>
-                      <span className="text-sm font-medium tracking-wide glow-text">AUDIO VERSION</span>
+                      <Volume2 className="h-6 w-6 text-secondary" />
+                      <span 
+                        className="text-sm font-medium tracking-wide text-white"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      >
+                        AUDIO VERSION
+                      </span>
                     </div>
-                    <div className="bg-background/30 rounded-md p-3 border border-primary/20">
+                    <div className="rounded-md p-3" style={{ backgroundColor: "rgba(30, 30, 47, 0.6)" }}>
                       <audio
                         controls
                         className="w-full"
@@ -236,22 +279,36 @@ export function ArticleDetails({ params }: ArticleProps) {
                     transition={{ delay: 0.55 }}
                     className="mb-10 relative"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5 rounded-lg opacity-60 z-10"></div>
-                    <div className="absolute inset-0 neon-border rounded-lg z-20 pointer-events-none"></div>
-                    <img
-                      src={imageUrl}
-                      alt={article.title}
-                      className="w-full h-72 md:h-96 object-cover rounded-lg hover:scale-[1.02] transition-transform duration-700 shadow-xl"
-                      onError={handleImageError}
-                    />
-                    {!article.isdraft && (
-                      <div className="absolute bottom-4 right-4 z-30">
-                        <div className="bg-background/40 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-mono border border-primary/30 flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                          <span>blockchain_verified</span>
-                        </div>
+                    <div className="overflow-hidden rounded-lg w-full mx-auto" style={{ maxHeight: "400px" }}>
+                      <div className="relative overflow-hidden" style={{ borderRadius: "0.5rem" }}>
+                        <img
+                          src={imageUrl}
+                          alt={article.title}
+                          className="w-full h-auto object-cover rounded-lg hover:scale-[1.02] transition-transform duration-700"
+                          style={{ objectPosition: "center" }}
+                          onError={handleImageError}
+                        />
+                        {/* Stronger grid overlay effect like the sample image */}
+                        <div 
+                          className="absolute inset-0" 
+                          style={{
+                            backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gMjAgMCBMIDAgMCAwIDIwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMzAsIDMwLCAxMjAsIDAuMylAIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiPjwvcmVjdD48L3N2Zz4=')",
+                            backgroundSize: "cover, 40px 40px",
+                            backgroundPosition: "center, center"
+                          }}
+                        />
+                        {!article.isdraft && (
+                          <div className="absolute bottom-4 right-4 z-30">
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-900/60 text-white border border-green-500/30">
+                              <svg className="w-3.5 h-3.5 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                              </svg>
+                              Blockchain Verified
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </motion.div>
                 )}
 
@@ -265,17 +322,18 @@ export function ArticleDetails({ params }: ArticleProps) {
                   {article.content.split('\n\n').map((paragraph, index) => (
                     <motion.p
                       key={index}
-                      className="mb-6 leading-relaxed hover:text-primary/90 transition-colors duration-300 p-4 rounded-lg hover:bg-primary/5 cursor-text selection:bg-primary/20 selection:text-primary text-lg"
-                      initial={{ opacity: 0, x: -20 }}
+                      className="mb-6 leading-relaxed text-gray-300 p-4 rounded-lg hover:bg-primary/5 text-lg"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
-                        delay: 0.8 + index * 0.1,
+                        delay: 0.6 + index * 0.1,
                         type: "spring",
-                        stiffness: 400,
+                        stiffness: 300,
                         damping: 30
                       }}
                       whileHover={{
-                        scale: 1.01,
+                        scale: 1.005,
                         transition: { duration: 0.2 }
                       }}
                     >
@@ -287,31 +345,25 @@ export function ArticleDetails({ params }: ArticleProps) {
                 {/* Source Links Section */}
                 {sourceLinks.length > 0 && (
                   <motion.div
-                    className="my-8 neon-border cyber-grid rounded-xl p-6 backdrop-blur-sm"
+                    className="my-8 p-6 rounded-xl"
+                    style={{
+                      backgroundColor: "rgba(20, 20, 35, 0.7)",
+                      border: "1px solid rgba(108, 75, 255, 0.2)",
+                      boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)"
+                    }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
                   >
                     <div className="flex items-center gap-3 mb-6">
                       <div className="relative">
-                        <LinkIcon className="h-7 w-7 text-primary" />
-                        <motion.div 
-                          className="absolute inset-0 text-primary" 
-                          animate={{ 
-                            opacity: [0.5, 0.2, 0.5],
-                            scale: [1, 1.2, 1],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatType: "loop"
-                          }}
-                        >
-                          <LinkIcon className="h-7 w-7" />
-                        </motion.div>
+                        <LinkIcon className="h-6 w-6 text-secondary" />
                       </div>
-                      <h2 className="text-xl font-bold glow-text">
+                      <h2 
+                        className="text-xl font-bold text-white"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      >
                         Reference Sources
                       </h2>
                     </div>
@@ -338,26 +390,30 @@ export function ArticleDetails({ params }: ArticleProps) {
                               href={link}
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="block group web3-link"
+                              className="block group"
                             >
-                              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-3 relative group-hover:bg-primary/20 transition-all duration-300">
-                                <div className="float-element" style={{ animationDelay: `${index * 0.1}s` }}>
-                                  <LinkIcon className="h-5 w-5 text-primary group-hover:text-white transition-colors duration-300" />
-                                </div>
-                                <span className="truncate font-medium flex-1 text-white/90 group-hover:text-white transition-colors duration-300">
+                              <div 
+                                className="p-3 rounded-lg flex items-center gap-3 relative transition-all duration-300"
+                                style={{ 
+                                  backgroundColor: "rgba(30, 30, 47, 0.6)",
+                                  border: "1px solid rgba(0, 209, 193, 0.2)"
+                                }}
+                              >
+                                <LinkIcon className="h-4 w-4 text-secondary" />
+                                <span 
+                                  className="truncate font-medium flex-1 text-gray-300"
+                                  style={{ fontFamily: "'Inter', sans-serif" }}
+                                >
                                   {domain}
                                 </span>
-                                <span className="text-sm text-primary/70 group-hover:text-white/90 transition-colors duration-300 whitespace-nowrap font-mono">
-                                  visit_source ↗
+                                <span 
+                                  className="text-xs whitespace-nowrap"
+                                  style={{ color: "var(--color-secondary)" }}
+                                >
+                                  Visit Source ↗
                                 </span>
                               </div>
                             </a>
-                            <motion.div
-                              className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-primary via-primary/80 to-primary/40"
-                              initial={{ width: "0%" }}
-                              whileHover={{ width: "100%" }}
-                              transition={{ duration: 0.3 }}
-                            />
                           </motion.div>
                         );
                       })}
@@ -401,12 +457,17 @@ export function ArticleDetails({ params }: ArticleProps) {
 
                 {/* Share Section */}
                 <motion.div
-                  className="border-t pt-6 mt-6"
+                  className="mt-10 pt-6 border-t border-primary/20"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.95 }}
+                  transition={{ delay: 0.85 }}
                 >
-                  <h3 className="text-lg font-semibold mb-4">Share this article</h3>
+                  <h3 
+                    className="text-lg font-bold mb-4 text-white"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                  >
+                    Share this article
+                  </h3>
                   <SocialShare
                     url={window.location.href}
                     title={article.title}
