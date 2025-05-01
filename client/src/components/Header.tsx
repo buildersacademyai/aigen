@@ -231,7 +231,7 @@ export function Header() {
           {/* Middle: Navigation Links */}
           <div className="flex justify-center mx-auto">
             <div className="flex items-center gap-6">
-              <Link href="/" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
+              <Link href="/articles" className="flex items-center gap-1.5 text-white hover:text-white/80 transition-colors">
                 <div className="flex items-center justify-center w-5 h-5 bg-white/10 rounded text-white">
                   <File className="w-3 h-3 text-white" />
                 </div>
@@ -460,7 +460,7 @@ export function Header() {
           >
             <nav className="flex flex-col space-y-4">
               <Link 
-                href="/" 
+                href="/articles" 
                 className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded-md"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
