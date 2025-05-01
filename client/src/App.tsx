@@ -14,7 +14,7 @@ function App() {
       <Header />
       <main className="flex-1">
         <Switch>
-          <Route path="/" component={Articles} />
+          <Route path="/" component={Home} />
           <Route path="/home" component={Home} />
           <Route path="/articles" component={Articles} />
           <Route path="/mission" component={Mission} />

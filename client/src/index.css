@@ -56,6 +56,61 @@
       radial-gradient(circle at 75% 75%, rgba(0, 209, 193, 0.08) 0%, transparent 50%);
   }
 
+  /* Home page specific styles */
+  .feature-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  .glow-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    opacity: 0.2;
+  }
+  
+  .glow-lines::before,
+  .glow-lines::after {
+    content: "";
+    position: absolute;
+    background: linear-gradient(90deg, var(--color-primary), transparent);
+    width: 200px;
+    height: 1px;
+    animation: scan 3s linear infinite;
+  }
+  
+  .glow-lines::before {
+    top: 30%;
+    left: 0;
+  }
+  
+  .glow-lines::after {
+    bottom: 60%;
+    left: 0;
+    animation-delay: 1.5s;
+  }
+  
+  @keyframes scan {
+    0% {
+      left: 0%;
+      width: 0;
+    }
+    50% {
+      width: 100%;
+    }
+    100% {
+      left: 100%;
+      width: 0;
+    }
+  }
+
   /* Neon border effect */
   .neon-border {
     @apply relative overflow-hidden;
@@ -195,9 +250,11 @@
   /* Cyber grid background */
   .cyber-grid {
     background-image: 
+      radial-gradient(rgba(108, 75, 255, 0.1) 1px, transparent 1px),
       linear-gradient(rgba(108, 75, 255, 0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(108, 75, 255, 0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
+    background-size: 30px 30px, 40px 40px, 40px 40px;
+    background-position: -19px -19px, 0 0, 0 0;
   }
   
   /* Web3 link with hover effects */

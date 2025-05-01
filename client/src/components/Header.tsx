@@ -216,7 +216,7 @@ export function Header() {
         <div className="hidden md:flex md:items-center md:justify-between">
           {/* Left: Logo */}
           <div className="flex-shrink-0 mr-4">
-            <Link href="/articles" className="flex items-center">
+            <Link href="/home" className="flex items-center">
               <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
                 <Box className="h-5 w-5 text-white" />
               </div>
@@ -409,7 +409,7 @@ export function Header() {
         <div className="flex md:hidden items-center justify-between">
           {/* Logo and Mobile Menu Toggle */}
           <div className="flex items-center">
-            <Link href="/articles" className="flex items-center">
+            <Link href="/home" className="flex items-center">
               <div className="relative w-8 h-8 bg-white/10 rounded text-white flex items-center justify-center mr-2">
                 <Box className="h-5 w-5 text-white" />
               </div>
