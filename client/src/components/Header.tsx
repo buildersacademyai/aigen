@@ -337,7 +337,7 @@ export function Header() {
                           fontFamily: "'Inter', sans-serif"
                         }}
                       >
-                        {address}
+                        {address.slice(0,8)}...{address.slice(-8)}
                       </div>
                     </div>
                     
@@ -355,15 +355,6 @@ export function Header() {
                       </DropdownMenuItem>
                     </Link>
                     
-                    <DropdownMenuItem 
-                      className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/10"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
-                    >
-                      <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full text-white">
-                        <Settings className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-white">Settings</span>
-                    </DropdownMenuItem>
                     
                     <DropdownMenuSeparator style={{ background: 'rgba(255, 255, 255, 0.1)' }} />
                     
