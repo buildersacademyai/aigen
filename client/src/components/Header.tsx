@@ -232,8 +232,10 @@ export function Header() {
                 onClick={() => setIsCreateOpen(true)} 
                 className="flex items-center gap-1.5 transition-colors rounded-md"
                 style={{ 
-                  backgroundColor: 'var(--color-accent)',
-                  fontFamily: "'Inter', sans-serif"
+                  background: 'linear-gradient(135deg, var(--color-accent) 0%, #c026d3 100%)',
+                  fontFamily: "'Inter', sans-serif",
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  boxShadow: '0 0 15px rgba(217, 70, 239, 0.3)'
                 }}
               >
                 <div className="flex items-center justify-center h-5 w-5 bg-white/10 rounded">
@@ -264,8 +266,10 @@ export function Header() {
             <Button onClick={handleConnect} 
               className="flex items-center gap-1.5 transition-colors rounded-md"
               style={{ 
-                backgroundColor: 'var(--color-accent)',
-                fontFamily: "'Inter', sans-serif"
+                background: 'linear-gradient(135deg, var(--color-accent) 0%, #c026d3 100%)',
+                fontFamily: "'Inter', sans-serif",
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                boxShadow: '0 0 15px rgba(217, 70, 239, 0.3)'
               }}
             >
               <div className="flex items-center justify-center h-5 w-5 bg-white/10 rounded">
@@ -277,20 +281,23 @@ export function Header() {
 
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogContent 
-              className="neon-border sm:max-w-md"
-              style={{ backgroundColor: 'var(--color-surface)' }}
+              className="sm:max-w-md border rounded-lg backdrop-blur-xl"
+              style={{ 
+                backgroundColor: 'rgba(30, 30, 47, 0.95)',
+                borderColor: 'rgba(217, 70, 239, 0.3)',
+                boxShadow: '0 0 30px rgba(217, 70, 239, 0.2)'
+              }}
             >
-              <DialogHeader>
+              <DialogHeader className="pb-4 border-b border-white/10">
                 <DialogTitle className="flex items-center gap-2">
-                  <div className="relative float-element">
+                  <div className="relative float-element flex items-center justify-center bg-white/10 h-8 w-8 rounded">
                     <Braces 
-                      className="w-5 h-5" 
-                      style={{ color: 'var(--color-secondary)' }}
+                      className="w-4 h-4 text-fuchsia-400" 
                     />
                     <motion.div 
-                      className="absolute inset-0" 
+                      className="absolute inset-0 flex items-center justify-center" 
                       animate={{ 
-                        opacity: [0.5, 0.2, 0.5]
+                        opacity: [0.7, 0.2, 0.7]
                       }}
                       transition={{
                         duration: 2,
@@ -298,20 +305,30 @@ export function Header() {
                         repeatType: "loop"
                       }}
                     >
-                      <Braces className="w-5 h-5" style={{ color: 'var(--color-secondary)' }} />
+                      <Braces className="w-4 h-4 text-fuchsia-400" />
                     </motion.div>
                   </div>
                   <span 
                     style={{ 
                       fontFamily: "'Space Grotesk', sans-serif",
-                      background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
+                      color: 'white',
+                      fontSize: '1.25rem',
+                      fontWeight: '600'
                     }}
                   >
                     Create New Article
                   </span>
                 </DialogTitle>
+                <p 
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    marginTop: '0.5rem',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  Generate an AI article by entering a topic below
+                </p>
               </DialogHeader>
               <CreateArticleForm address={address || ""} onSuccess={() => setIsCreateOpen(false)} />
             </DialogContent>
