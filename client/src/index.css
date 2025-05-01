@@ -2,13 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes glow {
+  0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.7), 0 0 30px rgba(139, 92, 246, 0.5); }
+  100% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.3); }
+}
+
+@keyframes floatAnim {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-white;
+    @apply font-sans antialiased text-white;
+    background: #0f0b1e;
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(76, 29, 149, 0.15) 0%, transparent 50%);
+  }
+
+  /* Neon border effect */
+  .neon-border {
+    @apply relative overflow-hidden;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .neon-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    margin: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, rgba(139, 92, 246, 0.8), rgba(76, 29, 149, 0.5), rgba(139, 92, 246, 0.8));
+    background-size: 200% 200%;
+    animation: gradientBG 6s ease infinite;
+  }
+
+  /* 3D card effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .card-3d:hover {
+    transform: perspective(1000px) rotateY(5deg) rotateX(5deg) translateZ(10px);
+    box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.2);
+  }
+
+  /* Web3 button glow */
+  .web3-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .web3-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+  }
+
+  .web3-btn:hover::before {
+    opacity: 1;
+  }
+
+  .web3-btn:hover {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+    transform: translateY(-2px);
+  }
+
+  /* Floating animation for 3D icons */
+  .float-element {
+    animation: floatAnim 4s ease-in-out infinite;
+  }
+
+  /* Glowing text */
+  .glow-text {
+    animation: glow 3s ease-in-out infinite;
   }
 
   h1, h2, h3, h4, h5, h6, p, span, a {
@@ -25,5 +121,13 @@
 
   .prose p {
     @apply text-white/90;
+  }
+  
+  /* Cyber grid background */
+  .cyber-grid {
+    background-image: 
+      linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }

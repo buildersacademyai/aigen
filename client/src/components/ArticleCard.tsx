@@ -79,7 +79,7 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
 
   return (
     <Card 
-      className="overflow-hidden transition-transform hover:scale-[1.02] relative"
+      className="overflow-hidden relative neon-border bg-background/40 backdrop-blur-sm"
       onClick={() => !showActions && setLocation(`/article/${article.id}`)}
     >
       {/* Verified Badge */}
@@ -94,23 +94,26 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
           <img
             src={thumbnailUrl || imageUrl}
             alt={article.title}
-            className="object-cover w-full h-full"
+            className="object-cover w-full h-full rounded-t-md"
             onError={() => handleImageError(!!thumbnailUrl)}
           />
         </AspectRatio>
       </CardHeader>
-      <CardContent className="p-4">
-        <h3 className="text-xl font-bold mb-2">{article.title}</h3>
-        <p className="text-muted-foreground line-clamp-3">{article.description}</p>
+      <CardContent className="p-5">
+        <h3 className="text-xl font-bold mb-3 text-white/90">{article.title}</h3>
+        <p className="text-muted-foreground line-clamp-3 text-white/70">{article.description}</p>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-5 pt-0">
         <div className="text-sm text-muted-foreground flex items-center justify-between w-full">
-          <span>By {article.authoraddress ? `${article.authoraddress.slice(0, 6)}...${article.authoraddress.slice(-4)}` : 'Unknown'}</span>
+          <span className="bg-primary/10 py-1 px-2 rounded-md border border-primary/20">
+            {article.authoraddress ? `${article.authoraddress.slice(0, 6)}...${article.authoraddress.slice(-4)}` : 'Unknown'}
+          </span>
           {showActions && (
             <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
+                className="hover:border-primary/50 hover:text-primary"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onEdit?.(article);
@@ -130,7 +133,7 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
               </Button>
               <Button
                 size="sm"
-                variant="default"
+                className="web3-btn"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onPublish?.(article);

@@ -5,6 +5,22 @@ import { useState, useEffect } from "react";
 import { connectWallet } from "@/lib/web3";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CreateArticleForm } from "@/components/CreateArticleForm";
+import { Brain, Braces, File, Box, Wallet, Plus, User2 } from "lucide-react";
+import { motion } from "framer-motion";
+
+const LOGO_3D = () => (
+  <div className="relative flex items-center">
+    <Box className="w-8 h-8 text-primary mr-2 float-element" />
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="text-2xl font-bold glow-text tracking-wider"
+    >
+      AIGen
+    </motion.div>
+  </div>
+);
 
 export function Header() {
   const [address, setAddress] = useState<string | null>(null);
@@ -164,40 +180,57 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="text-2xl font-bold">
-          <Link href="/">AIGen</Link>
-        </div>
+    <header className="sticky top-0 z-50 border-border neon-border bg-background/95 backdrop-blur-md">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <Link href="/">
+          <LOGO_3D />
+        </Link>
 
         <nav className="flex items-center gap-6">
-          <Link href="/" className="text-foreground hover:text-primary">
-            Articles
+          <Link href="/" className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors">
+            <File className="w-4 h-4" />
+            <span>Articles</span>
           </Link>
-          <Link href="/mission" className="text-foreground hover:text-primary">
-            Mission/Vision
+          <Link href="/mission" className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors">
+            <Brain className="w-4 h-4" />
+            <span>Mission</span>
           </Link>
 
           {address ? (
             <div className="flex items-center gap-4">
-              <Button onClick={() => setIsCreateOpen(true)} variant="outline">
-                Create Article
+              <Button 
+                onClick={() => setIsCreateOpen(true)} 
+                className="web3-btn flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create</span>
               </Button>
-              <Link href="/profile" className="text-foreground hover:text-primary">
-                My Content
+              <Link 
+                href="/profile" 
+                className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors"
+              >
+                <User2 className="w-4 h-4" />
+                <span>My Content</span>
               </Link>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm bg-primary/10 py-1.5 px-3 rounded-md flex items-center border border-primary/30">
+                <Wallet className="w-4 h-4 mr-2 opacity-70" />
                 {`${address.slice(0, 6)}...${address.slice(-4)}`}
               </div>
             </div>
           ) : (
-            <Button onClick={handleConnect}>Login</Button>
+            <Button onClick={handleConnect} className="web3-btn flex items-center gap-1.5">
+              <Wallet className="w-4 h-4" />
+              <span>Connect Wallet</span>
+            </Button>
           )}
 
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogContent>
+            <DialogContent className="neon-border sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Create New Article</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <Braces className="w-5 h-5 text-primary" />
+                  <span>Create New Article</span>
+                </DialogTitle>
               </DialogHeader>
               <CreateArticleForm address={address || ""} onSuccess={() => setIsCreateOpen(false)} />
             </DialogContent>
