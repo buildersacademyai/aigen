@@ -112,33 +112,23 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
               className="object-cover w-full h-full transition-transform duration-700 hover:scale-110"
               onError={() => handleImageError(!!thumbnailUrl)}
             />
-            {/* Image Overlay with stronger gradient for title visibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
-            
-            {/* Title overlay on the image */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-              <h3 
-                className="text-xl font-bold mb-0 text-white drop-shadow-md"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
-                {article.title}
-              </h3>
-            </div>
+            {/* Subtle gradient overlay for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
           </div>
         </AspectRatio>
       </CardHeader>
-      <CardContent className="p-5 pt-3">
-        <p 
-          className="line-clamp-3 text-white/70"
-          style={{ fontFamily: "'Inter', sans-serif" }}
+      <CardContent className="p-5 pt-4">
+        <h3 
+          className="text-xl font-bold mb-2 text-white"
+          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
-          {article.description}
-        </p>
-      </CardContent>
-      <CardFooter className="p-5 pt-0">
-        <div className="text-sm flex items-center justify-between w-full">
+          {article.title}
+        </h3>
+        
+        {/* Author address */}
+        <div className="mb-3 flex items-center gap-1.5">
           <span 
-            className="py-1 px-2 rounded-md flex items-center gap-1"
+            className="py-1 px-2 rounded-md flex items-center gap-1 text-sm"
             style={{ 
               backgroundColor: "rgba(0, 209, 193, 0.1)",
               border: "1px solid rgba(0, 209, 193, 0.2)"
@@ -148,10 +138,23 @@ export function ArticleCard({ article, showActions, onEdit, onDelete, onPublish 
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: "var(--color-secondary)" }}
             ></span>
-            <span style={{ color: "var(--color-secondary)" }}>
+            <span style={{ color: "var(--color-secondary)", fontFamily: "'Inter', sans-serif" }}>
               {article.authoraddress ? `${article.authoraddress.slice(0, 6)}...${article.authoraddress.slice(-4)}` : 'Unknown'}
             </span>
           </span>
+        </div>
+        
+        <p 
+          className="line-clamp-2 text-white/70"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+        >
+          {article.description}
+        </p>
+      </CardContent>
+      <CardFooter className="p-5 pt-0">
+        <div className="text-sm flex items-center justify-between w-full">
+          {/* Empty span to keep the space - we moved the address above */}
+          <span></span>
           {showActions && (
             <div className="flex gap-2">
               <Button
