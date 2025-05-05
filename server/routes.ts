@@ -226,10 +226,17 @@ export function registerRoutes(app: Express): Server {
       console.log("Processing OpenAI speech generation request");
       const { model, voice, input } = req.body;
       
+      // Ensure the input isn't too long (OpenAI has a 4096 character limit)
+      const truncatedInput = typeof input === 'string' && input.length > 4000
+        ? input.slice(0, 4000) + "... The full article continues on the page."
+        : input;
+        
+      console.log(`Speech input length: ${truncatedInput.length} characters`);
+      
       const response = await openai.audio.speech.create({
         model: model || "tts-1",
         voice: voice || "alloy",
-        input
+        input: truncatedInput
       });
 
       // Convert the response to an audio buffer

@@ -88,18 +88,29 @@ const saveImage = async (imageUrl: string): Promise<string> => {
 
 const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration: number }> => {
   try {
+    // Get the first 4000 characters to avoid OpenAI API length limits
+    // This is approximately 600-800 words or 3-4 minutes of audio
+    const truncatedText = text.slice(0, 4000);
+    
+    // Add a note if we truncated the text
+    const finalText = truncatedText.length < text.length
+      ? truncatedText + " ... The full article continues on the page."
+      : truncatedText;
+    
+    console.log(`Generating audio for text of length: ${finalText.length} chars`);
+    
     // Generate speech using OpenAI (via our server proxy)
     const response = await openaiProxy.audio.speech.create({
       model: "tts-1",
       voice: "alloy",
-      input: text,
+      input: finalText,
     });
 
     // Convert the response to a blob
     const audioBlob = await response.blob();
 
     // For now, estimate duration based on word count (rough estimate)
-    const wordCount = text.split(/\s+/).length;
+    const wordCount = finalText.split(/\s+/).length;
     const estimatedDuration = Math.ceil(wordCount * 0.4); // Average speaking rate
 
     return {
