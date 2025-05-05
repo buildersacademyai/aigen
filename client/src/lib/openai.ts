@@ -202,7 +202,10 @@ interface ArticleGenerationResult {
 // This function will handle API errors gracefully
 export async function generateArticle(topic: string): Promise<ArticleGenerationResult> {
   try {
-    // First, gather related content
+    // First, gather related content using Google search API
+    emitProgress(GENERATION_EVENTS.SOURCES_GATHERING);
+    console.log('Searching for sources on topic:', topic);
+    
     const relatedContent = await gatherRelatedContent(topic);
     if (!relatedContent.length) {
       throw new Error("Could not find relevant source material for the topic");
@@ -211,6 +214,7 @@ export async function generateArticle(topic: string): Promise<ArticleGenerationR
     // Extract source links and prepare context
     const sourceLinks = relatedContent.map(result => result.link);
     console.log('Source links found:', sourceLinks);
+    console.log('Sources quality check:', relatedContent.map(s => `${s.title.substring(0, 30)}... (${s.link})`));
     emitProgress(GENERATION_EVENTS.SOURCES_FOUND);
 
     const context = relatedContent
