@@ -169,6 +169,7 @@ const saveAudio = async (audioBlob: Blob, articleId: number): Promise<{ url: str
 
 // Progress event emitter for generation steps
 export const GENERATION_EVENTS = {
+  SOURCES_GATHERING: 'sources_gathering',
   SOURCES_FOUND: 'sources_found',
   CONTENT_GENERATED: 'content_generated',
   IMAGE_CREATED: 'image_created',

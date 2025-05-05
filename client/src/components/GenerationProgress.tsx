@@ -3,7 +3,8 @@ import { Check, Loader2, AlertCircle } from 'lucide-react';
 import { generationProgress, GENERATION_EVENTS } from '@/lib/openai';
 
 const steps = [
-  { id: GENERATION_EVENTS.SOURCES_FOUND, label: 'Finding Sources' },
+  { id: GENERATION_EVENTS.SOURCES_GATHERING, label: 'Gathering Sources' },
+  { id: GENERATION_EVENTS.SOURCES_FOUND, label: 'Analyzing Sources' },
   { id: GENERATION_EVENTS.CONTENT_GENERATED, label: 'Generating Content' },
   { id: GENERATION_EVENTS.IMAGE_CREATED, label: 'Creating Image' },
   { id: GENERATION_EVENTS.ARTICLE_SAVED, label: 'Saving Article' },
