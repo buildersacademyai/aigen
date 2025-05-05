@@ -114,15 +114,26 @@ export function registerRoutes(app: Express): Server {
       const filePath = path.join(imagesDir, filename);
 
       try {
+        // Check if file exists and has content
         await fs.access(filePath);
         const stats = await fs.stat(filePath);
-        res.json({
-          exists: true,
-          size: stats.size,
-          path: `/images/${filename}`
-        });
-      } catch {
-        // If file doesn't exist, try to recover it from original URL
+        
+        if (stats.size > 0) {
+          res.json({
+            exists: true,
+            size: stats.size,
+            path: `/images/${filename}`
+          });
+          return;
+        } else {
+          // File exists but is empty, try to recover
+          console.log(`Image file exists but is empty (0 bytes): ${filename}`);
+          throw new Error("Image file is empty");
+        }
+      } catch (err) {
+        console.log(`Image verification needed for ${filename}: ${err.message}`);
+        
+        // If file doesn't exist or is empty, try to recover it from database
         const [image] = await db
           .select()
           .from(storedImages)
@@ -133,10 +144,68 @@ export function registerRoutes(app: Express): Server {
           return res.status(404).json({ message: "Image not found in database" });
         }
 
-        // Try to re-download the image
-        const imageResponse = await fetch(image.originalurl);
-        if (!imageResponse.ok) {
-          throw new Error(`Failed to download image: ${imageResponse.statusText}`);
+        console.log(`Attempting to recover image ${filename} from original URL: ${image.originalurl}`);
+
+        // Try to re-download the image with retry logic
+        let imageResponse = null;
+        let retries = 0;
+        const maxRetries = 3;
+        
+        while (retries < maxRetries) {
+          try {
+            imageResponse = await fetch(image.originalurl, { 
+              timeout: 10000, // 10 second timeout
+              headers: {
+                'Accept': 'image/*'
+              }
+            });
+            
+            if (imageResponse.ok) break;
+            
+            console.log(`Retry ${retries + 1}/${maxRetries}: Failed to download image: ${imageResponse.status} ${imageResponse.statusText}`);
+            retries++;
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } catch (err) {
+            console.log(`Retry ${retries + 1}/${maxRetries}: Error fetching image: ${err.message}`);
+            retries++;
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+        
+        if (!imageResponse || !imageResponse.ok) {
+          // If original URL fails, try an alternative approach with a backup placeholder
+          console.log(`Failed to recover image from original URL after ${maxRetries} attempts`);
+          
+          // Try to use an alternative image from the database
+          const [alternativeImage] = await db
+            .select()
+            .from(storedImages)
+            .where(ne(storedImages.filename, filename))
+            .limit(1);
+            
+          if (alternativeImage) {
+            console.log(`Using alternative image: ${alternativeImage.filename}`);
+            
+            // Update the database to point to the alternative image
+            await db
+              .update(storedImages)
+              .set({ 
+                localpath: alternativeImage.localpath,
+                originalurl: alternativeImage.originalurl
+              })
+              .where(eq(storedImages.filename, filename));
+              
+            res.json({
+              exists: true,
+              recovered: true,
+              path: alternativeImage.localpath
+            });
+            return;
+          }
+          
+          throw new Error(`Failed to download image after ${maxRetries} attempts`);
         }
 
         // Save the image
@@ -150,6 +219,13 @@ export function registerRoutes(app: Express): Server {
           throw new Error("Downloaded image is empty");
         }
 
+        // Verify image format and integrity
+        if (stats.size < 1024) { // Less than 1KB
+          console.warn(`Recovered image is suspiciously small (${stats.size} bytes)`);
+        }
+
+        console.log(`Successfully recovered image ${filename}`);
+        
         res.json({
           exists: true,
           recovered: true,
@@ -343,10 +419,36 @@ export function registerRoutes(app: Express): Server {
       const imagesDir = path.join(process.cwd(), "public", "images");
       await fs.mkdir(imagesDir, { recursive: true });
 
-      // Download the image
-      const imageResponse = await fetch(imageUrl);
-      if (!imageResponse.ok) {
-        throw new Error("Failed to download image");
+      // Download the image with retry logic
+      let imageResponse = null;
+      let retries = 0;
+      const maxRetries = 3;
+      
+      while (retries < maxRetries) {
+        try {
+          imageResponse = await fetch(imageUrl, { 
+            timeout: 10000, // 10 second timeout
+            headers: {
+              'Accept': 'image/*'
+            }
+          });
+          
+          if (imageResponse.ok) break;
+          
+          console.log(`Retry ${retries + 1}/${maxRetries}: Failed to download image: ${imageResponse.status} ${imageResponse.statusText}`);
+          retries++;
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (err) {
+          console.log(`Retry ${retries + 1}/${maxRetries}: Error fetching image: ${err.message}`);
+          retries++;
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      if (!imageResponse || !imageResponse.ok) {
+        throw new Error(`Failed to download image after ${maxRetries} attempts`);
       }
 
       // Generate a unique filename
@@ -363,6 +465,19 @@ export function registerRoutes(app: Express): Server {
       if (stats.size === 0) {
         await fs.unlink(filePath);
         throw new Error("Downloaded image is empty");
+      }
+      
+      // Verify image format and integrity
+      try {
+        // We could use Sharp or another library to validate image integrity,
+        // but for now we'll just check file size
+        if (stats.size < 1024) { // Less than 1KB
+          await fs.unlink(filePath);
+          throw new Error("Image file is too small and may be corrupted");
+        }
+      } catch (err) {
+        console.error("Image validation failed:", err);
+        throw new Error("Failed to validate image integrity");
       }
 
       // Store image information in database

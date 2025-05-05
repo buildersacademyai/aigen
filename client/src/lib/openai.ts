@@ -77,7 +77,7 @@ const openaiProxy = {
   }
 };
 
-const saveImage = async (imageUrl: string): Promise<string> => {
+const saveImage = async (imageUrl: string, articleId?: number): Promise<string> => {
   try {
     // Make the API call to save the image
     const response = await fetch('/api/images/save', {
@@ -85,11 +85,36 @@ const saveImage = async (imageUrl: string): Promise<string> => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ imageUrl }),
+      body: JSON.stringify({ 
+        imageUrl,
+        articleId // Include articleId if available
+      }),
     });
 
     if (!response.ok) {
       const error = await response.json();
+      // If the first attempt fails, try one more time
+      if (response.status >= 500) {
+        console.log('First image save attempt failed, retrying...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const retryResponse = await fetch('/api/images/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            imageUrl,
+            articleId
+          }),
+        });
+        
+        if (retryResponse.ok) {
+          const retryData = await retryResponse.json();
+          return retryData.url;
+        }
+      }
+      
       throw new Error(error.message || 'Failed to save image');
     }
 
@@ -279,8 +304,8 @@ Summary: ${result.snippet}
       throw new Error("No image URL received from OpenAI");
     }
 
-    // Save the image
-    const persistedImageUrl = await saveImage(imageResponse.data[0].url);
+    // First temporarily save the image
+    const tempImageUrl = await saveImage(imageResponse.data[0].url);
     emitProgress(GENERATION_EVENTS.IMAGE_CREATED);
 
     // Create the article with media content (without audio yet)
@@ -295,7 +320,7 @@ Summary: ${result.snippet}
         content: result.content,
         description: description,
         summary: result.summary || description,
-        imageurl: persistedImageUrl,
+        imageurl: tempImageUrl,
         videourl: "", // We'll skip video for now
         videoduration: 0,
         authoraddress: "0x0000000000000000000000000000000000000000", // Will be replaced with actual wallet address
