@@ -173,7 +173,7 @@ export function registerRoutes(app: Express): Server {
       const { model, messages, response_format } = req.body;
       
       const response = await openai.chat.completions.create({
-        model: model || "gpt-4",
+        model: model || "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
         messages,
         response_format
       });

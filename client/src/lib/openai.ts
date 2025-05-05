@@ -199,7 +199,7 @@ Summary: ${result.snippet}
 
     // Use the proxy to call OpenAI API via our secure server endpoint
     const response = await openaiProxy.chat.completions.create({
-      model: "gpt-3.5-turbo-0125", // This model supports JSON response format
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
