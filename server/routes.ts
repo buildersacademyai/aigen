@@ -27,6 +27,8 @@ const upload = multer({ storage });
 // Import OpenAI for server-side usage
 import OpenAI from "openai";
 
+
+
 export function registerRoutes(app: Express): Server {
   // Initialize OpenAI with server-side API key
   const openai = new OpenAI({
