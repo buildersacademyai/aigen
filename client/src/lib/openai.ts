@@ -279,14 +279,17 @@ Summary: ${result.snippet}
     emitProgress(GENERATION_EVENTS.IMAGE_CREATED);
 
     // Create the article with media content (without audio yet)
+    // Ensure we have a description to avoid db constraint violation
+    const description = result.description || result.summary || `Article about ${topic}`;
+    
     const articleResponse = await fetch("/api/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: result.title,
         content: result.content,
-        description: result.description,
-        summary: result.summary,
+        description: description,
+        summary: result.summary || description,
         imageurl: persistedImageUrl,
         videourl: "", // We'll skip video for now
         videoduration: 0,

@@ -6,10 +6,16 @@ interface SearchResult {
   link: string;
 }
 
-const GOOGLE_API_KEY = 'AIzaSyBbIWFgF0ruOD7Czjwk3IvlZK31CoZEMU8';
-const GOOGLE_CSE_ID = '017576662512468239146:omuauf_lfve'; // Using default CSE ID for now
+// Using environment variables for Google API credentials
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+const GOOGLE_CSE_ID = import.meta.env.VITE_GOOGLE_CSE_ID;
 
 export async function gatherRelatedContent(topic: string): Promise<SearchResult[]> {
+  // Validate API key and CSE ID are available
+  if (!GOOGLE_API_KEY || !GOOGLE_CSE_ID) {
+    console.warn('Google API credentials missing. Using fallback sources.');
+    return getFallbackSources(topic);
+  }
   try {
     console.log('Fetching related content for topic:', topic);
 

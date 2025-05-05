@@ -468,13 +468,24 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ message: "Wallet address is required to create articles" });
       }
 
+      // Validate and provide default values for required fields
+      const title = req.body.title || "Untitled Article";
+      const content = req.body.content || "Content pending...";
+      
+      // Ensure description is never null to avoid constraint violation
+      let description = req.body.description;
+      if (!description) {
+        description = req.body.summary || `Article by ${req.body.authoraddress}`;
+        console.log(`Provided default description: "${description}" for article with missing description`);
+      }
+
       const result = await db.insert(articles).values({
-        title: req.body.title,
-        content: req.body.content,
-        description: req.body.description,
-        summary: req.body.summary || req.body.description,
-        imageurl: req.body.imageurl,
-        thumbnailurl: req.body.thumbnailurl,
+        title: title,
+        content: content,
+        description: description,
+        summary: req.body.summary || description,
+        imageurl: req.body.imageurl || null,
+        thumbnailurl: req.body.thumbnailurl || null,
         videourl: req.body.videourl || '',
         audiourl: req.body.audiourl || '',
         audioduration: req.body.audioduration || null,
