@@ -182,7 +182,7 @@ export function registerRoutes(app: Express): Server {
           const [alternativeImage] = await db
             .select()
             .from(storedImages)
-            .where(ne(storedImages.filename, filename))
+            .where(sql`${storedImages.filename} != ${filename}`)
             .limit(1);
             
           if (alternativeImage) {

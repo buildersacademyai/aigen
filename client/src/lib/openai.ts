@@ -337,6 +337,29 @@ Summary: ${result.snippet}
     const article = await articleResponse.json();
     emitProgress(GENERATION_EVENTS.ARTICLE_SAVED);
 
+    // Now that we have the article ID, re-save the image with the article ID to ensure permanent linking
+    let finalImageUrl = tempImageUrl;
+    try {
+      // Re-save the image with the article ID for proper linking
+      console.log('Re-saving image with article ID:', article.id);
+      const persistedImageUrl = await saveImage(imageResponse.data[0].url, article.id);
+      finalImageUrl = persistedImageUrl;
+      
+      // Update the article with the properly linked image
+      await fetch(`/api/articles/${article.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageurl: persistedImageUrl
+        })
+      });
+      
+      console.log('Image permanently linked to article ID:', article.id);
+    } catch (imageError) {
+      console.warn('Failed to update article with permanent image link:', imageError);
+      // Continue with the temporary image URL if re-saving fails
+    }
+
     // Try to generate audio but don't fail the whole process if it times out
     try {
       // Generate audio with a timeout of 30 seconds
@@ -371,7 +394,7 @@ Summary: ${result.snippet}
         emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
         return {
           ...result,
-          imageUrl: persistedImageUrl,
+          imageUrl: finalImageUrl,
           videoUrl: "",
           videoDuration: 0,
           audioUrl: audio.url,
@@ -389,7 +412,7 @@ Summary: ${result.snippet}
     // Return the article without audio if audio generation failed
     return {
       ...result,
-      imageUrl: persistedImageUrl,
+      imageUrl: finalImageUrl,
       videoUrl: "",
       videoDuration: 0,
       audioUrl: "",  // No audio URL if generation failed
