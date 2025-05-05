@@ -26,37 +26,13 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
   const createArticle = useMutation({
     mutationFn: async (data: FormData) => {
       try {
-        // First generate the article
-        const article = await generateArticle(data.topic);
-        
-        // Then save it as draft - ensure property names match database columns
-        const response = await fetch("/api/articles", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: article.title,
-            content: article.content,
-            description: article.description,
-            imageurl: article.imageUrl,
-            thumbnailurl: article.thumbnailUrl,
-            videourl: article.videoUrl || '',
-            audiourl: article.audioUrl || '',  
-            audioduration: article.audioDuration || 0,  
-            authoraddress: address,  
-            signature: "", 
-            isdraft: true,
-            videoduration: 15,
-            hasbackgroundmusic: true,
-            sourcelinks: article.sourceLinks ? JSON.stringify(article.sourceLinks) : null // Ensure sourceLinks are included
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to create article");
-        }
-
-        return response.json();
+        // The generateArticle function now handles the entire process:
+        // 1. Generate content with OpenAI
+        // 2. Create image with DALL-E
+        // 3. Save article to database
+        // 4. Generate audio and update article
+        // So we just need to pass the topic
+        return await generateArticle(data.topic);
       } catch (error) {
         console.error("Article generation error:", error);
         

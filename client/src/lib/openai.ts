@@ -156,9 +156,24 @@ const emitProgress = (event: string) => {
   generationProgress.dispatchEvent(new CustomEvent(event));
 };
 
+// Define the article generation result interface
+interface ArticleGenerationResult {
+  title: string;
+  content: string;
+  description: string;
+  summary: string;
+  imageUrl: string;
+  thumbnailUrl?: string;
+  videoUrl: string;
+  videoDuration: number;
+  audioUrl: string;
+  audioDuration: number;
+  sourceLinks: string[];
+}
+
 // Define a more user-friendly function for article generation
 // This function will handle API errors gracefully
-export async function generateArticle(topic: string) {
+export async function generateArticle(topic: string): Promise<ArticleGenerationResult> {
   try {
     // First, gather related content
     const relatedContent = await gatherRelatedContent(topic);
@@ -182,8 +197,117 @@ Summary: ${result.snippet}
     // Add source links section to be included in the content
     const sourceLinksSection = `\n\n## Reference Sources\n${sourceLinks.map(link => `- ${link}`).join('\n')}`;
 
-    // Display a helpful error message about the API key issue
-    throw new Error("Our AI content generation service is currently experiencing technical difficulties. The administrator has been notified about the API key issue. Please try again later.");
+    // Use the proxy to call OpenAI API via our secure server endpoint
+    const response = await openaiProxy.chat.completions.create({
+      model: "gpt-4", // the newest OpenAI model available
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert content creator who writes engaging, informative articles. 
+          Your task is to create a comprehensive article about the given topic.
+          Use the provided context from reliable sources to inform your writing.
+          Create a well-structured article with a catchy title, introduction, main sections, and conclusion.
+          Include cited sources at the end of the article.`
+        },
+        {
+          role: "user",
+          content: `Create an article about "${topic}" based on the following source information:
+          ${context}
+          
+          Format the response as a JSON object with the following fields:
+          - title: A catchy and SEO-friendly title
+          - content: The complete article content in markdown format, including headings, paragraphs, and the provided source links section
+          - description: A short 1-2 sentence description of the article
+          - summary: A 3-4 sentence summary of the key points`
+        }
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    // Parse the JSON response
+    const result = JSON.parse(response.choices[0].message.content);
+    
+    // Ensure the content includes our source links section
+    if (!result.content.includes("Reference Sources")) {
+      result.content += sourceLinksSection;
+    }
+    
+    emitProgress(GENERATION_EVENTS.CONTENT_GENERATED);
+
+    // Generate image for the article using proxy
+    const imageResponse = await openaiProxy.images.generate({
+      model: "dall-e-3",
+      prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
+      n: 1,
+      size: "1024x1024",
+      quality: "standard",
+    });
+
+    if (!imageResponse.data[0]?.url) {
+      throw new Error("No image URL received from OpenAI");
+    }
+
+    // Save the image
+    const persistedImageUrl = await saveImage(imageResponse.data[0].url);
+    emitProgress(GENERATION_EVENTS.IMAGE_CREATED);
+
+    // Generate audio for the article content
+    const { audioBlob, duration } = await generateAudio(result.content);
+
+    // Create the article with all media content
+    const articleResponse = await fetch("/api/articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: result.title,
+        content: result.content,
+        description: result.description,
+        summary: result.summary,
+        imageurl: persistedImageUrl,
+        videourl: "", // We'll skip video for now
+        videoduration: 0,
+        authoraddress: "0x0000000000000000000000000000000000000000", // Will be replaced with actual wallet address
+        signature: "",
+        isdraft: true,
+        sourcelinks: JSON.stringify(sourceLinks)
+      })
+    });
+
+    if (!articleResponse.ok) {
+      throw new Error("Failed to create article");
+    }
+
+    const article = await articleResponse.json();
+    emitProgress(GENERATION_EVENTS.ARTICLE_SAVED);
+
+    // Save the audio with the article ID
+    const audio = await saveAudio(audioBlob, article.id);
+    emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
+
+    // Update the article with audio information
+    const updateResponse = await fetch(`/api/articles/${article.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        audiourl: audio.url,
+        audioduration: audio.duration,
+        sourcelinks: JSON.stringify(sourceLinks)
+      })
+    });
+
+    if (!updateResponse.ok) {
+      throw new Error("Failed to update article with audio information");
+    }
+
+    return {
+      ...result,
+      imageUrl: persistedImageUrl,
+      videoUrl: "",
+      videoDuration: 0,
+      audioUrl: audio.url,
+      audioDuration: audio.duration,
+      sourceLinks
+    };
   } catch (error) {
     console.error('Article generation error:', error);
     throw new Error(`Failed to generate article: ${error instanceof Error ? error.message : 'Unknown error'}`);
