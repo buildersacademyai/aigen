@@ -173,7 +173,7 @@ export function registerRoutes(app: Express): Server {
       const { model, messages, response_format } = req.body;
       
       const response = await openai.chat.completions.create({
-        model: model || "gpt-4o",
+        model: model || "gpt-4",
         messages,
         response_format
       });
