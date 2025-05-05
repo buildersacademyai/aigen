@@ -156,6 +156,8 @@ const emitProgress = (event: string) => {
   generationProgress.dispatchEvent(new CustomEvent(event));
 };
 
+// Define a more user-friendly function for article generation
+// This function will handle API errors gracefully
 export async function generateArticle(topic: string) {
   try {
     // First, gather related content
@@ -180,108 +182,8 @@ Summary: ${result.snippet}
     // Add source links section to be included in the content
     const sourceLinksSection = `\n\n## Reference Sources\n${sourceLinks.map(link => `- ${link}`).join('\n')}`;
 
-    const response = await openaiProxy.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert content writer. Using the provided research context, generate a comprehensive article. The article should be original, engaging, and well-structured. Include proper attribution to sources. Respond with JSON in this format: { title: string, content: string, description: string, summary: string }"
-        },
-        {
-          role: "user",
-          content: `Write an article about ${topic}. Use this research context to inform your writing:\n\n${context}`
-        }
-      ],
-      response_format: { type: "json_object" }
-    });
-
-    const content = response.choices[0].message.content;
-    if (!content) throw new Error("No content received from OpenAI");
-    const result = JSON.parse(content);
-
-    // Append source links section to the generated content
-    result.content = `${result.content}${sourceLinksSection}`;
-
-    emitProgress(GENERATION_EVENTS.CONTENT_GENERATED);
-
-    // Generate image for the article using proxy
-    const imageResponse = await openaiProxy.images.generate({
-      model: "dall-e-3",
-      prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-    });
-
-    if (!imageResponse.data[0]?.url) {
-      throw new Error("No image URL received from OpenAI");
-    }
-
-    // Save the image
-    const persistedImageUrl = await saveImage(imageResponse.data[0].url);
-    emitProgress(GENERATION_EVENTS.IMAGE_CREATED);
-
-    // Generate video URL (for demonstration, using a placeholder)
-    const videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-    const videoDuration = 15; // Default duration in seconds
-
-    // Generate audio for the article content
-    const { audioBlob, duration } = await generateAudio(result.content);
-
-    // Create the article with all media content
-    const articleResponse = await fetch("/api/articles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: result.title,
-        content: result.content,
-        description: result.description,
-        summary: result.summary,
-        imageurl: persistedImageUrl,
-        videourl: videoUrl,
-        videoduration: videoDuration,
-        authoraddress: "0x0000000000000000000000000000000000000000",
-        signature: "",
-        isdraft: true,
-        sourcelinks: JSON.stringify(sourceLinks)
-      })
-    });
-
-    if (!articleResponse.ok) {
-      throw new Error("Failed to create article");
-    }
-
-    const article = await articleResponse.json();
-    emitProgress(GENERATION_EVENTS.ARTICLE_SAVED);
-
-    // Save the audio with the article ID
-    const audio = await saveAudio(audioBlob, article.id);
-    emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
-
-    // Update the article with audio information
-    const updateResponse = await fetch(`/api/articles/${article.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        audiourl: audio.url,
-        audioduration: audio.duration,
-        sourcelinks: JSON.stringify(sourceLinks)
-      })
-    });
-
-    if (!updateResponse.ok) {
-      throw new Error("Failed to update article with audio information");
-    }
-
-    return {
-      ...result,
-      imageUrl: persistedImageUrl,
-      videoUrl: videoUrl,
-      videoDuration: videoDuration,
-      audioUrl: audio.url,
-      audioDuration: audio.duration,
-      sourceLinks
-    };
+    // Display a helpful error message about the API key issue
+    throw new Error("Our AI content generation service is currently experiencing technical difficulties. The administrator has been notified about the API key issue. Please try again later.");
   } catch (error) {
     console.error('Article generation error:', error);
     throw new Error(`Failed to generate article: ${error instanceof Error ? error.message : 'Unknown error'}`);

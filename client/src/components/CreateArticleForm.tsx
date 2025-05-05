@@ -25,37 +25,51 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
   const createArticle = useMutation({
     mutationFn: async (data: FormData) => {
-      // First generate the article
-      const article = await generateArticle(data.topic);
+      try {
+        // First generate the article
+        const article = await generateArticle(data.topic);
+        
+        // Then save it as draft - ensure property names match database columns
+        const response = await fetch("/api/articles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: article.title,
+            content: article.content,
+            description: article.description,
+            imageurl: article.imageUrl,
+            thumbnailurl: article.thumbnailUrl,
+            videourl: article.videoUrl || '',
+            audiourl: article.audioUrl || '',  
+            audioduration: article.audioDuration || 0,  
+            authoraddress: address,  
+            signature: "", 
+            isdraft: true,
+            videoduration: 15,
+            hasbackgroundmusic: true,
+            sourcelinks: article.sourceLinks ? JSON.stringify(article.sourceLinks) : null // Ensure sourceLinks are included
+          })
+        });
 
-      // Then save it as draft - ensure property names match database columns
-      const response = await fetch("/api/articles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: article.title,
-          content: article.content,
-          description: article.description,
-          imageurl: article.imageUrl,
-          thumbnailurl: article.thumbnailUrl,
-          videourl: article.videoUrl || '',
-          audiourl: article.audioUrl || '',  
-          audioduration: article.audioDuration || 0,  
-          authoraddress: address,  
-          signature: "", 
-          isdraft: true,
-          videoduration: 15,
-          hasbackgroundmusic: true,
-          sourcelinks: article.sourceLinks ? JSON.stringify(article.sourceLinks) : null // Ensure sourceLinks are included
-        })
-      });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create article");
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create article");
+        return response.json();
+      } catch (error) {
+        console.error("Article generation error:", error);
+        
+        // Provide a more user-friendly error message for API key issues
+        if (error instanceof Error && 
+            (error.message.includes("API key") || 
+             error.message.includes("401"))) {
+          throw new Error("There's an issue with the API configuration. Please contact the administrator as the API key needs to be updated.");
+        }
+        
+        // Re-throw the original error for other cases
+        throw error;
       }
-
-      return response.json();
     },
     onSuccess: (data) => {
       // Invalidate both drafts and published articles queries
