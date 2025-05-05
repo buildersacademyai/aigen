@@ -199,7 +199,7 @@ Summary: ${result.snippet}
 
     // Use the proxy to call OpenAI API via our secure server endpoint
     const response = await openaiProxy.chat.completions.create({
-      model: "gpt-4", // the newest OpenAI model available
+      model: "gpt-3.5-turbo-0125", // This model supports JSON response format
       messages: [
         {
           role: "system",

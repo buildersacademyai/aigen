@@ -48,6 +48,7 @@
     "@types/helmet": "^0.0.48",
     "@types/multer": "^1.4.12",
     "axios": "^1.7.9",
+    "caniuse-lite": "^1.0.30001717",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
