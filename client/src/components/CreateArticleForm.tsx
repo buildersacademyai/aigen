@@ -8,6 +8,7 @@ import { generateArticle } from "@/lib/openai";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { GenerationProgress } from "@/components/GenerationProgress";
 
 interface CreateArticleFormProps {
   address: string;
@@ -52,10 +53,17 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
       queryClient.invalidateQueries({ queryKey: [`/api/articles/drafts/${address}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
 
+      // Check if the article has audio
+      const hasAudio = data.audioUrl && data.audioUrl.length > 0;
+
       toast({
-        title: "Success",
-        description: "Article created and saved as draft"
+        title: hasAudio ? "Success" : "Partial Success",
+        description: hasAudio 
+          ? "Article created with text, image, and audio narration" 
+          : "Article created with text and image (audio generation was skipped)",
+        variant: hasAudio ? "default" : "destructive"
       });
+      
       form.reset();
       onSuccess?.();
     },
@@ -85,13 +93,7 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
     createArticle.mutate(data);
   });
 
-  const steps = [
-    { id: 1, title: "Gathering relevant content" },
-    { id: 2, title: "Generating article content" },
-    { id: 3, title: "Creating article image" },
-    { id: 4, title: "Generating audio narration" },
-    { id: 5, title: "Saving as draft" }
-  ];
+  // We're now using the GenerationProgress component which tracks steps via events
 
   return (
     <Form {...form}>
@@ -113,20 +115,10 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
+            className="space-y-4 border p-4 rounded-lg bg-background/60 shadow-sm"
           >
-            {steps.map((step, index) => (
-              <motion.div
-                key={step.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.2 }}
-                className="flex items-center gap-3 text-sm text-muted-foreground"
-              >
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {step.title}
-              </motion.div>
-            ))}
+            <h3 className="text-sm font-medium">Generation Progress</h3>
+            <GenerationProgress />
           </motion.div>
         )}
 
