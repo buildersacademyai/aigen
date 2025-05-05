@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, AlertCircle } from 'lucide-react';
 import { generationProgress, GENERATION_EVENTS } from '@/lib/openai';
 
 const steps = [
@@ -12,11 +12,18 @@ const steps = [
 
 export function GenerationProgress() {
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [failedSteps, setFailedSteps] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const handleProgress = (event: Event) => {
       const customEvent = event as CustomEvent;
-      setCompletedSteps(prev => new Set([...prev, customEvent.type]));
+      
+      // Handle audio failure separately
+      if (customEvent.type === GENERATION_EVENTS.AUDIO_FAILED) {
+        setFailedSteps(prev => new Set([...prev, GENERATION_EVENTS.AUDIO_CREATED]));
+      } else {
+        setCompletedSteps(prev => new Set([...prev, customEvent.type]));
+      }
     };
 
     // Add listeners for all generation events
@@ -36,7 +43,8 @@ export function GenerationProgress() {
     <div className="space-y-2">
       {steps.map((step, index) => {
         const isCompleted = completedSteps.has(step.id);
-        const isInProgress = !isCompleted && 
+        const isFailed = failedSteps.has(step.id);
+        const isInProgress = !isCompleted && !isFailed && 
           (index === 0 || completedSteps.has(steps[index - 1].id));
 
         return (
@@ -45,6 +53,8 @@ export function GenerationProgress() {
             className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
               isCompleted
                 ? 'text-green-500 bg-green-500/10'
+                : isFailed
+                ? 'text-amber-500 bg-amber-500/10'
                 : isInProgress
                 ? 'text-primary bg-primary/10'
                 : 'text-muted-foreground'
@@ -53,13 +63,19 @@ export function GenerationProgress() {
             <div className="w-5 h-5 flex items-center justify-center">
               {isCompleted ? (
                 <Check className="w-4 h-4 animate-in zoom-in-50 duration-300" />
+              ) : isFailed ? (
+                <AlertCircle className="w-4 h-4 animate-in zoom-in-50 duration-300" />
               ) : isInProgress ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <div className="w-2 h-2 rounded-full bg-current opacity-50" />
               )}
             </div>
-            <span className="text-sm font-medium">{step.label}</span>
+            <span className="text-sm font-medium">
+              {step.label}
+              {isFailed && step.id === GENERATION_EVENTS.AUDIO_CREATED && 
+               " (Skipped - Continuing without audio)"}
+            </span>
           </div>
         );
       })}

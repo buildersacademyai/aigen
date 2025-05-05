@@ -258,7 +258,13 @@ export function registerRoutes(app: Express): Server {
         res.send(buffer);
       } catch (innerError) {
         // Handle the inner try/catch errors specifically for timeout and abort errors
-        if (innerError.name === 'AbortError' || innerError.message.includes('timeout')) {
+        const errorName = innerError && typeof innerError === 'object' && 'name' in innerError 
+          ? innerError.name : '';
+          
+        const errorMessage = innerError && typeof innerError === 'object' && 'message' in innerError 
+          ? innerError.message : String(innerError);
+          
+        if (errorName === 'AbortError' || errorMessage.includes('timeout')) {
           res.status(503).json({
             message: "Request timed out when generating speech",
             code: "timeout_error"

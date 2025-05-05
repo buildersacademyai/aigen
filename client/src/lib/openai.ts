@@ -42,21 +42,36 @@ const openaiProxy = {
   },
   audio: {
     speech: {
-      create: async (params: any) => {
-        const response = await fetch('/api/openai/speech', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(params),
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'OpenAI API error');
+      create: async (params: any, options?: { signal?: AbortSignal }) => {
+        try {
+          const response = await fetch('/api/openai/speech', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params),
+            signal: options?.signal
+          });
+          
+          if (!response.ok) {
+            // Try to parse the error as JSON
+            try {
+              const error = await response.json();
+              throw new Error(error.message || `Speech generation failed with status ${response.status}`);
+            } catch (jsonError) {
+              // If parsing failed, use a generic error message
+              throw new Error(`Speech generation failed with status ${response.status}`);
+            }
+          }
+          
+          return response;
+        } catch (error) {
+          const errorName = error && typeof error === 'object' && 'name' in error ? error.name : '';
+          if (errorName === 'AbortError') {
+            throw new Error('Speech generation request was aborted due to timeout');
+          }
+          throw error;
         }
-        
-        return response;
       }
     }
   }
@@ -158,6 +173,7 @@ export const GENERATION_EVENTS = {
   CONTENT_GENERATED: 'content_generated',
   IMAGE_CREATED: 'image_created',
   AUDIO_CREATED: 'audio_created',
+  AUDIO_FAILED: 'audio_failed',
   ARTICLE_SAVED: 'article_saved',
 };
 
@@ -332,6 +348,8 @@ Summary: ${result.snippet}
       }
     } catch (audioError) {
       console.warn('Audio generation failed, continuing without audio:', audioError);
+      // Emit a failure event so the UI can update accordingly
+      emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
       // Continue without audio, the article is still created successfully
     }
 
