@@ -1,11 +1,66 @@
-import OpenAI from "openai";
 import { gatherRelatedContent } from './scraper';
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // Required for client-side usage
-});
+// Create a safer proxy version of the OpenAI client that uses our server-side endpoints
+const openaiProxy = {
+  chat: {
+    completions: {
+      create: async (params: any) => {
+        const response = await fetch('/api/openai/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(params),
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'OpenAI API error');
+        }
+        
+        return response.json();
+      }
+    }
+  },
+  images: {
+    generate: async (params: any) => {
+      const response = await fetch('/api/openai/images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'OpenAI API error');
+      }
+      
+      return response.json();
+    }
+  },
+  audio: {
+    speech: {
+      create: async (params: any) => {
+        const response = await fetch('/api/openai/speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(params),
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'OpenAI API error');
+        }
+        
+        return response;
+      }
+    }
+  }
+};
 
 const saveImage = async (imageUrl: string): Promise<string> => {
   try {
@@ -33,15 +88,15 @@ const saveImage = async (imageUrl: string): Promise<string> => {
 
 const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration: number }> => {
   try {
-    // Generate speech using OpenAI
-    const response = await openai.audio.speech.create({
+    // Generate speech using OpenAI (via our server proxy)
+    const response = await openaiProxy.audio.speech.create({
       model: "tts-1",
       voice: "alloy",
       input: text,
     });
 
     // Convert the response to a blob
-    const audioBlob = new Blob([await response.arrayBuffer()], { type: 'audio/mpeg' });
+    const audioBlob = await response.blob();
 
     // For now, estimate duration based on word count (rough estimate)
     const wordCount = text.split(/\s+/).length;
@@ -125,7 +180,7 @@ Summary: ${result.snippet}
     // Add source links section to be included in the content
     const sourceLinksSection = `\n\n## Reference Sources\n${sourceLinks.map(link => `- ${link}`).join('\n')}`;
 
-    const response = await openai.chat.completions.create({
+    const response = await openaiProxy.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
@@ -149,13 +204,13 @@ Summary: ${result.snippet}
 
     emitProgress(GENERATION_EVENTS.CONTENT_GENERATED);
 
-    // Generate image for the article
-    const imageResponse = await openai.images.generate({
+    // Generate image for the article using proxy
+    const imageResponse = await openaiProxy.images.generate({
       model: "dall-e-3",
       prompt: `Create a high-quality, professional image that represents an article about ${topic}. Make it visually striking and memorable, with clear subject matter and good composition. Style: modern, professional, editorial.`,
       n: 1,
       size: "1024x1024",
-      quality: "hd",
+      quality: "standard",
     });
 
     if (!imageResponse.data[0]?.url) {

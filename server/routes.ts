@@ -24,7 +24,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Import OpenAI for server-side usage
+import OpenAI from "openai";
+
 export function registerRoutes(app: Express): Server {
+  // Initialize OpenAI with server-side API key
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY,
+  });
+
   // Ensure public directories exist
   const setupDirectories = async () => {
     const dirs = [
@@ -151,6 +159,95 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({
         message: "Failed to verify image",
         error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // OpenAI Proxy Endpoints
+  // Create completions endpoint
+  app.post("/api/openai/completions", async (req, res) => {
+    try {
+      console.log("Processing OpenAI completions request");
+      const { model, messages, response_format } = req.body;
+      
+      const response = await openai.chat.completions.create({
+        model: model || "gpt-4o",
+        messages,
+        response_format
+      });
+      
+      res.json(response);
+    } catch (error) {
+      console.error("OpenAI completions error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorStatus = error && typeof error === 'object' && 'status' in error ? (error.status as number) : 500;
+      const errorCode = error && typeof error === 'object' && 'code' in error ? error.code : "unknown_error";
+      
+      res.status(errorStatus).json({
+        message: errorMessage || "Failed to generate completions",
+        code: errorCode
+      });
+    }
+  });
+
+  // Create images endpoint
+  app.post("/api/openai/images", async (req, res) => {
+    try {
+      console.log("Processing OpenAI image generation request");
+      const { prompt, model, n, size, quality } = req.body;
+      
+      const response = await openai.images.generate({
+        model: model || "dall-e-3",
+        prompt,
+        n: n || 1,
+        size: size || "1024x1024",
+        quality: quality || "standard"
+      });
+      
+      res.json(response);
+    } catch (error) {
+      console.error("OpenAI image generation error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorStatus = error && typeof error === 'object' && 'status' in error ? (error.status as number) : 500;
+      const errorCode = error && typeof error === 'object' && 'code' in error ? error.code : "unknown_error";
+      
+      res.status(errorStatus).json({
+        message: errorMessage || "Failed to generate image",
+        code: errorCode
+      });
+    }
+  });
+
+  // Create speech endpoint
+  app.post("/api/openai/speech", async (req, res) => {
+    try {
+      console.log("Processing OpenAI speech generation request");
+      const { model, voice, input } = req.body;
+      
+      const response = await openai.audio.speech.create({
+        model: model || "tts-1",
+        voice: voice || "alloy",
+        input
+      });
+
+      // Convert the response to an audio buffer
+      const buffer = Buffer.from(await response.arrayBuffer());
+      
+      // Set appropriate headers for audio streaming
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Length', buffer.length);
+      
+      // Send the audio data
+      res.send(buffer);
+    } catch (error) {
+      console.error("OpenAI speech generation error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorStatus = error && typeof error === 'object' && 'status' in error ? (error.status as number) : 500;
+      const errorCode = error && typeof error === 'object' && 'code' in error ? error.code : "unknown_error";
+      
+      res.status(errorStatus).json({
+        message: errorMessage || "Failed to generate speech",
+        code: errorCode
       });
     }
   });
