@@ -262,10 +262,7 @@ Summary: ${result.snippet}
     const persistedImageUrl = await saveImage(imageResponse.data[0].url);
     emitProgress(GENERATION_EVENTS.IMAGE_CREATED);
 
-    // Generate audio for the article content
-    const { audioBlob, duration } = await generateAudio(result.content);
-
-    // Create the article with all media content
+    // Create the article with media content (without audio yet)
     const articleResponse = await fetch("/api/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -291,32 +288,61 @@ Summary: ${result.snippet}
     const article = await articleResponse.json();
     emitProgress(GENERATION_EVENTS.ARTICLE_SAVED);
 
-    // Save the audio with the article ID
-    const audio = await saveAudio(audioBlob, article.id);
-    emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
+    // Try to generate audio but don't fail the whole process if it times out
+    try {
+      // Generate audio with a timeout of 30 seconds
+      const audioPromise = generateAudio(result.content);
+      
+      // Set up a timeout
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Audio generation timed out')), 30000)
+      );
 
-    // Update the article with audio information
-    const updateResponse = await fetch(`/api/articles/${article.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        audiourl: audio.url,
-        audioduration: audio.duration,
-        sourcelinks: JSON.stringify(sourceLinks)
-      })
-    });
+      // Race between the audio generation and the timeout
+      const audioResult = await Promise.race([
+        audioPromise,
+        timeoutPromise
+      ]);
 
-    if (!updateResponse.ok) {
-      throw new Error("Failed to update article with audio information");
+      // If we got here, audio was successfully generated
+      const audio = await saveAudio(audioResult.audioBlob, article.id);
+      
+      // Update the article with audio information
+      const updateResponse = await fetch(`/api/articles/${article.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audiourl: audio.url,
+          audioduration: audio.duration,
+          sourcelinks: JSON.stringify(sourceLinks)
+        })
+      });
+
+      if (updateResponse.ok) {
+        emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
+        return {
+          ...result,
+          imageUrl: persistedImageUrl,
+          videoUrl: "",
+          videoDuration: 0,
+          audioUrl: audio.url,
+          audioDuration: audio.duration,
+          sourceLinks
+        };
+      }
+    } catch (audioError) {
+      console.warn('Audio generation failed, continuing without audio:', audioError);
+      // Continue without audio, the article is still created successfully
     }
 
+    // Return the article without audio if audio generation failed
     return {
       ...result,
       imageUrl: persistedImageUrl,
       videoUrl: "",
       videoDuration: 0,
-      audioUrl: audio.url,
-      audioDuration: audio.duration,
+      audioUrl: "",  // No audio URL if generation failed
+      audioDuration: 0,
       sourceLinks
     };
   } catch (error) {

@@ -233,31 +233,54 @@ export function registerRoutes(app: Express): Server {
         
       console.log(`Speech input length: ${truncatedInput.length} characters`);
       
-      const response = await openai.audio.speech.create({
-        model: model || "tts-1",
-        voice: voice || "alloy",
-        input: truncatedInput
-      });
+      // Set a 25-second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+      
+      try {
+        const response = await openai.audio.speech.create({
+          model: model || "tts-1",
+          voice: voice || "alloy",
+          input: truncatedInput
+        }, { signal: controller.signal });
 
-      // Convert the response to an audio buffer
-      const buffer = Buffer.from(await response.arrayBuffer());
-      
-      // Set appropriate headers for audio streaming
-      res.setHeader('Content-Type', 'audio/mpeg');
-      res.setHeader('Content-Length', buffer.length);
-      
-      // Send the audio data
-      res.send(buffer);
+        // Clear the timeout since we got a response
+        clearTimeout(timeoutId);
+
+        // Convert the response to an audio buffer
+        const buffer = Buffer.from(await response.arrayBuffer());
+        
+        // Set appropriate headers for audio streaming
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Content-Length', buffer.length);
+        
+        // Send the audio data
+        res.send(buffer);
+      } catch (innerError) {
+        // Handle the inner try/catch errors specifically for timeout and abort errors
+        if (innerError.name === 'AbortError' || innerError.message.includes('timeout')) {
+          res.status(503).json({
+            message: "Request timed out when generating speech",
+            code: "timeout_error"
+          });
+        } else {
+          // Pass the error to the outer catch block
+          throw innerError;
+        }
+      }
     } catch (error) {
       console.error("OpenAI speech generation error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      const errorStatus = error && typeof error === 'object' && 'status' in error ? (error.status as number) : 500;
-      const errorCode = error && typeof error === 'object' && 'code' in error ? error.code : "unknown_error";
-      
-      res.status(errorStatus).json({
-        message: errorMessage || "Failed to generate speech",
-        code: errorCode
-      });
+      // Make sure we don't try to send headers if they were already sent
+      if (!res.headersSent) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorStatus = error && typeof error === 'object' && 'status' in error ? (error.status as number) : 500;
+        const errorCode = error && typeof error === 'object' && 'code' in error ? error.code : "unknown_error";
+        
+        res.status(errorStatus).json({
+          message: errorMessage || "Failed to generate speech",
+          code: errorCode
+        });
+      }
     }
   });
 
