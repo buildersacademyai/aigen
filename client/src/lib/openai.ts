@@ -406,6 +406,15 @@ Summary: ${result.snippet}
     let audioDuration = 0;
     
     try {
+      // Check if we should skip audio generation due to previous API key failures
+      const skipAudio = localStorage.getItem('skip_audio_generation') === 'true';
+      if (skipAudio) {
+        console.log('Skipping audio generation due to previous API key failures');
+        emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
+        localStorage.setItem('last_audio_generation_status', 'skipped');
+        throw new Error('Audio generation skipped due to previous API key failures');
+      }
+      
       // Generate audio with a timeout of 30 seconds
       const audioPromise = generateAudio(result.content);
       
@@ -462,11 +471,14 @@ Summary: ${result.snippet}
       // Track the failure in localStorage for the form to check
       localStorage.setItem('last_audio_generation_status', 'failed');
       
-      // If we can determine it's an API key issue, log it clearly
+      // If we can determine it's an API key issue, log it clearly and set a skip flag
       if (audioError instanceof Error && 
           (audioError.message.includes('API key') || 
-           audioError.message.includes('401'))) {
+           audioError.message.includes('401') ||
+           audioError.message.includes('authentication'))) {
         console.error('AUDIO GENERATION FAILED: OpenAI API key issue - please update your API key');
+        // Set a flag to skip future audio generation attempts until fixed
+        localStorage.setItem('skip_audio_generation', 'true');
       }
       
       // Continue without audio, the article is still created successfully
