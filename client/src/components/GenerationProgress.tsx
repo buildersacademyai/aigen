@@ -21,7 +21,16 @@ export function GenerationProgress() {
       
       // Handle audio failure separately
       if (customEvent.type === GENERATION_EVENTS.AUDIO_FAILED) {
+        // Check if it was skipped due to API key issues
+        const wasApiKeyIssue = localStorage.getItem('skip_audio_generation') === 'true';
+        
+        // Add to failed steps, but we'll show a special message for API key issues
         setFailedSteps(prev => new Set([...prev, GENERATION_EVENTS.AUDIO_CREATED]));
+        
+        // Store that this was an API key issue if applicable
+        if (wasApiKeyIssue) {
+          localStorage.setItem('audio_failure_reason', 'api_key');
+        }
       } else {
         setCompletedSteps(prev => new Set([...prev, customEvent.type]));
       }
@@ -74,9 +83,20 @@ export function GenerationProgress() {
             </div>
             <span className="text-sm font-medium">
               {step.label}
-              {isFailed && step.id === GENERATION_EVENTS.AUDIO_CREATED && 
-               " (Skipped - Continuing without audio)"}
+              {isFailed && step.id === GENERATION_EVENTS.AUDIO_CREATED && (
+                localStorage.getItem('audio_failure_reason') === 'api_key' 
+                ? " (Skipped - API key issue)" 
+                : " (Skipped - Continuing without audio)"
+              )}
             </span>
+            
+            {/* Show explanation for API key issue */}
+            {isFailed && step.id === GENERATION_EVENTS.AUDIO_CREATED && 
+            localStorage.getItem('audio_failure_reason') === 'api_key' && (
+              <span className="text-xs text-orange-500 ml-2">
+                OpenAI API key needs to be updated
+              </span>
+            )}
           </div>
         );
       })}

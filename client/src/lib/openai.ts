@@ -246,6 +246,17 @@ export const GENERATION_EVENTS = {
 
 export const generationProgress = new EventTarget();
 
+/**
+ * Reset the audio skip flag if it was previously set
+ * Call this when you want to try audio generation again, such as after updating API keys
+ */
+export function resetAudioGenerationFlag() {
+  localStorage.removeItem('skip_audio_generation');
+  localStorage.removeItem('last_audio_generation_status');
+  console.log('Audio generation skip flag has been reset. Will attempt audio generation on next article creation.');
+  return true;
+}
+
 const emitProgress = (event: string) => {
   generationProgress.dispatchEvent(new CustomEvent(event));
 };
