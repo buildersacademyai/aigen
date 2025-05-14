@@ -226,7 +226,7 @@ interface ArticleGenerationResult {
 
 // Define a more user-friendly function for article generation
 // This function will handle API errors gracefully
-export async function generateArticle(topic: string): Promise<ArticleGenerationResult> {
+export async function generateArticle(topic: string, authorAddress?: string): Promise<ArticleGenerationResult> {
   try {
     // First, gather related content using Google search API
     emitProgress(GENERATION_EVENTS.SOURCES_GATHERING);
@@ -323,7 +323,7 @@ Summary: ${result.snippet}
         imageurl: tempImageUrl,
         videourl: "", // We'll skip video for now
         videoduration: 0,
-        authoraddress: localStorage.getItem('wallet-address') || "0x0000000000000000000000000000000000000000",
+        authoraddress: authorAddress || localStorage.getItem('wallet-address') || "0x0000000000000000000000000000000000000000",
         signature: "",
         isdraft: true,
         sourcelinks: JSON.stringify(sourceLinks)

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArticleCard } from "@/components/ArticleCard";
@@ -18,9 +18,17 @@ export function Profile({ address }: ProfileProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Use useQuery to fetch draft articles
   const { data: drafts, isLoading: draftsLoading } = useQuery<SelectArticle[]>({
     queryKey: [`/api/articles/drafts/${address}`],
   });
+  
+  // For debugging, log drafts when they change
+  useEffect(() => {
+    if (drafts) {
+      console.log(`Fetched ${drafts.length} drafts for address: ${address}`);
+    }
+  }, [drafts, address]);
 
   const { data: published, isLoading: publishedLoading } = useQuery<SelectArticle[]>({
     queryKey: [`/api/articles/published/${address}`],
@@ -43,8 +51,8 @@ export function Profile({ address }: ProfileProps) {
         description: "Article deleted successfully",
       });
       // Invalidate both drafts and published queries to refresh the lists
-      queryClient.invalidateQueries([`/api/articles/drafts/${address}`]);
-      queryClient.invalidateQueries([`/api/articles/published/${address}`]);
+      queryClient.invalidateQueries({ queryKey: [`/api/articles/drafts/${address}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/articles/published/${address}`] });
     },
     onError: (error) => {
       toast({

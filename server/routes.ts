@@ -572,16 +572,44 @@ export function registerRoutes(app: Express): Server {
   // Get user's draft articles
   app.get("/api/articles/drafts/:address", async (req, res) => {
     try {
+      const address = req.params.address;
+      
+      // Validate that we have a non-empty address
+      if (!address || address.trim() === "") {
+        return res.status(400).json({ message: "Invalid or missing wallet address" });
+      }
+      
+      console.log(`Fetching draft articles for address: ${address}`);
+      
+      // Query the database for drafts
       const results = await db
         .select()
         .from(articles)
         .where(and(
           eq(articles.isdraft, true),
-          eq(articles.authoraddress, req.params.address)
+          eq(articles.authoraddress, address)
         ))
         .orderBy(desc(articles.createdat));
+      
+      console.log(`Found ${results.length} draft articles for address: ${address}`);
+      
+      // Check if we have zero results and log all drafts for debugging
+      if (results.length === 0) {
+        const allDrafts = await db
+          .select()
+          .from(articles)
+          .where(eq(articles.isdraft, true))
+          .orderBy(desc(articles.createdat));
+        
+        console.log(`Total draft articles in database: ${allDrafts.length}`);
+        if (allDrafts.length > 0) {
+          console.log('Draft article author addresses:', allDrafts.map(draft => draft.authoraddress));
+        }
+      }
+      
       res.json(results);
     } catch (error) {
+      console.error('Error fetching draft articles:', error);
       res.status(500).json({ message: "Failed to fetch draft articles" });
     }
   });

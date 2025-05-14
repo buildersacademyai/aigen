@@ -32,8 +32,8 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
         // 2. Create image with DALL-E
         // 3. Save article to database
         // 4. Generate audio and update article
-        // So we just need to pass the topic
-        return await generateArticle(data.topic);
+        // So we just need to pass the topic and the user's wallet address
+        return await generateArticle(data.topic, address);
       } catch (error) {
         console.error("Article generation error:", error);
         
