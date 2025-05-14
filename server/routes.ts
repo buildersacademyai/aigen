@@ -792,6 +792,47 @@ export function registerRoutes(app: Express): Server {
       });
     }
   });
+  
+  // Delete article
+  app.delete("/api/articles/:id", async (req, res) => {
+    try {
+      // Validate ID parameter is a valid number
+      const articleId = parseInt(req.params.id);
+      if (isNaN(articleId)) {
+        console.warn(`Invalid article ID for deletion: "${req.params.id}" (not a number)`);
+        return res.status(400).json({ message: "Invalid article ID" });
+      }
+
+      console.log(`Processing DELETE request for article ID: ${articleId}`);
+
+      // Get the current article to check it exists
+      const [currentArticle] = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.id, articleId))
+        .limit(1);
+
+      if (!currentArticle) {
+        console.log(`Article with ID ${articleId} not found for deletion`);
+        return res.status(404).json({ message: "Article not found" });
+      }
+
+      // Delete the article
+      const result = await db
+        .delete(articles)
+        .where(eq(articles.id, articleId))
+        .returning();
+
+      console.log(`Article with ID ${articleId} successfully deleted`);
+      res.json({ message: "Article deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      res.status(500).json({ 
+        message: "Failed to delete article",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   // Update the publish article endpoint - requires wallet address and signature
   app.post("/api/articles/:id/publish", async (req, res) => {
