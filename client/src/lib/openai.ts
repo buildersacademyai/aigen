@@ -361,6 +361,9 @@ Summary: ${result.snippet}
     }
 
     // Try to generate audio but don't fail the whole process if it times out
+    let audioUrl = "";
+    let audioDuration = 0;
+    
     try {
       // Generate audio with a timeout of 30 seconds
       const audioPromise = generateAudio(result.content);
@@ -379,28 +382,31 @@ Summary: ${result.snippet}
       // If we got here, audio was successfully generated
       const audio = await saveAudio(audioResult.audioBlob, article.id);
       
-      // Update the article with audio information
-      const updateResponse = await fetch(`/api/articles/${article.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          audiourl: audio.url,
-          audioduration: audio.duration,
-          sourcelinks: JSON.stringify(sourceLinks)
-        })
-      });
-
-      if (updateResponse.ok) {
-        emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
-        return {
-          ...result,
-          imageUrl: finalImageUrl,
-          videoUrl: "",
-          videoDuration: 0,
-          audioUrl: audio.url,
-          audioDuration: audio.duration,
-          sourceLinks
-        };
+      // Only proceed if we actually got a valid audio URL back
+      if (audio && audio.url) {
+        // Update the article with audio information
+        const updateResponse = await fetch(`/api/articles/${article.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            audiourl: audio.url,
+            audioduration: audio.duration,
+            sourcelinks: JSON.stringify(sourceLinks)
+          })
+        });
+  
+        if (updateResponse.ok) {
+          // Update our return values
+          audioUrl = audio.url;
+          audioDuration = audio.duration;
+          emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
+        } else {
+          console.warn('Failed to update article with audio information');
+          emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
+        }
+      } else {
+        console.warn('Audio generation returned invalid data:', audio);
+        emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
       }
     } catch (audioError) {
       console.warn('Audio generation failed, continuing without audio:', audioError);
@@ -408,15 +414,15 @@ Summary: ${result.snippet}
       emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
       // Continue without audio, the article is still created successfully
     }
-
-    // Return the article without audio if audio generation failed
+    
+    // Always return the article, with or without audio
     return {
       ...result,
       imageUrl: finalImageUrl,
       videoUrl: "",
       videoDuration: 0,
-      audioUrl: "",  // No audio URL if generation failed
-      audioDuration: 0,
+      audioUrl: audioUrl,
+      audioDuration: audioDuration,
       sourceLinks
     };
   } catch (error) {

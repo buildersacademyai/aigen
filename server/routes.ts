@@ -344,18 +344,32 @@ export function registerRoutes(app: Express): Server {
           return;
         }
         
-        // Convert the response to an audio buffer
-        const buffer = Buffer.from(await response.arrayBuffer());
-        
-        // Mark as responded before sending
-        hasResponded = true;
-        
-        // Set appropriate headers for audio streaming
-        res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Content-Length', buffer.length);
-        
-        // Send the audio data
-        res.send(buffer);
+        try {
+          // Convert the response to an audio buffer
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          
+          // Mark as responded before sending
+          hasResponded = true;
+          
+          // Set appropriate headers for audio streaming - only if we haven't responded yet
+          res.setHeader('Content-Type', 'audio/mpeg');
+          res.setHeader('Content-Length', buffer.length);
+          
+          // Send the audio data
+          res.send(buffer);
+        } catch (bufferError) {
+          // If we hit an error processing the buffer but haven't responded yet
+          if (!hasResponded) {
+            hasResponded = true;
+            res.status(500).json({
+              message: `Error processing audio: ${bufferError.message || 'Unknown error'}`,
+              code: "audio_processing_error"
+            });
+          } else {
+            console.error("Error after response already sent:", bufferError);
+          }
+        }
       } catch (innerError) {
         // Clear the global timeout since we're handling the error now
         clearTimeout(globalTimeout);
