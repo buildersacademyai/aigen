@@ -30,10 +30,35 @@ import OpenAI from "openai";
 
 
 export function registerRoutes(app: Express): Server {
+  // Get the OpenAI API key from environment variables
+  const apiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+  
+  if (!apiKey) {
+    console.error("⚠️ WARNING: No OpenAI API key found in environment variables! AI features will not work.");
+  } else {
+    console.log("OpenAI API key loaded successfully (length: " + apiKey.length + " chars)");
+  }
+  
   // Initialize OpenAI with server-side API key
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY,
+    apiKey: apiKey,
   });
+  
+  // Test the OpenAI API key at startup to verify it works
+  (async () => {
+    try {
+      console.log("Testing OpenAI API key validity...");
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: "Hello, this is a test message. Please respond with 'API key is valid' if you receive this." }],
+        max_tokens: 20
+      });
+      console.log("✅ OpenAI API key is valid: " + response.choices[0].message.content);
+    } catch (error) {
+      console.error("❌ OpenAI API key validation failed:", error);
+      console.error("AI features will not work correctly without a valid API key!");
+    }
+  })();
 
   // Ensure public directories exist
   const setupDirectories = async () => {
@@ -310,7 +335,7 @@ export function registerRoutes(app: Express): Server {
           code: "timeout_error"
         });
       }
-    }, 22000); // 22-second global timeout (reduced from 28s)
+    }, 25000); // 25-second global timeout
     
     try {
       console.log("Processing OpenAI speech generation request");
@@ -326,19 +351,35 @@ export function registerRoutes(app: Express): Server {
         });
       }
       
+      // Check if we have a valid API key
+      if (!openai.apiKey) {
+        hasResponded = true;
+        clearTimeout(globalTimeout);
+        console.error("Missing OpenAI API key for speech generation");
+        return res.status(500).json({
+          message: "Server configuration error: Missing API key",
+          code: "missing_api_key"
+        });
+      }
+      
       // Ensure the input isn't too long (OpenAI has a 4096 character limit)
-      // We'll be even more conservative with 3000 chars to reduce timeouts
+      // We'll be more conservative with 3000 chars to reduce timeouts
       const truncatedInput = input.length > 3000
         ? input.slice(0, 3000) + "... The full article continues on the page."
         : input;
         
       console.log(`Speech input length: ${truncatedInput.length} characters`);
       
-      // Set a 20-second timeout for the OpenAI API call (reduced from 25s)
+      // Set a 20-second timeout for the OpenAI API call
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
       
       try {
+        console.log("Calling OpenAI speech API...");
+        
+        // Debug information
+        console.log(`Using OpenAI API key (first 4 chars): ${openai.apiKey?.substring(0, 4)}...`);
+        
         const response = await openai.audio.speech.create({
           model: model || "tts-1",
           voice: voice || "alloy",
@@ -348,6 +389,8 @@ export function registerRoutes(app: Express): Server {
         // Clear the timeouts since we got a response
         clearTimeout(timeoutId);
         clearTimeout(globalTimeout);
+        
+        console.log("OpenAI speech generation successful!");
 
         if (hasResponded) {
           // If we've already responded due to timeout, stop here
