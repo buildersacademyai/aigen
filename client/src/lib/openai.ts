@@ -323,7 +323,7 @@ Summary: ${result.snippet}
         imageurl: tempImageUrl,
         videourl: "", // We'll skip video for now
         videoduration: 0,
-        authoraddress: "0x0000000000000000000000000000000000000000", // Will be replaced with actual wallet address
+        authoraddress: localStorage.getItem('wallet-address') || "0x0000000000000000000000000000000000000000",
         signature: "",
         isdraft: true,
         sourcelinks: JSON.stringify(sourceLinks)
