@@ -128,24 +128,29 @@ const saveImage = async (imageUrl: string, articleId?: number): Promise<string> 
 
 const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration: number }> => {
   try {
-    // Get the first 3000 characters to reduce the risk of OpenAI API timeouts
-    // This is approximately 500-600 words or 2-3 minutes of audio
-    const truncatedText = text.slice(0, 3000);
+    // Further reduce text length to 1500 characters to match server-side limit
+    // This helps prevent timeouts and ensures consistency
+    const truncatedText = text.slice(0, 1500);
     
     // Add a note if we truncated the text
     const finalText = truncatedText.length < text.length
       ? truncatedText + " ... The full article continues on the page."
       : truncatedText;
     
-    console.log(`Generating audio for text of length: ${finalText.length} chars`);
+    console.log(`Generating audio for text of length: ${finalText.length} chars (original: ${text.length})`);
     
     // Create an AbortController to handle timeouts
     const controller = new AbortController();
     
-    // Set a 20-second timeout for the client-side request
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    // Set a 30-second timeout for the client-side request (increased from 20s)
+    const timeoutId = setTimeout(() => {
+      console.warn('Audio generation timeout triggered, aborting request');
+      controller.abort();
+    }, 30000);
     
     try {
+      console.log('Calling OpenAI speech API via server proxy...');
+      
       // Generate speech using OpenAI (via our server proxy)
       const response = await openaiProxy.audio.speech.create({
         model: "tts-1",
@@ -155,9 +160,18 @@ const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration:
   
       // Clear the timeout
       clearTimeout(timeoutId);
+      
+      console.log('Received response from speech API, converting to blob');
   
       // Convert the response to a blob
       const audioBlob = await response.blob();
+      
+      // Check if we got a valid blob
+      if (!audioBlob || audioBlob.size === 0) {
+        throw new Error('Received empty audio blob from server');
+      }
+      
+      console.log(`Successfully received audio blob of size: ${audioBlob.size} bytes`);
   
       // For now, estimate duration based on word count (rough estimate)
       const wordCount = finalText.split(/\s+/).length;
@@ -169,6 +183,12 @@ const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration:
       };
     } catch (audioError) {
       clearTimeout(timeoutId);
+      
+      // Check if this was an abort error
+      if (audioError instanceof Error && audioError.name === 'AbortError') {
+        console.error('Audio generation request was aborted due to timeout');
+        throw new Error('Audio generation timed out. Try again with shorter text.');
+      }
       
       // Log and rethrow to be handled by the caller
       console.error('Error in audio generation request:', audioError);

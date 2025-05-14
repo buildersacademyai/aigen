@@ -305,46 +305,60 @@ export function registerRoutes(app: Express): Server {
     const globalTimeout = setTimeout(() => {
       if (!hasResponded) {
         hasResponded = true;
+        console.error("Global timeout triggered for speech generation");
         res.status(503).json({
           message: "Request timed out when generating speech",
           code: "timeout_error"
         });
       }
-    }, 22000); // 22-second global timeout (reduced from 28s)
+    }, 25000); // 25-second global timeout (increased from 22s)
     
     try {
       console.log("Processing OpenAI speech generation request");
+      
+      // Log API key status (without revealing the key)
+      const apiKeyExists = !!process.env.OPENAI_API_KEY;
+      console.log(`OpenAI API key exists: ${apiKeyExists}`);
+
       const { model, voice, input } = req.body;
       
       // Make sure we have valid input
       if (!input || typeof input !== 'string' || input.trim().length === 0) {
         hasResponded = true;
         clearTimeout(globalTimeout);
+        console.warn("Missing or invalid input text for speech generation");
         return res.status(400).json({
           message: "Missing or invalid input text for speech generation",
           code: "invalid_input"
         });
       }
       
-      // Ensure the input isn't too long (OpenAI has a 4096 character limit)
-      // We'll be even more conservative with 3000 chars to reduce timeouts
-      const truncatedInput = input.length > 3000
-        ? input.slice(0, 3000) + "... The full article continues on the page."
+      // Further reduce text length to prevent timeouts (from 3000 to 1500 characters)
+      // This will make audio generation more reliable
+      const truncatedInput = input.length > 1500
+        ? input.slice(0, 1500) + "... The full article continues on the page."
         : input;
         
-      console.log(`Speech input length: ${truncatedInput.length} characters`);
+      console.log(`Speech input length: ${truncatedInput.length} characters (original: ${input.length})`);
       
-      // Set a 20-second timeout for the OpenAI API call (reduced from 25s)
+      // Set a 20-second timeout for the OpenAI API call
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const timeoutId = setTimeout(() => {
+        console.warn("Aborting OpenAI speech request due to timeout");
+        controller.abort();
+      }, 20000);
       
       try {
+        console.log(`Using TTS model: ${model || "tts-1"}, voice: ${voice || "alloy"}`);
+        
         const response = await openai.audio.speech.create({
           model: model || "tts-1",
           voice: voice || "alloy",
           input: truncatedInput
         }, { signal: controller.signal });
 
+        console.log("Successfully received audio response from OpenAI");
+        
         // Clear the timeouts since we got a response
         clearTimeout(timeoutId);
         clearTimeout(globalTimeout);
@@ -357,24 +371,37 @@ export function registerRoutes(app: Express): Server {
         
         try {
           // Convert the response to an audio buffer
+          console.log("Converting OpenAI response to audio buffer");
           const arrayBuffer = await response.arrayBuffer();
+          
+          // Check if we got a valid array buffer
+          if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+            throw new Error("Received empty audio data from OpenAI");
+          }
+          
+          console.log(`Received audio buffer of size: ${arrayBuffer.byteLength} bytes`);
           const buffer = Buffer.from(arrayBuffer);
           
           // Mark as responded before sending
           hasResponded = true;
           
-          // Set appropriate headers for audio streaming - only if we haven't responded yet
+          // Set appropriate headers for audio streaming
           res.setHeader('Content-Type', 'audio/mpeg');
           res.setHeader('Content-Length', buffer.length);
           
+          console.log(`Sending audio buffer of size: ${buffer.length} bytes to client`);
+          
           // Send the audio data
           res.send(buffer);
+          console.log("Audio data sent successfully");
         } catch (bufferError) {
+          console.error("Error processing audio buffer:", bufferError);
+          
           // If we hit an error processing the buffer but haven't responded yet
           if (!hasResponded) {
             hasResponded = true;
             res.status(500).json({
-              message: `Error processing audio: ${bufferError.message || 'Unknown error'}`,
+              message: `Error processing audio: ${bufferError instanceof Error ? bufferError.message : 'Unknown buffer processing error'}`,
               code: "audio_processing_error"
             });
           } else {
