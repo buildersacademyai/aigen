@@ -235,6 +235,7 @@ export const GENERATION_EVENTS = {
   SOURCES_FOUND: 'sources_found',
   CONTENT_GENERATED: 'content_generated',
   IMAGE_CREATED: 'image_created',
+  AUDIO_STARTED: 'audio_started',
   AUDIO_CREATED: 'audio_created',
   AUDIO_FAILED: 'audio_failed',
   ARTICLE_SAVED: 'article_saved',
@@ -397,57 +398,115 @@ Summary: ${result.snippet}
       // Continue with the temporary image URL if re-saving fails
     }
 
-    // Try to generate audio but don't fail the whole process if it times out
+    // Try to generate audio but don't fail the whole process if there are issues
     let audioUrl = "";
     let audioDuration = 0;
     
     try {
-      // Generate audio with a timeout of 30 seconds
-      const audioPromise = generateAudio(result.content);
+      emitProgress(GENERATION_EVENTS.AUDIO_STARTED);
+      console.log('Starting audio generation process for article ID:', article.id);
       
-      // Set up a timeout
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Audio generation timed out')), 30000)
-      );
-
-      // Race between the audio generation and the timeout
-      const audioResult = await Promise.race([
-        audioPromise,
-        timeoutPromise
-      ]);
-
-      // If we got here, audio was successfully generated
-      const audio = await saveAudio(audioResult.audioBlob, article.id);
+      // Make multiple attempts for audio generation
+      const MAX_AUDIO_ATTEMPTS = 2;
+      let audioGenerationSucceeded = false;
+      let lastError = null;
       
-      // Only proceed if we actually got a valid audio URL back
-      if (audio && audio.url) {
-        // Update the article with audio information
-        const updateResponse = await fetch(`/api/articles/${article.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            audiourl: audio.url,
-            audioduration: audio.duration,
-            sourcelinks: JSON.stringify(sourceLinks)
-          })
-        });
-  
-        if (updateResponse.ok) {
-          // Update our return values
-          audioUrl = audio.url;
-          audioDuration = audio.duration;
-          emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
-        } else {
-          console.warn('Failed to update article with audio information');
-          emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
+      for (let attempt = 1; attempt <= MAX_AUDIO_ATTEMPTS; attempt++) {
+        try {
+          console.log(`Audio generation attempt ${attempt}/${MAX_AUDIO_ATTEMPTS}`);
+          
+          // Generate audio with a timeout of 35 seconds
+          const audioPromise = generateAudio(result.content);
+          
+          // Set up a timeout
+          const timeoutPromise = new Promise<never>((_, reject) => 
+            setTimeout(() => {
+              console.warn(`Audio generation timeout on attempt ${attempt}`);
+              reject(new Error('Audio generation timed out'));
+            }, 35000)
+          );
+
+          // Race between the audio generation and the timeout
+          const audioResult = await Promise.race([
+            audioPromise,
+            timeoutPromise
+          ]);
+
+          // Verify we have valid audio data
+          if (!audioResult || !audioResult.audioBlob || audioResult.audioBlob.size === 0) {
+            throw new Error('Received empty audio blob from generation process');
+          }
+          
+          console.log(`Successfully generated audio on attempt ${attempt}, size: ${audioResult.audioBlob.size} bytes`);
+
+          // If we got here, audio was successfully generated - now save it
+          console.log('Saving audio file to server...');
+          const audio = await saveAudio(audioResult.audioBlob, article.id);
+          
+          // Only proceed if we actually got a valid audio URL back
+          if (audio && audio.url) {
+            console.log('Audio saved successfully:', audio.url);
+            
+            // Update the article with audio information using retry mechanism
+            let updateSuccess = false;
+            for (let updateAttempt = 1; updateAttempt <= 3; updateAttempt++) {
+              try {
+                const updateResponse = await fetch(`/api/articles/${article.id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    audiourl: audio.url,
+                    audioduration: audio.duration,
+                    sourcelinks: JSON.stringify(sourceLinks)
+                  })
+                });
+                
+                if (updateResponse.ok) {
+                  updateSuccess = true;
+                  break;
+                } else {
+                  console.warn(`Failed to update article with audio info, attempt ${updateAttempt}`);
+                  await new Promise(resolve => setTimeout(resolve, 1000 * updateAttempt));
+                }
+              } catch (updateError) {
+                console.error(`Error updating article with audio info, attempt ${updateAttempt}:`, updateError);
+                await new Promise(resolve => setTimeout(resolve, 1000 * updateAttempt));
+              }
+            }
+      
+            if (updateSuccess) {
+              // Update our return values
+              audioUrl = audio.url;
+              audioDuration = audio.duration;
+              audioGenerationSucceeded = true;
+              emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
+              console.log('Audio generation process completed successfully');
+              break; // Exit the retry loop
+            } else {
+              throw new Error('Failed to update article with audio information after multiple attempts');
+            }
+          } else {
+            throw new Error('Audio saving returned invalid data');
+          }
+        } catch (attemptError) {
+          lastError = attemptError;
+          console.warn(`Audio generation attempt ${attempt} failed:`, attemptError);
+          
+          // For the last attempt, don't wait
+          if (attempt < MAX_AUDIO_ATTEMPTS) {
+            console.log(`Waiting before retry ${attempt + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
         }
-      } else {
-        console.warn('Audio generation returned invalid data:', audio);
+      }
+      
+      // Check if all attempts failed
+      if (!audioGenerationSucceeded) {
+        console.warn('All audio generation attempts failed, continuing without audio:', lastError);
         emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
       }
     } catch (audioError) {
-      console.warn('Audio generation failed, continuing without audio:', audioError);
-      // Emit a failure event so the UI can update accordingly
+      console.warn('Audio generation process failed, continuing without audio:', audioError);
       emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
       // Continue without audio, the article is still created successfully
     }
