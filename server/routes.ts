@@ -61,13 +61,139 @@ export function registerRoutes(app: Express): Server {
     timeout: 30000, // 30 seconds
   });
   
+  // Endpoint to update OpenAI API key
+  app.post("/api/openai/update-key", (req, res) => {
+    try {
+      const { apiKey } = req.body;
+      
+      if (!apiKey || typeof apiKey !== 'string' || apiKey.length < 20) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid API key format" 
+        });
+      }
+      
+      // Save to environment variable for current session
+      process.env.OPENAI_API_KEY = apiKey;
+      
+      // Also update openai client with new key
+      openai.apiKey = apiKey;
+      
+      // Check if it's a project-based key and update configuration
+      const newIsProjectKey = apiKey.startsWith('sk-proj-');
+      if (newIsProjectKey !== isProjectKey) {
+        isProjectKey = newIsProjectKey;
+        // Update OpenAI config with new project status
+        openai = new OpenAI({
+          apiKey,
+          baseOptions: {
+            headers: isProjectKey ? { 'OpenAI-Beta': 'project=v1' } : {},
+          },
+          maxRetries: 1,
+          timeout: 30000,
+        });
+      }
+      
+      // Reset audio generation skip flags in localStorage
+      res.json({ 
+        success: true, 
+        message: "API key updated successfully",
+        isProjectKey: isProjectKey,
+        apiKeyLength: apiKey.length,
+        apiKeyFirstChars: apiKey.substring(0, 7) 
+      });
+      
+    } catch (error) {
+      console.error("Error updating API key:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Create a simple test endpoint for OpenAI API key testing
+  app.get("/api/openai/test", async (req, res) => {
+    try {
+      console.log("Testing OpenAI API key via endpoint...");
+      
+      // For project-based keys, we need to try different models
+      const models = [
+        "gpt-3.5-turbo", 
+        "gpt-4",
+        "tts-1",
+        "dall-e-3"
+      ];
+      
+      // Results array to track which models work
+      const results = [];
+      
+      // Try each model and see which ones work
+      for (const model of models) {
+        try {
+          console.log(`Testing with model: ${model}`);
+          
+          if (model === "tts-1") {
+            // Test text-to-speech
+            await openai.audio.speech.create({
+              model: "tts-1",
+              voice: "alloy",
+              input: "This is a test message."
+            });
+            results.push({ model, success: true });
+          } 
+          else if (model === "dall-e-3") {
+            // Test image generation
+            await openai.images.generate({
+              model: "dall-e-3",
+              prompt: "A simple test image of a blue circle",
+              n: 1,
+              size: "1024x1024"
+            });
+            results.push({ model, success: true });
+          }
+          else {
+            // Test chat completions
+            await openai.chat.completions.create({
+              model,
+              messages: [{ role: "user", content: "Test message" }],
+              max_tokens: 5
+            });
+            results.push({ model, success: true });
+          }
+        } catch (modelError) {
+          console.error(`Failed with model ${model}:`, modelError.message);
+          results.push({ 
+            model, 
+            success: false, 
+            error: modelError.message
+          });
+        }
+      }
+      
+      res.json({
+        apiKeyFirstFour: openai.apiKey.substring(0, 4),
+        apiKeyLength: openai.apiKey.length,
+        isProjectKey,
+        results
+      });
+    } catch (error) {
+      console.error("OpenAI test endpoint error:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+        isProjectKey
+      });
+    }
+  });
+  
   // Test the OpenAI API key at startup to verify it works
   (async () => {
     try {
       console.log("Testing OpenAI API key validity...");
       
-      // For project-based keys, we need to use models that are explicitly enabled
-      const testModel = isProjectKey ? "gpt-3.5-turbo-16k" : "gpt-3.5-turbo";
+      // For project-based keys, we need to try several models
+      // The project might only have certain models enabled
+      let testModel = "gpt-3.5-turbo";
       
       // Add extra details for project keys
       console.log(`Using test model: ${testModel} with ${isProjectKey ? 'project' : 'standard'} key configuration`);
@@ -75,7 +201,7 @@ export function registerRoutes(app: Express): Server {
         console.log("OpenAI-Beta header 'project=v1' is enabled for project key");
       }
       
-      // Short test message to save tokens
+      // Short test message to save tokens  
       const response = await openai.chat.completions.create({
         model: testModel,
         messages: [{ role: "user", content: "Test message. Respond: 'API key is valid'" }],
