@@ -37,17 +37,28 @@ export function registerRoutes(app: Express): Server {
     console.error("⚠️ WARNING: No OpenAI API key found in environment variables! AI features will not work.");
   } else {
     console.log("OpenAI API key loaded successfully (length: " + apiKey.length + " chars)");
-    
-    // Check if using a project-based key (starts with sk-proj-)
-    const isProjectKey = apiKey.startsWith('sk-proj-');
-    console.log(`Detected ${isProjectKey ? 'project-based' : 'standard'} OpenAI API key format`);
   }
   
-  // Initialize OpenAI with correct configuration based on key type
+  // Check if we're using a project-based API key
+  const isProjectKey = apiKey?.startsWith('sk-proj-');
+  console.log(`Detected ${isProjectKey ? 'project-based' : 'standard'} OpenAI API key format`);
+  
+  // Configure OpenAI client differently based on key type
+  // For project-based keys (sk-proj-), we need a special setup
   const openai = new OpenAI({
     apiKey: apiKey,
-    // Additional custom configuration for project-based keys
-    baseURL: "https://api.openai.com/v1", // Ensure we're using the main API endpoint
+    // Use the default base URL for both standard and project keys
+    // Project keys require specific headers to work properly
+    defaultHeaders: isProjectKey ? {
+      'OpenAI-Beta': 'project=v1'
+    } : undefined,
+    defaultQuery: isProjectKey ? {
+      // Some API keys may be restricted to specific projects
+      'project': 'default'
+    } : undefined,
+    // Default parameters for a more reliable experience
+    maxRetries: 1,
+    timeout: 30000, // 30 seconds
   });
   
   // Test the OpenAI API key at startup to verify it works
@@ -55,11 +66,20 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log("Testing OpenAI API key validity...");
       
-      // Use a light model for the test to save credits
+      // For project-based keys, we need to use models that are explicitly enabled
+      const testModel = isProjectKey ? "gpt-3.5-turbo-16k" : "gpt-3.5-turbo";
+      
+      // Add extra details for project keys
+      console.log(`Using test model: ${testModel} with ${isProjectKey ? 'project' : 'standard'} key configuration`);
+      if (isProjectKey) {
+        console.log("OpenAI-Beta header 'project=v1' is enabled for project key");
+      }
+      
+      // Short test message to save tokens
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // Use a less expensive model for testing
-        messages: [{ role: "user", content: "Hello, this is a test message. Please respond with 'API key is valid' if you receive this." }],
-        max_tokens: 10
+        model: testModel,
+        messages: [{ role: "user", content: "Test message. Respond: 'API key is valid'" }],
+        max_tokens: 8
       });
       
       console.log("✅ OpenAI API key is valid: " + response.choices[0].message.content);
@@ -397,29 +417,35 @@ export function registerRoutes(app: Express): Server {
       try {
         console.log("Calling OpenAI speech API with TTS model...");
         
-        // Check if using a project key
-        const isProjectKey = openai.apiKey.startsWith('sk-proj-');
-        console.log(`Using ${isProjectKey ? 'project-based' : 'standard'} OpenAI API key for speech generation`);
+        // Check if using a project key (again, for this specific call)
+        const localIsProjectKey = openai.apiKey?.startsWith('sk-proj-');
+        console.log(`Using ${localIsProjectKey ? 'project-based' : 'standard'} OpenAI API key for speech generation`);
         
         // Debug information (only show first/last few chars for security)
-        if (openai.apiKey.length > 10) {
+        if (openai.apiKey && openai.apiKey.length > 10) {
           const firstFour = openai.apiKey.substring(0, 4);
           const lastFour = openai.apiKey.substring(openai.apiKey.length - 4);
           console.log(`API key format: ${firstFour}...${lastFour} (${openai.apiKey.length} chars)`);
         }
         
-        // Make sure we're using the right API configuration for project keys
-        if (isProjectKey) {
-          console.log("Using special configuration for project-based API key");
-        }
+        // Create special options for project-based keys
+        const options = { 
+          signal: controller.signal,
+        };
         
+        // The model we use for TTS needs to be explicitly allowed in the project
+        // For testing we'll use the standard TTS-1 model but can fallback to others
+        const ttsModel = model || "tts-1";
+        console.log(`Using TTS model: ${ttsModel}`);
+        
+        // Make the API call with the appropriate configuration
         const response = await openai.audio.speech.create({
-          model: model || "tts-1", // TTS-1 model
+          model: ttsModel,
           voice: voice || "alloy", // Default voice
-          input: truncatedInput
-        }, { 
-          signal: controller.signal
-        });
+          input: truncatedInput,
+          // For project keys, we need to include response_format
+          response_format: "mp3"
+        }, options);
 
         // Clear the timeouts since we got a response
         clearTimeout(timeoutId);
