@@ -1138,39 +1138,118 @@ export function registerRoutes(app: Express): Server {
   // Save audio file
   app.post("/api/audio/save", upload.single('audio'), async (req, res) => {
     try {
+      // Validate file
       if (!req.file) {
-        return res.status(400).json({ message: "No audio file provided" });
+        return res.status(400).json({ 
+          message: "No audio file provided",
+          code: "missing_file" 
+        });
       }
 
+      // Validate article ID
       const articleId = parseInt(req.body.articleId);
       if (isNaN(articleId)) {
-        return res.status(400).json({ message: "Invalid article ID" });
+        // Clean up the file since we're not going to use it
+        try {
+          await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+          console.warn("Failed to clean up audio file after invalid article ID:", unlinkError);
+        }
+        
+        return res.status(400).json({ 
+          message: "Invalid article ID",
+          code: "invalid_article_id" 
+        });
       }
 
-      console.log('Processing audio file:', req.file.filename);
+      // Verify file exists and isn't empty
+      try {
+        const stats = await fs.stat(req.file.path);
+        if (stats.size === 0) {
+          await fs.unlink(req.file.path);
+          return res.status(400).json({ 
+            message: "Audio file is empty",
+            code: "empty_file" 
+          });
+        }
+        console.log(`Processing audio file: ${req.file.filename}, size: ${stats.size} bytes`);
+      } catch (statError) {
+        console.error("Failed to verify audio file:", statError);
+        return res.status(500).json({
+          message: "Failed to verify audio file",
+          code: "file_verification_error"
+        });
+      }
 
-      // Get audio duration
-      const duration = Math.ceil(await getAudioDurationInSeconds(req.file.path));
+      // Get audio duration with retry
+      let duration = 0;
+      try {
+        // Try to get duration, but don't fail if it doesn't work
+        try {
+          duration = Math.ceil(await getAudioDurationInSeconds(req.file.path));
+          console.log(`Detected audio duration: ${duration} seconds`);
+        } catch (durationError) {
+          console.warn("Failed to get audio duration, using fallback:", durationError);
+          // Get duration from request body if available, otherwise estimate based on file size
+          duration = req.body.duration 
+            ? parseInt(req.body.duration) 
+            : Math.ceil((await fs.stat(req.file.path)).size / 16000); // Rough estimate
+        }
+      } catch (allDurationErrors) {
+        console.error("All attempts to get audio duration failed:", allDurationErrors);
+        // Continue with zero duration, not worth failing the whole process
+      }
 
-      // Store audio information in database
-      const [storedAudioFile] = await db.insert(storedAudio).values({
-        filename: req.file.filename,
-        duration,
-        localpath: `/audio/${req.file.filename}`,
-        articleid: articleId,
-      }).returning();
+      // Create a function for retrying database operations
+      const saveAudioWithRetry = async (retries = 3, delay = 1000) => {
+        try {
+          console.log(`Storing audio information in database for article ID: ${articleId}`);
+          
+          const [storedAudioFile] = await db.insert(storedAudio).values({
+            filename: req.file.filename,
+            duration,
+            localpath: `/audio/${req.file.filename}`,
+            articleid: articleId,
+          }).returning();
+            
+          console.log(`Audio metadata stored successfully, ID: ${storedAudioFile.id}`);
+          
+          return storedAudioFile;
+        } catch (dbError) {
+          if (retries <= 0) throw dbError;
+          
+          console.warn(`Database error when saving audio, retrying (${retries} attempts left):`, dbError);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return saveAudioWithRetry(retries - 1, delay * 2);
+        }
+      };
+      
+      // Store audio metadata in the database with retry logic
+      const storedAudioFile = await saveAudioWithRetry();
 
-      console.log('Audio file processed and stored:', storedAudioFile);
-
+      // Return success response with audio info
       res.json({
         url: storedAudioFile.localpath,
         duration: duration,
       });
     } catch (error) {
       console.error("Error saving audio:", error);
+      
+      // Try to clean up the file if it exists
+      if (req.file && req.file.path) {
+        try {
+          await fs.access(req.file.path);
+          await fs.unlink(req.file.path);
+          console.log("Audio file cleaned up after error");
+        } catch (cleanupError) {
+          // Ignore errors during cleanup
+        }
+      }
+      
       res.status(500).json({
         message: "Failed to save audio file",
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        code: "audio_save_error"
       });
     }
   });
