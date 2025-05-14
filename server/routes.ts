@@ -298,6 +298,20 @@ export function registerRoutes(app: Express): Server {
 
   // Create speech endpoint
   app.post("/api/openai/speech", async (req, res) => {
+    // Track if we've responded to avoid double-response issues
+    let hasResponded = false;
+    
+    // Set up a dedicated timeout that will trigger if the whole process takes too long
+    const globalTimeout = setTimeout(() => {
+      if (!hasResponded) {
+        hasResponded = true;
+        res.status(503).json({
+          message: "Request timed out when generating speech",
+          code: "timeout_error"
+        });
+      }
+    }, 28000); // 28-second global timeout
+    
     try {
       console.log("Processing OpenAI speech generation request");
       const { model, voice, input } = req.body;
@@ -309,7 +323,7 @@ export function registerRoutes(app: Express): Server {
         
       console.log(`Speech input length: ${truncatedInput.length} characters`);
       
-      // Set a 25-second timeout
+      // Set a 25-second timeout for the OpenAI API call
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000);
       
@@ -320,11 +334,21 @@ export function registerRoutes(app: Express): Server {
           input: truncatedInput
         }, { signal: controller.signal });
 
-        // Clear the timeout since we got a response
+        // Clear the timeouts since we got a response
         clearTimeout(timeoutId);
+        clearTimeout(globalTimeout);
 
+        if (hasResponded) {
+          // If we've already responded due to timeout, stop here
+          console.log("Response already sent due to timeout, ignoring successful audio generation");
+          return;
+        }
+        
         // Convert the response to an audio buffer
         const buffer = Buffer.from(await response.arrayBuffer());
+        
+        // Mark as responded before sending
+        hasResponded = true;
         
         // Set appropriate headers for audio streaming
         res.setHeader('Content-Type', 'audio/mpeg');
@@ -333,30 +357,47 @@ export function registerRoutes(app: Express): Server {
         // Send the audio data
         res.send(buffer);
       } catch (innerError) {
+        // Clear the global timeout since we're handling the error now
+        clearTimeout(globalTimeout);
+        
+        if (hasResponded) {
+          console.log("Response already sent, ignoring error:", innerError);
+          return;
+        }
+        
         // Handle the inner try/catch errors specifically for timeout and abort errors
         const errorName = innerError && typeof innerError === 'object' && 'name' in innerError 
-          ? innerError.name : '';
+          ? innerError.name as string : '';
           
         const errorMessage = innerError && typeof innerError === 'object' && 'message' in innerError 
-          ? innerError.message : String(innerError);
-          
+          ? innerError.message as string : String(innerError);
+        
+        hasResponded = true;  
         if (errorName === 'AbortError' || errorMessage.includes('timeout')) {
           res.status(503).json({
             message: "Request timed out when generating speech",
             code: "timeout_error"
           });
         } else {
-          // Pass the error to the outer catch block
-          throw innerError;
+          // Other errors
+          res.status(500).json({
+            message: `Speech generation error: ${errorMessage}`,
+            code: "speech_error"
+          });
         }
       }
     } catch (error) {
+      // Clear the global timeout since we're handling the error now
+      clearTimeout(globalTimeout);
+      
       console.error("OpenAI speech generation error:", error);
+      
       // Make sure we don't try to send headers if they were already sent
-      if (!res.headersSent) {
+      if (!hasResponded) {
+        hasResponded = true;
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         const errorStatus = error && typeof error === 'object' && 'status' in error ? (error.status as number) : 500;
-        const errorCode = error && typeof error === 'object' && 'code' in error ? error.code : "unknown_error";
+        const errorCode = error && typeof error === 'object' && 'code' in error ? error.code as string : "unknown_error";
         
         res.status(errorStatus).json({
           message: errorMessage || "Failed to generate speech",
@@ -551,10 +592,17 @@ export function registerRoutes(app: Express): Server {
   // Get single article
   app.get("/api/articles/:id", async (req, res) => {
     try {
+      // Validate ID parameter is a valid number
+      const articleId = parseInt(req.params.id);
+      if (isNaN(articleId)) {
+        console.warn(`Invalid article ID: "${req.params.id}" (not a number)`);
+        return res.status(400).json({ message: "Invalid article ID" });
+      }
+      
       const result = await db
         .select()
         .from(articles)
-        .where(eq(articles.id, parseInt(req.params.id)))
+        .where(eq(articles.id, articleId))
         .limit(1);
 
       if (result.length === 0) {
@@ -626,11 +674,18 @@ export function registerRoutes(app: Express): Server {
   // Update article endpoint with separate handling for media updates
   app.put("/api/articles/:id", async (req, res) => {
     try {
+      // Validate ID parameter is a valid number
+      const articleId = parseInt(req.params.id);
+      if (isNaN(articleId)) {
+        console.warn(`Invalid article ID for update: "${req.params.id}" (not a number)`);
+        return res.status(400).json({ message: "Invalid article ID" });
+      }
+      
       // First get the current article
       const [currentArticle] = await db
         .select()
         .from(articles)
-        .where(eq(articles.id, parseInt(req.params.id)))
+        .where(eq(articles.id, articleId))
         .limit(1);
 
       if (!currentArticle) {
@@ -693,11 +748,18 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ message: "Signature is required for publishing" });
       }
 
+      // Validate ID parameter is a valid number
+      const articleId = parseInt(req.params.id);
+      if (isNaN(articleId)) {
+        console.warn(`Invalid article ID for publishing: "${req.params.id}" (not a number)`);
+        return res.status(400).json({ message: "Invalid article ID" });
+      }
+      
       // First get the current article
       const [currentArticle] = await db
         .select()
         .from(articles)
-        .where(eq(articles.id, parseInt(req.params.id)))
+        .where(eq(articles.id, articleId))
         .limit(1);
 
       if (!currentArticle) {
