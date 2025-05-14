@@ -8,7 +8,8 @@ const steps = [
   { id: GENERATION_EVENTS.CONTENT_GENERATED, label: 'Generating Content' },
   { id: GENERATION_EVENTS.IMAGE_CREATED, label: 'Creating Image' },
   { id: GENERATION_EVENTS.ARTICLE_SAVED, label: 'Saving Article' },
-  { id: GENERATION_EVENTS.AUDIO_CREATED, label: 'Creating Audio' },
+  { id: GENERATION_EVENTS.AUDIO_STARTED, label: 'Creating Audio' },
+  { id: GENERATION_EVENTS.AUDIO_CREATED, label: 'Audio Complete' },
 ];
 
 export function GenerationProgress() {
@@ -21,7 +22,16 @@ export function GenerationProgress() {
       
       // Handle audio failure separately
       if (customEvent.type === GENERATION_EVENTS.AUDIO_FAILED) {
-        setFailedSteps(prev => new Set([...prev, GENERATION_EVENTS.AUDIO_CREATED]));
+        // Mark both audio steps as failed
+        setFailedSteps(prev => {
+          const updated = new Set([...prev]);
+          updated.add(GENERATION_EVENTS.AUDIO_STARTED);
+          updated.add(GENERATION_EVENTS.AUDIO_CREATED);
+          return updated;
+        });
+        
+        // But also mark audio started as completed so the progress flows correctly
+        setCompletedSteps(prev => new Set([...prev, GENERATION_EVENTS.AUDIO_STARTED]));
       } else {
         setCompletedSteps(prev => new Set([...prev, customEvent.type]));
       }
@@ -74,6 +84,8 @@ export function GenerationProgress() {
             </div>
             <span className="text-sm font-medium">
               {step.label}
+              {isFailed && step.id === GENERATION_EVENTS.AUDIO_STARTED && 
+               " (Failed - Retrying...)"}
               {isFailed && step.id === GENERATION_EVENTS.AUDIO_CREATED && 
                " (Skipped - Continuing without audio)"}
             </span>
