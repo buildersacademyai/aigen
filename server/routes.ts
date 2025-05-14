@@ -592,15 +592,38 @@ export function registerRoutes(app: Express): Server {
       
       console.log(`Fetching draft articles for address: ${address}`);
       
-      // Query the database for drafts
-      const results = await db
-        .select()
-        .from(articles)
-        .where(and(
-          eq(articles.isdraft, true),
-          eq(articles.authoraddress, address)
-        ))
-        .orderBy(desc(articles.createdat));
+      // Query the database for drafts with retry mechanism
+      let retries = 0;
+      const maxRetries = 3;
+      let results = [];
+      
+      while (retries < maxRetries) {
+        try {
+          results = await db
+            .select()
+            .from(articles)
+            .where(and(
+              eq(articles.isdraft, true),
+              eq(articles.authoraddress, address)
+            ))
+            .orderBy(desc(articles.createdat));
+            
+          // If we get here, the query was successful
+          break;
+        } catch (dbError) {
+          retries++;
+          console.error(`Database connection attempt ${retries}/${maxRetries} failed:`, dbError);
+          
+          if (retries >= maxRetries) {
+            // Rethrow the error if we've exhausted retries
+            throw dbError;
+          }
+          
+          // Wait before retrying (exponential backoff)
+          const waitTime = Math.min(100 * Math.pow(2, retries), 2000); // Max 2 seconds
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
       
       console.log(`Found ${results.length} draft articles for address: ${address}`);
       
@@ -628,17 +651,50 @@ export function registerRoutes(app: Express): Server {
   // Get user's published articles
   app.get("/api/articles/published/:address", async (req, res) => {
     try {
-      const results = await db
-        .select()
-        .from(articles)
-        .where(and(
-          eq(articles.isdraft, false),
-          eq(articles.authoraddress, req.params.address)
-        ))
-        .orderBy(desc(articles.createdat));
+      const address = req.params.address;
+      console.log(`Fetching published articles for address: ${address}`);
+      
+      // Query the database for published articles with retry mechanism
+      let retries = 0;
+      const maxRetries = 3;
+      let results = [];
+      
+      while (retries < maxRetries) {
+        try {
+          results = await db
+            .select()
+            .from(articles)
+            .where(and(
+              eq(articles.isdraft, false),
+              eq(articles.authoraddress, address)
+            ))
+            .orderBy(desc(articles.createdat));
+            
+          // If we get here, the query was successful
+          break;
+        } catch (dbError) {
+          retries++;
+          console.error(`Database connection attempt ${retries}/${maxRetries} failed:`, dbError);
+          
+          if (retries >= maxRetries) {
+            // Rethrow the error if we've exhausted retries
+            throw dbError;
+          }
+          
+          // Wait before retrying (exponential backoff)
+          const waitTime = Math.min(100 * Math.pow(2, retries), 2000); // Max 2 seconds
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+      
+      console.log(`Found ${results.length} published articles for address: ${address}`);
       res.json(results);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch published articles" });
+      console.error("Error fetching published articles:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch published articles",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -817,11 +873,34 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Article not found" });
       }
 
-      // Delete the article
-      const result = await db
-        .delete(articles)
-        .where(eq(articles.id, articleId))
-        .returning();
+      // Delete the article with retry mechanism
+      let retries = 0;
+      const maxRetries = 3;
+      let result = [];
+      
+      while (retries < maxRetries) {
+        try {
+          result = await db
+            .delete(articles)
+            .where(eq(articles.id, articleId))
+            .returning();
+            
+          // If we get here, the query was successful
+          break;
+        } catch (dbError) {
+          retries++;
+          console.error(`Database deletion attempt ${retries}/${maxRetries} failed:`, dbError);
+          
+          if (retries >= maxRetries) {
+            // Rethrow the error if we've exhausted retries
+            throw dbError;
+          }
+          
+          // Wait before retrying (exponential backoff)
+          const waitTime = Math.min(100 * Math.pow(2, retries), 2000); // Max 2 seconds
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
 
       console.log(`Article with ID ${articleId} successfully deleted`);
       res.json({ message: "Article deleted successfully" });
