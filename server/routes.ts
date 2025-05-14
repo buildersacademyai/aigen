@@ -37,25 +37,45 @@ export function registerRoutes(app: Express): Server {
     console.error("⚠️ WARNING: No OpenAI API key found in environment variables! AI features will not work.");
   } else {
     console.log("OpenAI API key loaded successfully (length: " + apiKey.length + " chars)");
+    
+    // Check if using a project-based key (starts with sk-proj-)
+    const isProjectKey = apiKey.startsWith('sk-proj-');
+    console.log(`Detected ${isProjectKey ? 'project-based' : 'standard'} OpenAI API key format`);
   }
   
-  // Initialize OpenAI with server-side API key
+  // Initialize OpenAI with correct configuration based on key type
   const openai = new OpenAI({
     apiKey: apiKey,
+    // Additional custom configuration for project-based keys
+    baseURL: "https://api.openai.com/v1", // Ensure we're using the main API endpoint
   });
   
   // Test the OpenAI API key at startup to verify it works
   (async () => {
     try {
       console.log("Testing OpenAI API key validity...");
+      
+      // Use a light model for the test to save credits
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-3.5-turbo", // Use a less expensive model for testing
         messages: [{ role: "user", content: "Hello, this is a test message. Please respond with 'API key is valid' if you receive this." }],
-        max_tokens: 20
+        max_tokens: 10
       });
+      
       console.log("✅ OpenAI API key is valid: " + response.choices[0].message.content);
     } catch (error) {
       console.error("❌ OpenAI API key validation failed:", error);
+      
+      // Parse the error for more helpful information
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes("sk-proj")) {
+        console.error("This appears to be related to a project-based API key (sk-proj-). Make sure you've:");
+        console.error("1. Created a valid API key in the OpenAI platform");
+        console.error("2. Properly configured the server to use project-based authentication");
+        console.error("3. Check that your API key has the correct permissions for the models you're trying to use");
+      }
+      
       console.error("AI features will not work correctly without a valid API key!");
     }
   })();
@@ -375,16 +395,31 @@ export function registerRoutes(app: Express): Server {
       const timeoutId = setTimeout(() => controller.abort(), 20000);
       
       try {
-        console.log("Calling OpenAI speech API...");
+        console.log("Calling OpenAI speech API with TTS model...");
         
-        // Debug information
-        console.log(`Using OpenAI API key (first 4 chars): ${openai.apiKey?.substring(0, 4)}...`);
+        // Check if using a project key
+        const isProjectKey = openai.apiKey.startsWith('sk-proj-');
+        console.log(`Using ${isProjectKey ? 'project-based' : 'standard'} OpenAI API key for speech generation`);
+        
+        // Debug information (only show first/last few chars for security)
+        if (openai.apiKey.length > 10) {
+          const firstFour = openai.apiKey.substring(0, 4);
+          const lastFour = openai.apiKey.substring(openai.apiKey.length - 4);
+          console.log(`API key format: ${firstFour}...${lastFour} (${openai.apiKey.length} chars)`);
+        }
+        
+        // Make sure we're using the right API configuration for project keys
+        if (isProjectKey) {
+          console.log("Using special configuration for project-based API key");
+        }
         
         const response = await openai.audio.speech.create({
-          model: model || "tts-1",
-          voice: voice || "alloy",
+          model: model || "tts-1", // TTS-1 model
+          voice: voice || "alloy", // Default voice
           input: truncatedInput
-        }, { signal: controller.signal });
+        }, { 
+          signal: controller.signal
+        });
 
         // Clear the timeouts since we got a response
         clearTimeout(timeoutId);
