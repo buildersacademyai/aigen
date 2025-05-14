@@ -55,39 +55,13 @@ export function CreateArticleForm({ address, onSuccess }: CreateArticleFormProps
 
       // Check if the article has audio
       const hasAudio = data.audioUrl && data.audioUrl.length > 0;
-      
-      // Check if audio was skipped due to API key issues
-      const audioStatus = localStorage.getItem('last_audio_generation_status');
-      const wasAudioSkipped = audioStatus === 'skipped';
-      const wasApiKeyIssue = localStorage.getItem('skip_audio_generation') === 'true';
-      
-      let title = "Success";
-      let description = "Article created with text, image, and audio narration";
-      let variant: "default" | "destructive" = "default";
-      
-      if (!hasAudio) {
-        if (wasApiKeyIssue) {
-          // API key issue
-          title = "Partial Success";
-          description = "Article created with text and image. Audio skipped due to API key issues.";
-          variant = "destructive";
-        } else if (wasAudioSkipped) {
-          // Other skipping reason
-          title = "Partial Success";
-          description = "Article created with text and image. Audio generation was skipped.";
-          variant = "destructive";
-        } else {
-          // General failure
-          title = "Partial Success";
-          description = "Article created with text and image, but audio generation failed.";
-          variant = "destructive";
-        }
-      }
 
       toast({
-        title,
-        description,
-        variant
+        title: hasAudio ? "Success" : "Partial Success",
+        description: hasAudio 
+          ? "Article created with text, image, and audio narration" 
+          : "Article created with text and image (audio generation was skipped)",
+        variant: hasAudio ? "default" : "destructive"
       });
       
       form.reset();

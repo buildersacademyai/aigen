@@ -128,12 +128,6 @@ const saveImage = async (imageUrl: string, articleId?: number): Promise<string> 
 
 const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration: number }> => {
   try {
-    // If the OpenAI API key is not set, show a friendly error
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      console.error('VITE_OPENAI_API_KEY is not set in environment');
-      throw new Error('API key configuration issue. Please check your environment settings.');
-    }
-    
     // Get the first 3000 characters to reduce the risk of OpenAI API timeouts
     // This is approximately 500-600 words or 2-3 minutes of audio
     const truncatedText = text.slice(0, 3000);
@@ -148,32 +142,22 @@ const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration:
     // Create an AbortController to handle timeouts
     const controller = new AbortController();
     
-    // Set a 25-second timeout for the client-side request (increased from 20s)
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
+    // Set a 20-second timeout for the client-side request
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     
     try {
-      console.log('Sending audio generation request to server proxy...');
-      
       // Generate speech using OpenAI (via our server proxy)
       const response = await openaiProxy.audio.speech.create({
-        model: "tts-1", // Use text-to-speech model
-        voice: "alloy", // Default voice
+        model: "tts-1",
+        voice: "alloy",
         input: finalText,
       }, { signal: controller.signal });
   
       // Clear the timeout
       clearTimeout(timeoutId);
-      
-      console.log('Speech generation response received - converting to audio blob');
   
       // Convert the response to a blob
       const audioBlob = await response.blob();
-      
-      if (!audioBlob || audioBlob.size === 0) {
-        throw new Error('Empty audio response received from server');
-      }
-      
-      console.log(`Received audio blob of size: ${audioBlob.size} bytes`);
   
       // For now, estimate duration based on word count (rough estimate)
       const wordCount = finalText.split(/\s+/).length;
@@ -188,14 +172,6 @@ const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration:
       
       // Log and rethrow to be handled by the caller
       console.error('Error in audio generation request:', audioError);
-      
-      // Determine if this is a timeout error
-      if (audioError instanceof Error && audioError.name === 'AbortError') {
-        throw new Error('Audio generation timed out. Please try again with a shorter article.');
-      } else if (audioError instanceof Error && audioError.message.includes('401')) {
-        throw new Error('API key authentication error. Please check your OpenAI API key configuration.');
-      }
-      
       throw audioError;
     }
   } catch (error) {
@@ -245,17 +221,6 @@ export const GENERATION_EVENTS = {
 };
 
 export const generationProgress = new EventTarget();
-
-/**
- * Reset the audio skip flag if it was previously set
- * Call this when you want to try audio generation again, such as after updating API keys
- */
-export function resetAudioGenerationFlag() {
-  localStorage.removeItem('skip_audio_generation');
-  localStorage.removeItem('last_audio_generation_status');
-  console.log('Audio generation skip flag has been reset. Will attempt audio generation on next article creation.');
-  return true;
-}
 
 const emitProgress = (event: string) => {
   generationProgress.dispatchEvent(new CustomEvent(event));
@@ -417,15 +382,6 @@ Summary: ${result.snippet}
     let audioDuration = 0;
     
     try {
-      // Check if we should skip audio generation due to previous API key failures
-      const skipAudio = localStorage.getItem('skip_audio_generation') === 'true';
-      if (skipAudio) {
-        console.log('Skipping audio generation due to previous API key failures');
-        emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
-        localStorage.setItem('last_audio_generation_status', 'skipped');
-        throw new Error('Audio generation skipped due to previous API key failures');
-      }
-      
       // Generate audio with a timeout of 30 seconds
       const audioPromise = generateAudio(result.content);
       
@@ -461,37 +417,18 @@ Summary: ${result.snippet}
           audioUrl = audio.url;
           audioDuration = audio.duration;
           emitProgress(GENERATION_EVENTS.AUDIO_CREATED);
-          
-          // Set a flag in localStorage for the form to check
-          localStorage.setItem('last_audio_generation_status', 'success');
-          console.log('Audio generation successful ✓');
         } else {
           console.warn('Failed to update article with audio information');
           emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
-          localStorage.setItem('last_audio_generation_status', 'failed');
         }
       } else {
         console.warn('Audio generation returned invalid data:', audio);
         emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
-        localStorage.setItem('last_audio_generation_status', 'failed');
       }
     } catch (audioError) {
       console.warn('Audio generation failed, continuing without audio:', audioError);
       // Emit a failure event so the UI can update accordingly
       emitProgress(GENERATION_EVENTS.AUDIO_FAILED);
-      // Track the failure in localStorage for the form to check
-      localStorage.setItem('last_audio_generation_status', 'failed');
-      
-      // If we can determine it's an API key issue, log it clearly and set a skip flag
-      if (audioError instanceof Error && 
-          (audioError.message.includes('API key') || 
-           audioError.message.includes('401') ||
-           audioError.message.includes('authentication'))) {
-        console.error('AUDIO GENERATION FAILED: OpenAI API key issue - please update your API key');
-        // Set a flag to skip future audio generation attempts until fixed
-        localStorage.setItem('skip_audio_generation', 'true');
-      }
-      
       // Continue without audio, the article is still created successfully
     }
     

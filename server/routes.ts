@@ -30,201 +30,10 @@ import OpenAI from "openai";
 
 
 export function registerRoutes(app: Express): Server {
-  // Get the OpenAI API key from environment variables
-  const apiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
-  
-  if (!apiKey) {
-    console.error("⚠️ WARNING: No OpenAI API key found in environment variables! AI features will not work.");
-  } else {
-    console.log("OpenAI API key loaded successfully (length: " + apiKey.length + " chars)");
-  }
-  
-  // Check if we're using a project-based API key
-  const isProjectKey = apiKey?.startsWith('sk-proj-');
-  console.log(`Detected ${isProjectKey ? 'project-based' : 'standard'} OpenAI API key format`);
-  
-  // Configure OpenAI client differently based on key type
-  // For project-based keys (sk-proj-), we need a special setup
+  // Initialize OpenAI with server-side API key
   const openai = new OpenAI({
-    apiKey: apiKey,
-    // Use the default base URL for both standard and project keys
-    // Project keys require specific headers to work properly
-    defaultHeaders: isProjectKey ? {
-      'OpenAI-Beta': 'project=v1'
-    } : undefined,
-    defaultQuery: isProjectKey ? {
-      // Some API keys may be restricted to specific projects
-      'project': 'default'
-    } : undefined,
-    // Default parameters for a more reliable experience
-    maxRetries: 1,
-    timeout: 30000, // 30 seconds
+    apiKey: process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY,
   });
-  
-  // Endpoint to update OpenAI API key
-  app.post("/api/openai/update-key", (req, res) => {
-    try {
-      const { apiKey } = req.body;
-      
-      if (!apiKey || typeof apiKey !== 'string' || apiKey.length < 20) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid API key format" 
-        });
-      }
-      
-      // Save to environment variable for current session
-      process.env.OPENAI_API_KEY = apiKey;
-      
-      // Also update openai client with new key
-      openai.apiKey = apiKey;
-      
-      // Check if it's a project-based key and update configuration
-      const newIsProjectKey = apiKey.startsWith('sk-proj-');
-      if (newIsProjectKey !== isProjectKey) {
-        isProjectKey = newIsProjectKey;
-        // Update OpenAI config with new project status
-        openai = new OpenAI({
-          apiKey,
-          baseOptions: {
-            headers: isProjectKey ? { 'OpenAI-Beta': 'project=v1' } : {},
-          },
-          maxRetries: 1,
-          timeout: 30000,
-        });
-      }
-      
-      // Reset audio generation skip flags in localStorage
-      res.json({ 
-        success: true, 
-        message: "API key updated successfully",
-        isProjectKey: isProjectKey,
-        apiKeyLength: apiKey.length,
-        apiKeyFirstChars: apiKey.substring(0, 7) 
-      });
-      
-    } catch (error) {
-      console.error("Error updating API key:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-  
-  // Create a simple test endpoint for OpenAI API key testing
-  app.get("/api/openai/test", async (req, res) => {
-    try {
-      console.log("Testing OpenAI API key via endpoint...");
-      
-      // For project-based keys, we need to try different models
-      const models = [
-        "gpt-3.5-turbo", 
-        "gpt-4",
-        "tts-1",
-        "dall-e-3"
-      ];
-      
-      // Results array to track which models work
-      const results = [];
-      
-      // Try each model and see which ones work
-      for (const model of models) {
-        try {
-          console.log(`Testing with model: ${model}`);
-          
-          if (model === "tts-1") {
-            // Test text-to-speech
-            await openai.audio.speech.create({
-              model: "tts-1",
-              voice: "alloy",
-              input: "This is a test message."
-            });
-            results.push({ model, success: true });
-          } 
-          else if (model === "dall-e-3") {
-            // Test image generation
-            await openai.images.generate({
-              model: "dall-e-3",
-              prompt: "A simple test image of a blue circle",
-              n: 1,
-              size: "1024x1024"
-            });
-            results.push({ model, success: true });
-          }
-          else {
-            // Test chat completions
-            await openai.chat.completions.create({
-              model,
-              messages: [{ role: "user", content: "Test message" }],
-              max_tokens: 5
-            });
-            results.push({ model, success: true });
-          }
-        } catch (modelError) {
-          console.error(`Failed with model ${model}:`, modelError.message);
-          results.push({ 
-            model, 
-            success: false, 
-            error: modelError.message
-          });
-        }
-      }
-      
-      res.json({
-        apiKeyFirstFour: openai.apiKey.substring(0, 4),
-        apiKeyLength: openai.apiKey.length,
-        isProjectKey,
-        results
-      });
-    } catch (error) {
-      console.error("OpenAI test endpoint error:", error);
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Unknown error",
-        isProjectKey
-      });
-    }
-  });
-  
-  // Test the OpenAI API key at startup to verify it works
-  (async () => {
-    try {
-      console.log("Testing OpenAI API key validity...");
-      
-      // For project-based keys, we need to try several models
-      // The project might only have certain models enabled
-      let testModel = "gpt-3.5-turbo";
-      
-      // Add extra details for project keys
-      console.log(`Using test model: ${testModel} with ${isProjectKey ? 'project' : 'standard'} key configuration`);
-      if (isProjectKey) {
-        console.log("OpenAI-Beta header 'project=v1' is enabled for project key");
-      }
-      
-      // Short test message to save tokens  
-      const response = await openai.chat.completions.create({
-        model: testModel,
-        messages: [{ role: "user", content: "Test message. Respond: 'API key is valid'" }],
-        max_tokens: 8
-      });
-      
-      console.log("✅ OpenAI API key is valid: " + response.choices[0].message.content);
-    } catch (error) {
-      console.error("❌ OpenAI API key validation failed:", error);
-      
-      // Parse the error for more helpful information
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      if (errorMessage.includes("sk-proj")) {
-        console.error("This appears to be related to a project-based API key (sk-proj-). Make sure you've:");
-        console.error("1. Created a valid API key in the OpenAI platform");
-        console.error("2. Properly configured the server to use project-based authentication");
-        console.error("3. Check that your API key has the correct permissions for the models you're trying to use");
-      }
-      
-      console.error("AI features will not work correctly without a valid API key!");
-    }
-  })();
 
   // Ensure public directories exist
   const setupDirectories = async () => {
@@ -501,7 +310,7 @@ export function registerRoutes(app: Express): Server {
           code: "timeout_error"
         });
       }
-    }, 25000); // 25-second global timeout
+    }, 22000); // 22-second global timeout (reduced from 28s)
     
     try {
       console.log("Processing OpenAI speech generation request");
@@ -517,67 +326,28 @@ export function registerRoutes(app: Express): Server {
         });
       }
       
-      // Check if we have a valid API key
-      if (!openai.apiKey) {
-        hasResponded = true;
-        clearTimeout(globalTimeout);
-        console.error("Missing OpenAI API key for speech generation");
-        return res.status(500).json({
-          message: "Server configuration error: Missing API key",
-          code: "missing_api_key"
-        });
-      }
-      
       // Ensure the input isn't too long (OpenAI has a 4096 character limit)
-      // We'll be more conservative with 3000 chars to reduce timeouts
+      // We'll be even more conservative with 3000 chars to reduce timeouts
       const truncatedInput = input.length > 3000
         ? input.slice(0, 3000) + "... The full article continues on the page."
         : input;
         
       console.log(`Speech input length: ${truncatedInput.length} characters`);
       
-      // Set a 20-second timeout for the OpenAI API call
+      // Set a 20-second timeout for the OpenAI API call (reduced from 25s)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
       
       try {
-        console.log("Calling OpenAI speech API with TTS model...");
-        
-        // Check if using a project key (again, for this specific call)
-        const localIsProjectKey = openai.apiKey?.startsWith('sk-proj-');
-        console.log(`Using ${localIsProjectKey ? 'project-based' : 'standard'} OpenAI API key for speech generation`);
-        
-        // Debug information (only show first/last few chars for security)
-        if (openai.apiKey && openai.apiKey.length > 10) {
-          const firstFour = openai.apiKey.substring(0, 4);
-          const lastFour = openai.apiKey.substring(openai.apiKey.length - 4);
-          console.log(`API key format: ${firstFour}...${lastFour} (${openai.apiKey.length} chars)`);
-        }
-        
-        // Create special options for project-based keys
-        const options = { 
-          signal: controller.signal,
-        };
-        
-        // The model we use for TTS needs to be explicitly allowed in the project
-        // For testing we'll use the standard TTS-1 model but can fallback to others
-        const ttsModel = model || "tts-1";
-        console.log(`Using TTS model: ${ttsModel}`);
-        
-        // Make the API call with the appropriate configuration
         const response = await openai.audio.speech.create({
-          model: ttsModel,
-          voice: voice || "alloy", // Default voice
-          input: truncatedInput,
-          // For project keys, we need to include response_format
-          response_format: "mp3"
-        }, options);
+          model: model || "tts-1",
+          voice: voice || "alloy",
+          input: truncatedInput
+        }, { signal: controller.signal });
 
         // Clear the timeouts since we got a response
         clearTimeout(timeoutId);
         clearTimeout(globalTimeout);
-        
-        console.log("OpenAI speech generation successful!");
 
         if (hasResponded) {
           // If we've already responded due to timeout, stop here
