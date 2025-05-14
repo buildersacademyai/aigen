@@ -128,9 +128,9 @@ const saveImage = async (imageUrl: string, articleId?: number): Promise<string> 
 
 const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration: number }> => {
   try {
-    // Get the first 4000 characters to avoid OpenAI API length limits
-    // This is approximately 600-800 words or 3-4 minutes of audio
-    const truncatedText = text.slice(0, 4000);
+    // Get the first 3000 characters to reduce the risk of OpenAI API timeouts
+    // This is approximately 500-600 words or 2-3 minutes of audio
+    const truncatedText = text.slice(0, 3000);
     
     // Add a note if we truncated the text
     const finalText = truncatedText.length < text.length
@@ -139,24 +139,41 @@ const generateAudio = async (text: string): Promise<{ audioBlob: Blob, duration:
     
     console.log(`Generating audio for text of length: ${finalText.length} chars`);
     
-    // Generate speech using OpenAI (via our server proxy)
-    const response = await openaiProxy.audio.speech.create({
-      model: "tts-1",
-      voice: "alloy",
-      input: finalText,
-    });
-
-    // Convert the response to a blob
-    const audioBlob = await response.blob();
-
-    // For now, estimate duration based on word count (rough estimate)
-    const wordCount = finalText.split(/\s+/).length;
-    const estimatedDuration = Math.ceil(wordCount * 0.4); // Average speaking rate
-
-    return {
-      audioBlob,
-      duration: estimatedDuration
-    };
+    // Create an AbortController to handle timeouts
+    const controller = new AbortController();
+    
+    // Set a 20-second timeout for the client-side request
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    
+    try {
+      // Generate speech using OpenAI (via our server proxy)
+      const response = await openaiProxy.audio.speech.create({
+        model: "tts-1",
+        voice: "alloy",
+        input: finalText,
+      }, { signal: controller.signal });
+  
+      // Clear the timeout
+      clearTimeout(timeoutId);
+  
+      // Convert the response to a blob
+      const audioBlob = await response.blob();
+  
+      // For now, estimate duration based on word count (rough estimate)
+      const wordCount = finalText.split(/\s+/).length;
+      const estimatedDuration = Math.ceil(wordCount * 0.4); // Average speaking rate
+  
+      return {
+        audioBlob,
+        duration: estimatedDuration
+      };
+    } catch (audioError) {
+      clearTimeout(timeoutId);
+      
+      // Log and rethrow to be handled by the caller
+      console.error('Error in audio generation request:', audioError);
+      throw audioError;
+    }
   } catch (error) {
     console.error('Error generating audio:', error);
     throw new Error(`Failed to generate audio: ${error instanceof Error ? error.message : 'Unknown error'}`);

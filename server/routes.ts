@@ -310,22 +310,33 @@ export function registerRoutes(app: Express): Server {
           code: "timeout_error"
         });
       }
-    }, 28000); // 28-second global timeout
+    }, 22000); // 22-second global timeout (reduced from 28s)
     
     try {
       console.log("Processing OpenAI speech generation request");
       const { model, voice, input } = req.body;
       
+      // Make sure we have valid input
+      if (!input || typeof input !== 'string' || input.trim().length === 0) {
+        hasResponded = true;
+        clearTimeout(globalTimeout);
+        return res.status(400).json({
+          message: "Missing or invalid input text for speech generation",
+          code: "invalid_input"
+        });
+      }
+      
       // Ensure the input isn't too long (OpenAI has a 4096 character limit)
-      const truncatedInput = typeof input === 'string' && input.length > 4000
-        ? input.slice(0, 4000) + "... The full article continues on the page."
+      // We'll be even more conservative with 3000 chars to reduce timeouts
+      const truncatedInput = input.length > 3000
+        ? input.slice(0, 3000) + "... The full article continues on the page."
         : input;
         
       console.log(`Speech input length: ${truncatedInput.length} characters`);
       
-      // Set a 25-second timeout for the OpenAI API call
+      // Set a 20-second timeout for the OpenAI API call (reduced from 25s)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
       
       try {
         const response = await openai.audio.speech.create({
