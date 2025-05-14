@@ -40,10 +40,22 @@ export function Profile({ address }: ProfileProps) {
         method: "DELETE",
       });
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete article");
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to delete article");
+        } catch (jsonError) {
+          // If response is not JSON, use status text
+          throw new Error(`Failed to delete article: ${response.statusText}`);
+        }
       }
-      return response.json();
+      
+      try {
+        // Try to parse JSON, but don't fail if it's not valid JSON
+        return await response.json();
+      } catch (e) {
+        // Return a default success message if response is not JSON
+        return { message: "Article deleted successfully" };
+      }
     },
     onSuccess: () => {
       toast({
