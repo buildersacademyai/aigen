@@ -58,13 +58,20 @@ export function Profile({ address }: ProfileProps) {
       }
     },
     onSuccess: () => {
+      console.log("Delete mutation succeeded, invalidating queries...");
       toast({
         title: "Success",
         description: "Article deleted successfully",
       });
-      // Invalidate both drafts and published queries to refresh the lists
-      queryClient.invalidateQueries({ queryKey: [`/api/articles/drafts/${address}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/articles/published/${address}`] });
+      
+      // Force a hard reset of the cache for these queries
+      queryClient.resetQueries({ queryKey: [`/api/articles/drafts/${address}`] });
+      queryClient.resetQueries({ queryKey: [`/api/articles/published/${address}`] });
+      
+      // Force a window reload to ensure UI is updated
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     },
     onError: (error) => {
       toast({

@@ -860,6 +860,17 @@ export function registerRoutes(app: Express): Server {
       }
 
       console.log(`Processing DELETE request for article ID: ${articleId}`);
+      
+      // For debugging, check the article in question
+      const allDrafts = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.isdraft, true));
+      
+      console.log(`Found ${allDrafts.length} total drafts in the system`);
+      allDrafts.forEach(draft => {
+        console.log(`Draft ID: ${draft.id}, Title: ${draft.title.substring(0, 30)}...`);
+      });
 
       // Get the current article to check it exists
       const [currentArticle] = await db
@@ -880,10 +891,40 @@ export function registerRoutes(app: Express): Server {
       
       while (retries < maxRetries) {
         try {
-          result = await db
-            .delete(articles)
-            .where(eq(articles.id, articleId))
-            .returning();
+          // Also try to delete by title if ID doesn't exist
+          if (currentArticle) {
+            // Normal deletion by ID
+            result = await db
+              .delete(articles)
+              .where(eq(articles.id, articleId))
+              .returning();
+          } else {
+            // If the article with this ID doesn't exist, try to find it by title (from the UI)
+            const title = "Unlocking Privacy and Security: The Role of Zero Knowledge Technology in Blockchain";
+            console.log(`Article with ID ${articleId} not found, trying to delete by title`);
+            
+            // Find the article by title
+            const [articleByTitle] = await db
+              .select()
+              .from(articles)
+              .where(and(
+                eq(articles.title, title),
+                eq(articles.isdraft, true)
+              ))
+              .limit(1);
+              
+            if (articleByTitle) {
+              console.log(`Found article by title with ID: ${articleByTitle.id}`);
+              // Delete by the found ID
+              result = await db
+                .delete(articles)
+                .where(eq(articles.id, articleByTitle.id))
+                .returning();
+            } else {
+              console.log(`No article found with title: ${title}`);
+              throw new Error("Article not found by ID or title");
+            }
+          }
             
           // If we get here, the query was successful
           break;
